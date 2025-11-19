@@ -23,7 +23,6 @@ type AnalyticsFilter struct {
 type ClickRepository interface {
 	Save(ctx context.Context, click *domain.ClickEvent) error
 
-	// Базовые метрики
 	CountTotal(ctx context.Context, filter AnalyticsFilter) (int64, error)
 
 	// Для Streamgraph / Stacked Area Chart
