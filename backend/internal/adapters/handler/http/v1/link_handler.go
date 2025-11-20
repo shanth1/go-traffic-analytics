@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/shanth1/gotrace/internal/core/services"
+	"github.com/shanth1/gotrace/internal/utils"
 )
 
 type LinkHandler struct {

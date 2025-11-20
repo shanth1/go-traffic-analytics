@@ -10,7 +10,6 @@ import (
 
 type AdminHandler struct {
 	userService *services.UserService // Нужен отдельный сервис для управления юзерами
-	planService *services.PlanService // Для чтения планов (если он выделен)
 }
 
 func NewAdminHandler(u *services.UserService) *AdminHandler {
@@ -66,7 +65,6 @@ func (h *AdminHandler) UpdateUserPlan(c echo.Context) error {
 }
 
 func (h *AdminHandler) GetPlans(c echo.Context) error {
-	// Предполагаем наличие метода в userService или planService
 	plans, err := h.userService.GetAllPlans(c.Request().Context())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

@@ -3,6 +3,9 @@ package http
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
+	myMiddleware "github.com/shanth1/gotrace/internal/adapters/handler/http/middleware"
+	v1 "github.com/shanth1/gotrace/internal/adapters/handler/http/v1"
 )
 
 func NewRouter(
@@ -13,15 +16,15 @@ func NewRouter(
 	analyticsH *v1.AnalyticsHandler,
 	adminH *v1.AdminHandler,
 	quotaMW *myMiddleware.QuotaMiddleware,
-	authMW echo.MiddlewareFunc, // JWT Middleware
-	adminMW echo.MiddlewareFunc, // Admin Only Middleware
+	authMW echo.MiddlewareFunc,
+	adminMW echo.MiddlewareFunc,
 ) {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 
 	// --- Public Routes ---
-	e.GET("/:slug", redirectH.Redirect, quotaMW.CheckClickLimit) // <-- Главный роут с проверкой квот
+	e.GET("/:slug", redirectH.Redirect, quotaMW.CheckClickLimit)
 
 	api := e.Group("/api/v1")
 
@@ -43,17 +46,16 @@ func NewRouter(
 
 	// Analytics (Visx Ready)
 	client.GET("/analytics/summary", analyticsH.GetSummary)
-	client.GET("/analytics/stream", analyticsH.GetStreamGraph)   // Area Chart / Stream
-	client.GET("/analytics/flow", analyticsH.GetSankeyFlow)      // Sankey
-	client.GET("/analytics/geo", analyticsH.GetGeoMap)           // Map
-	client.GET("/analytics/quality", analyticsH.GetQualityRadar) // Radar
+	client.GET("/analytics/stream", analyticsH.GetStreamGraph)
+	client.GET("/analytics/flow", analyticsH.GetSankeyFlow)
+	client.GET("/analytics/geo", analyticsH.GetGeoMap)
+	client.GET("/analytics/quality", analyticsH.GetQualityRadar)
 
 	// --- Admin Routes (Protected + Admin Role) ---
 	admin := api.Group("/admin", authMW, adminMW)
 
 	admin.GET("/users", adminH.GetUsers)
-	admin.PATCH("/users/:id/status", adminH.UpdateUserStatus) // Ban/Unban
+	admin.PATCH("/users/:id/status", adminH.UpdateUserStatus)
 	admin.PATCH("/users/:id/plan", adminH.UpdateUserPlan)
 	admin.GET("/plans", adminH.GetPlans)
-	// admin.PUT("/plans", adminH.UpdatePlan) // (Optional)
 }

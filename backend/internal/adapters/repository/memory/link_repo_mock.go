@@ -3,7 +3,6 @@ package memory
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/shanth1/gotrace/internal/core/domain"
@@ -67,5 +66,13 @@ func (r *InMemoryLinkRepo) FindAllByCampaignID(ctx context.Context, campaignID s
 }
 
 func (r *InMemoryLinkRepo) CountByUserID(ctx context.Context, userID string) (int64, error) {
-	return 0, fmt.Errorf("not implemented")
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	var count int64
+	for _, l := range r.links {
+		if l.UserID == userID {
+			count++
+		}
+	}
+	return count, nil
 }
