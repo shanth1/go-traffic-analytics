@@ -52,3 +52,15 @@ func (r *InMemoryLinkRepo) FindAll(ctx context.Context) ([]*domain.Link, error) 
 	}
 	return result, nil
 }
+
+func (r *InMemoryLinkRepo) FindAllByCampaignID(ctx context.Context, campaignID string) ([]*domain.Link, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	result := make([]*domain.Link, 0, len(r.links))
+	for _, v := range r.links {
+		if v.CampaignID == campaignID {
+			result = append(result, v)
+		}
+	}
+	return result, nil
+}

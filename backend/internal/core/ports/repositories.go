@@ -7,10 +7,26 @@ import (
 	"github.com/shanth1/gotrace/internal/core/domain"
 )
 
+type UserRepository interface {
+	Save(ctx context.Context, user *domain.User) error
+	FindByID(ctx context.Context, id string) (*domain.User, error)
+	FindByEmail(ctx context.Context, email string) (*domain.User, error)
+	// Для админки:
+	FindAll(ctx context.Context, limit, offset int) ([]*domain.User, error)
+}
+
+type CampaignRepository interface {
+	Save(ctx context.Context, campaign *domain.Campaign) error
+	FindByID(ctx context.Context, id string) (*domain.Campaign, error)
+	FindAllByUserID(ctx context.Context, userID string) ([]*domain.Campaign, error)
+	Delete(ctx context.Context, id string) error
+}
+
 type LinkRepository interface {
 	Save(ctx context.Context, link *domain.Link) error
 	FindBySlug(ctx context.Context, slug string) (*domain.Link, error)
 	FindAll(ctx context.Context) ([]*domain.Link, error)
+	FindAllByCampaignID(ctx context.Context, campaignID string) ([]*domain.Link, error)
 }
 
 type AnalyticsFilter struct {

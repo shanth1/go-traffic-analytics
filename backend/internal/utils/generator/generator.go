@@ -12,67 +12,103 @@ import (
 )
 
 type DataSeeder struct {
-	LinkRepo  ports.LinkRepository
-	ClickRepo ports.ClickRepository
+	UserRepo     ports.UserRepository
+	CampaignRepo ports.CampaignRepository
+	LinkRepo     ports.LinkRepository
+	ClickRepo    ports.ClickRepository
 }
 
-func (s *DataSeeder) Seed(campaignCount, linksPerCampaign, clicksPerLink int) {
+func (s *DataSeeder) SeedFullTopology() {
 	ctx := context.Background()
+	fmt.Println("🌱 Starting Full Topology Seeding...")
 
-	// Словари для генерации
-	referers := []string{"Google", "Facebook", "Twitter", "Direct", "Email Newsletter"}
-	osList := []string{"iOS", "Android", "Windows", "MacOS", "Linux"}
-	countries := []string{"US", "DE", "GB", "FR", "IN", "BR", "JP"}
+	// 1. Create Admin User
+	admin := &domain.User{
+		ID:           uuid.New().String(),
+		Email:        "admin@tracebit.com",
+		PasswordHash: "$2a$10$...", // mock hash for 'password'
+		Role:         domain.RoleAdmin,
+		IsActive:     true,
+		CreatedAt:    time.Now(),
+	}
+	_ = s.UserRepo.Save(ctx, admin)
+	fmt.Printf("👤 Created Admin: %s\n", admin.Email)
 
-	// 1. Создаем кампании (пока просто логически, если нет репо кампаний)
-	// ...
+	// 2. Create Client User
+	client := &domain.User{
+		ID:           uuid.New().String(),
+		Email:        "client@example.com", // Этот email можно использовать для входа на фронте
+		PasswordHash: "$2a$10$...",
+		Role:         domain.RoleClient,
+		IsActive:     true,
+		CreatedAt:    time.Now(),
+	}
+	_ = s.UserRepo.Save(ctx, client)
+	fmt.Printf("👤 Created Client: %s\n", client.Email)
 
-	// 2. Создаем ссылки
-	for i := 0; i < linksPerCampaign; i++ {
+	// 3. Create Campaigns for Client
+	campaignNames := []string{"Black Friday 2024", "Summer Sale", "Influencer Integrations"}
+
+	for _, name := range campaignNames {
+		campID := uuid.New().String()
+		campaign := &domain.Campaign{
+			ID:        campID,
+			UserID:    client.ID,
+			Name:      name,
+			CreatedAt: time.Now(),
+		}
+		_ = s.CampaignRepo.Save(ctx, campaign)
+
+		// 4. Create Links inside Campaign
+		s.seedLinksForCampaign(ctx, campID)
+	}
+
+	fmt.Println("✅ Seeding completed!")
+}
+
+func (s *DataSeeder) seedLinksForCampaign(ctx context.Context, campaignID string) {
+	// Генерация 3-5 ссылок на кампанию
+	linksCount := rand.Intn(3) + 3
+
+	for i := 0; i < linksCount; i++ {
 		linkID := uuid.New().String()
 		link := &domain.Link{
-			ID:        linkID,
-			Slug:      fmt.Sprintf("promo-%d", rand.Intn(10000)),
-			TargetURL: "https://example.com",
-			CreatedAt: time.Now().AddDate(0, -1, 0),
+			ID:         linkID,
+			CampaignID: campaignID,
+			Slug:       fmt.Sprintf("lnk-%s-%d", campaignID[:4], i), // ex: lnk-a1b2-0
+			TargetURL:  "https://google.com",
+			IsActive:   true,
+			CreatedAt:  time.Now(),
 		}
 		_ = s.LinkRepo.Save(ctx, link)
 
-		// 3. Генерируем клики (Волна трафика)
-		// Симулируем последние 7 дней
-		now := time.Now()
-		for j := 0; j < clicksPerLink; j++ {
-			// Случайное время за последние 7 дней
-			// Добавляем "вес" времени, чтобы днем было больше кликов (синусоида)
-			daysAgo := rand.Intn(7)
-			hour := rand.Intn(24)
+		// 5. Generate Traffic (Clicks)
+		// Генерируем от 50 до 500 кликов на ссылку
+		clicksCount := rand.Intn(450) + 50
+		s.seedClicksForLink(ctx, linkID, clicksCount)
+	}
+}
 
-			// Простой хак: если час ночь (0-6), пропускаем с вероятностью 80%
-			if hour < 6 && rand.Float32() > 0.2 {
-				continue
-			}
+func (s *DataSeeder) seedClicksForLink(ctx context.Context, linkID string, count int) {
+	referers := []string{"Facebook", "Twitter", "Instagram", "Google Search", "Direct"}
+	countries := []string{"US", "DE", "FR", "GB", "JP", "BR"}
 
-			ts := now.AddDate(0, 0, -daysAgo).Add(time.Duration(hour)*time.Hour + time.Duration(rand.Intn(60))*time.Minute)
+	now := time.Now()
 
-			// Корреляция данных (Если iOS, то скорее всего Mobile)
-			os := osList[rand.Intn(len(osList))]
-			device := "Desktop"
-			if os == "iOS" || os == "Android" {
-				device = "Mobile"
-			}
+	for i := 0; i < count; i++ {
+		daysAgo := rand.Intn(14)
+		fakeTime := now.AddDate(0, 0, -daysAgo).Add(time.Duration(rand.Intn(24)) * time.Hour)
 
-			click := &domain.ClickEvent{
-				ID:        uuid.New().String(),
-				LinkID:    linkID,
-				Timestamp: ts,
-				IP:        "192.168.1.1", // Fake
-				Country:   countries[rand.Intn(len(countries))],
-				OS:        os,
-				Device:    device,
-				Referer:   referers[rand.Intn(len(referers))],
-			}
-
-			_ = s.ClickRepo.Save(ctx, click)
-		}
+		_ = s.ClickRepo.Save(ctx, &domain.ClickEvent{
+			ID:        uuid.New().String(),
+			LinkID:    linkID,
+			Timestamp: fakeTime,
+			IP:        fmt.Sprintf("10.0.%d.%d", rand.Intn(255), rand.Intn(255)),
+			Country:   countries[rand.Intn(len(countries))],
+			OS:        "iOS",
+			Browser:   "Safari",
+			Device:    "Mobile",
+			Referer:   referers[rand.Intn(len(referers))],
+		})
 	}
 }
