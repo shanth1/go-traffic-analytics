@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/shanth1/gotrace/internal/core/domain"
@@ -63,4 +64,8 @@ func (r *InMemoryLinkRepo) FindAllByCampaignID(ctx context.Context, campaignID s
 		}
 	}
 	return result, nil
+}
+
+func (r *InMemoryLinkRepo) CountByUserID(ctx context.Context, userID string) (int64, error) {
+	return 0, fmt.Errorf("not implemented")
 }

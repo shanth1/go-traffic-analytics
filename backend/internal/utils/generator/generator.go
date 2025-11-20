@@ -16,6 +16,7 @@ type DataSeeder struct {
 	CampaignRepo ports.CampaignRepository
 	LinkRepo     ports.LinkRepository
 	ClickRepo    ports.ClickRepository
+	PlanRepo     ports.PlanRepository
 }
 
 func (s *DataSeeder) SeedFullTopology() {
@@ -29,6 +30,7 @@ func (s *DataSeeder) SeedFullTopology() {
 		PasswordHash: "$2a$10$...", // mock hash for 'password'
 		Role:         domain.RoleAdmin,
 		IsActive:     true,
+		PlanID:       "enterprise", // TODO: consts
 		CreatedAt:    time.Now(),
 	}
 	_ = s.UserRepo.Save(ctx, admin)
@@ -40,6 +42,7 @@ func (s *DataSeeder) SeedFullTopology() {
 		Email:        "client@example.com", // Этот email можно использовать для входа на фронте
 		PasswordHash: "$2a$10$...",
 		Role:         domain.RoleClient,
+		PlanID:       "free", // TODO: consts
 		IsActive:     true,
 		CreatedAt:    time.Now(),
 	}

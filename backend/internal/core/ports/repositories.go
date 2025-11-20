@@ -22,11 +22,19 @@ type CampaignRepository interface {
 	Delete(ctx context.Context, id string) error
 }
 
+type PlanRepository interface {
+	FindByID(ctx context.Context, id string) (*domain.Plan, error)
+	FindDefault(ctx context.Context) (*domain.Plan, error) // Обычно "free"
+	FindAll(ctx context.Context) ([]*domain.Plan, error)
+	Save(ctx context.Context, plan *domain.Plan) error // Для админа/сидера
+}
+
 type LinkRepository interface {
 	Save(ctx context.Context, link *domain.Link) error
 	FindBySlug(ctx context.Context, slug string) (*domain.Link, error)
 	FindAll(ctx context.Context) ([]*domain.Link, error)
 	FindAllByCampaignID(ctx context.Context, campaignID string) ([]*domain.Link, error)
+	CountByUserID(ctx context.Context, userID string) (int64, error)
 }
 
 type AnalyticsFilter struct {
