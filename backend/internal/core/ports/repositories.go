@@ -11,8 +11,8 @@ type UserRepository interface {
 	Save(ctx context.Context, user *domain.User) error
 	FindByID(ctx context.Context, id string) (*domain.User, error)
 	FindByEmail(ctx context.Context, email string) (*domain.User, error)
-	// Для админки:
 	FindAll(ctx context.Context, limit, offset int) ([]*domain.User, error)
+	IncrementClickCount(ctx context.Context, userID string) error
 }
 
 type CampaignRepository interface {

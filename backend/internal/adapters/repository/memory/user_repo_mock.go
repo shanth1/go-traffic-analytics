@@ -72,3 +72,16 @@ func (r *InMemoryUserRepo) FindAll(ctx context.Context, limit, offset int) ([]*d
 	}
 	return result, nil
 }
+
+func (r *InMemoryUserRepo) IncrementClickCount(ctx context.Context, userID string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	user, ok := r.users[userID]
+	if !ok {
+		return errors.New("user not found")
+	}
+
+	user.ClicksCurrentMonth++
+	return nil
+}
