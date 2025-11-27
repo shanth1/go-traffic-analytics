@@ -145,7 +145,8 @@ func (r *InMemoryClickRepo) GetFlowData(ctx context.Context, filter ports.Analyt
 	for k, v := range linksMap {
 		// Парсим ключ обратно (в проде лучше структуру использовать как ключ мапы)
 		var src, tgt string
-		fmt.Sscanf(k, "%s|%s", &src, &tgt) // Упрощено, лучше split string
+		_, _ = fmt.Sscanf(k, "%s|%s", &src, &tgt) // Упрощено, лучше split string
+
 		// *Фикс для парсинга, так как | может быть разделителем
 		// Тут лучше использовать strings.Split(k, "|")
 
