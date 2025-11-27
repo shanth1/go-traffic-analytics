@@ -1,73 +1,89 @@
 package v1
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
-	"github.com/labstack/echo/v4"
+	"github.com/go-chi/chi/v5"
 	"github.com/shanth1/gotrace/internal/core/services"
 )
 
 type AdminHandler struct {
-	userService *services.UserService // Нужен отдельный сервис для управления юзерами
+	userService *services.UserService
 }
 
 func NewAdminHandler(u *services.UserService) *AdminHandler {
 	return &AdminHandler{userService: u}
 }
 
-func (h *AdminHandler) GetUsers(c echo.Context) error {
-	page, _ := strconv.Atoi(c.QueryParam("page"))
+// --- Handlers ---
+
+func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
+	pageStr := r.URL.Query().Get("page")
+	page, _ := strconv.Atoi(pageStr)
 	if page < 1 {
 		page = 1
 	}
 	limit := 20
 
-	users, err := h.userService.GetAllUsers(c.Request().Context(), page, limit)
+	users, err := h.userService.GetAllUsers(r.Context(), page, limit)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{"data": users})
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{"data": users})
 }
 
 type updateUserStatusReq struct {
 	IsActive bool `json:"is_active"`
 }
 
-func (h *AdminHandler) UpdateUserStatus(c echo.Context) error {
-	id := c.Param("id")
+func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
 	var req updateUserStatusReq
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "bad request"})
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, "bad request")
+		return
 	}
 
-	if err := h.userService.SetUserStatus(c.Request().Context(), id, req.IsActive); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	if err := h.userService.SetUserStatus(r.Context(), id, req.IsActive); err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	return c.JSON(http.StatusOK, map[string]string{"status": "updated"})
+
+	respondJSON(w, http.StatusOK, map[string]string{"status": "updated"})
 }
 
 type updateUserPlanReq struct {
 	PlanID string `json:"plan_id"`
 }
 
-func (h *AdminHandler) UpdateUserPlan(c echo.Context) error {
-	id := c.Param("id")
+func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
 	var req updateUserPlanReq
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "bad request"})
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, "bad request")
+		return
 	}
 
-	if err := h.userService.ChangeUserPlan(c.Request().Context(), id, req.PlanID); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	if err := h.userService.ChangeUserPlan(r.Context(), id, req.PlanID); err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	return c.JSON(http.StatusOK, map[string]string{"status": "updated"})
+
+	respondJSON(w, http.StatusOK, map[string]string{"status": "updated"})
 }
 
-func (h *AdminHandler) GetPlans(c echo.Context) error {
-	plans, err := h.userService.GetAllPlans(c.Request().Context())
+func (h *AdminHandler) GetPlans(w http.ResponseWriter, r *http.Request) {
+	plans, err := h.userService.GetAllPlans(r.Context())
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{"data": plans})
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{"data": plans})
 }

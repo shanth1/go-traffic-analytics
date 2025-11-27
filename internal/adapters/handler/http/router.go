@@ -1,61 +1,85 @@
 package http
 
 import (
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 
 	myMiddleware "github.com/shanth1/gotrace/internal/adapters/handler/http/middleware"
 	v1 "github.com/shanth1/gotrace/internal/adapters/handler/http/v1"
 )
 
 func NewRouter(
-	e *echo.Echo,
 	authH *v1.AuthHandler,
 	linkH *v1.LinkHandler,
 	redirectH *v1.RedirectHandler,
 	analyticsH *v1.AnalyticsHandler,
 	adminH *v1.AdminHandler,
 	quotaMW *myMiddleware.QuotaMiddleware,
-	authMW echo.MiddlewareFunc,
-	adminMW echo.MiddlewareFunc,
-) {
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-	e.Use(middleware.CORS())
+	authMW func(http.Handler) http.Handler,
+	adminMW func(http.Handler) http.Handler,
+) http.Handler {
+	r := chi.NewRouter()
+
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
 
 	// --- Public Routes ---
-	e.GET("/:slug", redirectH.Redirect, quotaMW.CheckClickLimit)
+	r.With(quotaMW.CheckClickLimit).Get("/{slug}", redirectH.Redirect)
 
-	api := e.Group("/api/v1")
+	// --- API v1 Group ---
+	r.Route("/api/v1", func(r chi.Router) {
+		// --- Auth Routes (Public) ---
+		r.Route("/auth", func(r chi.Router) {
+			r.Post("/register", authH.Register)
+			r.Post("/login", authH.Login)
+		})
 
-	// Auth
-	api.POST("/auth/register", authH.Register)
-	api.POST("/auth/login", authH.Login)
+		// --- Client Routes (Protected) ---
+		r.Group(func(r chi.Router) {
+			r.Use(authMW)
 
-	// --- Client Routes (Protected) ---
-	client := api.Group("", authMW)
+			// Campaigns
+			r.Get("/campaigns", linkH.GetCampaigns)
+			r.Post("/campaigns", linkH.CreateCampaign)
 
-	// Campaigns
-	client.GET("/campaigns", linkH.GetCampaigns)
-	client.POST("/campaigns", linkH.CreateCampaign)
+			// Links
+			r.Get("/campaigns/{id}/links", linkH.GetLinksByCampaign)
+			r.Post("/links", linkH.CreateLink)
+			r.Delete("/links/{id}", linkH.DeleteLink)
 
-	// Links
-	client.GET("/campaigns/:id/links", linkH.GetLinksByCampaign)
-	client.POST("/links", linkH.CreateLink)
-	client.DELETE("/links/:id", linkH.DeleteLink)
+			// Analytics (Visx Ready)
+			r.Route("/analytics", func(r chi.Router) {
+				r.Get("/summary", analyticsH.GetSummary)
+				r.Get("/stream", analyticsH.GetStreamGraph)
+				r.Get("/flow", analyticsH.GetSankeyFlow)
+				r.Get("/geo", analyticsH.GetGeoMap)
+				r.Get("/quality", analyticsH.GetQualityRadar)
+			})
+		})
 
-	// Analytics (Visx Ready)
-	client.GET("/analytics/summary", analyticsH.GetSummary)
-	client.GET("/analytics/stream", analyticsH.GetStreamGraph)
-	client.GET("/analytics/flow", analyticsH.GetSankeyFlow)
-	client.GET("/analytics/geo", analyticsH.GetGeoMap)
-	client.GET("/analytics/quality", analyticsH.GetQualityRadar)
+		// --- Admin Routes (Protected + Admin Role) ---
+		r.Group(func(r chi.Router) {
+			r.Use(authMW, adminMW)
 
-	// --- Admin Routes (Protected + Admin Role) ---
-	admin := api.Group("/admin", authMW, adminMW)
+			r.Route("/admin", func(r chi.Router) {
+				r.Get("/users", adminH.GetUsers)
+				r.Patch("/users/{id}/status", adminH.UpdateUserStatus)
+				r.Patch("/users/{id}/plan", adminH.UpdateUserPlan)
+				r.Get("/plans", adminH.GetPlans)
+			})
+		})
+	})
 
-	admin.GET("/users", adminH.GetUsers)
-	admin.PATCH("/users/:id/status", adminH.UpdateUserStatus)
-	admin.PATCH("/users/:id/plan", adminH.UpdateUserPlan)
-	admin.GET("/plans", adminH.GetPlans)
+	return r
 }

@@ -1,9 +1,9 @@
 package v1
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
 	"github.com/shanth1/gotrace/internal/core/services"
 )
 
@@ -25,32 +25,40 @@ type loginReq struct {
 	Password string `json:"password"`
 }
 
-func (h *AuthHandler) Register(c echo.Context) error {
+// POST /auth/register
+func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req registerReq
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, "invalid request")
+		return
 	}
 
-	user, err := h.service.Register(c.Request().Context(), req.Email, req.Password)
+	user, err := h.service.Register(r.Context(), req.Email, req.Password)
 	if err != nil {
-		return c.JSON(http.StatusConflict, map[string]string{"error": err.Error()})
+		// Conflict обычно используется если email уже занят
+		respondError(w, http.StatusConflict, err.Error())
+		return
 	}
 
-	return c.JSON(http.StatusCreated, user)
+	respondJSON(w, http.StatusCreated, user)
 }
 
-func (h *AuthHandler) Login(c echo.Context) error {
+// POST /auth/login
+func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req loginReq
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, "invalid request")
+		return
 	}
 
-	token, user, err := h.service.Login(c.Request().Context(), req.Email, req.Password)
+	token, user, err := h.service.Login(r.Context(), req.Email, req.Password)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "invalid credentials"})
+		respondError(w, http.StatusUnauthorized, "invalid credentials")
+		return
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	respondJSON(w, http.StatusOK, map[string]interface{}{
 		"token": token,
 		"user":  user,
 	})

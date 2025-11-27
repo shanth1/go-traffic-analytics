@@ -1,81 +1,50 @@
 package main
 
 import (
-	"log"
+	"flag"
+	"time"
 
-	"github.com/labstack/echo/v4"
-
+	"github.com/shanth1/gotools/conf"
+	"github.com/shanth1/gotools/consts"
+	"github.com/shanth1/gotools/ctx"
+	"github.com/shanth1/gotools/flags"
+	"github.com/shanth1/gotools/log"
+	"github.com/shanth1/gotrace/internal/app"
 	"github.com/shanth1/gotrace/internal/config"
-	"github.com/shanth1/gotrace/internal/utils/generator"
-
-	// Repositories
-	"github.com/shanth1/gotrace/internal/adapters/repository/memory"
-
-	// Services
-	"github.com/shanth1/gotrace/internal/core/services"
-
-	// Handlers & Middleware
-	handler "github.com/shanth1/gotrace/internal/adapters/handler/http"
-	mw "github.com/shanth1/gotrace/internal/adapters/handler/http/middleware"
-	v1 "github.com/shanth1/gotrace/internal/adapters/handler/http/v1"
 )
 
+type Flags struct {
+	ConfigPath string `flag:"config" usage:"Path to the YAML config file"`
+}
+
 func main() {
-	// 1. Config
-	cfg := config.LoadConfig()
+	ctx, shutdownCtx, cancel, shutdownCancel := ctx.WithGracefulShutdown(5 * time.Second)
+	defer cancel()
+	defer shutdownCancel()
 
-	// 2. Repositories (In-Memory)
-	userRepo := memory.NewUserRepo()
-	campRepo := memory.NewCampaignRepo()
-	linkRepo := memory.NewLinkRepo()
-	clickRepo := memory.NewClickRepo()
-	planRepo := memory.NewPlanRepo()
+	logger := log.New()
 
-	// 3. Services
-	authService := services.NewAuthService(userRepo, planRepo, cfg)
-	linkService := services.NewLinkService(linkRepo, campRepo, userRepo, planRepo)
-	redirectService := services.NewRedirectService(linkRepo, clickRepo, userRepo)
-	analyticsService := services.NewAnalyticsService(clickRepo)
-	userService := services.NewUserService(userRepo, planRepo)
-
-	// 4. Handlers
-	authHandler := v1.NewAuthHandler(authService)
-	linkHandler := v1.NewLinkHandler(linkService)
-	redirectHandler := v1.NewRedirectHandler(redirectService)
-	analyticsHandler := v1.NewAnalyticsHandler(analyticsService)
-	adminHandler := v1.NewAdminHandler(userService)
-
-	// 5. Middleware
-	quotaMW := mw.NewQuotaMiddleware(linkRepo, userRepo, planRepo)
-	jwtMW := handler.InitJWTMiddleware(cfg)
-	adminMW := handler.InitAdminMiddleware()
-
-	// 6. Seeding Data (Optional, for dev convenience)
-	seeder := &generator.DataSeeder{
-		UserRepo:     userRepo,
-		CampaignRepo: campRepo,
-		LinkRepo:     linkRepo,
-		ClickRepo:    clickRepo,
-		PlanRepo:     planRepo,
+	flagCfg := &Flags{}
+	if err := flags.RegisterFromStruct(flagCfg); err != nil {
+		logger.Fatal().Err(err).Msg("register flags")
 	}
-	seeder.SeedFullTopology()
+	flag.Parse()
 
-	// 7. Server
-	e := echo.New()
+	cfg := &config.Config{}
+	if err := conf.Load(flagCfg.ConfigPath, cfg); err != nil {
+		logger.Fatal().Err(err).Msg("load config")
+	}
 
-	// Init Router
-	handler.NewRouter(
-		e,
-		authHandler,
-		linkHandler,
-		redirectHandler,
-		analyticsHandler,
-		adminHandler,
-		quotaMW,
-		jwtMW,
-		adminMW,
-	)
+	logger = logger.WithOptions(log.WithConfig(log.Config{
+		Level:        cfg.Logger.Level,
+		App:          cfg.Logger.App,
+		Service:      cfg.Logger.Service,
+		UDPAddress:   cfg.Logger.UDPAddress,
+		EnableCaller: cfg.Logger.EnableCaller,
+		Console:      cfg.Env != consts.EnvProd,
+		JSONOutput:   cfg.Env == consts.EnvProd,
+	}))
 
-	log.Printf("🚀 Server starting on port %s", cfg.Port)
-	e.Logger.Fatal(e.Start(":" + cfg.Port))
+	ctx = log.NewContext(ctx, logger)
+	app.Run(ctx, shutdownCtx, cfg)
 }

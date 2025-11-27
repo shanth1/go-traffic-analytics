@@ -1,11 +1,12 @@
 package v1
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/go-chi/chi/v5"
 	"github.com/shanth1/gotrace/internal/core/services"
-	"github.com/shanth1/gotrace/internal/utils"
+	"github.com/shanth1/gotrace/internal/pkg/request"
 )
 
 type LinkHandler struct {
@@ -18,43 +19,52 @@ func NewLinkHandler(s *services.LinkService) *LinkHandler {
 
 // --- Campaigns ---
 
-func (h *LinkHandler) GetCampaigns(c echo.Context) error {
-	userID := utils.GetUserIDFromContext(c) // Вспомогательная функция
-	campaigns, err := h.service.GetUserCampaigns(c.Request().Context(), userID)
+func (h *LinkHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
+	userID := request.GetUserID(r)
+
+	campaigns, err := h.service.GetUserCampaigns(r.Context(), userID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{"data": campaigns})
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{"data": campaigns})
 }
 
 type createCampaignReq struct {
 	Name string `json:"name"`
 }
 
-func (h *LinkHandler) CreateCampaign(c echo.Context) error {
-	userID := utils.GetUserIDFromContext(c)
+func (h *LinkHandler) CreateCampaign(w http.ResponseWriter, r *http.Request) {
+	userID := request.GetUserID(r)
+
 	var req createCampaignReq
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "bad request"})
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, "bad request")
+		return
 	}
 
-	camp, err := h.service.CreateCampaign(c.Request().Context(), userID, req.Name)
+	camp, err := h.service.CreateCampaign(r.Context(), userID, req.Name)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	return c.JSON(http.StatusCreated, map[string]interface{}{"data": camp})
+
+	respondJSON(w, http.StatusCreated, map[string]interface{}{"data": camp})
 }
 
 // --- Links ---
 
-func (h *LinkHandler) GetLinksByCampaign(c echo.Context) error {
-	campaignID := c.Param("id")
-	// В реальном сервисе нужно проверить, принадлежит ли кампания этому юзеру!
-	links, err := h.service.GetLinks(c.Request().Context(), campaignID)
+func (h *LinkHandler) GetLinksByCampaign(w http.ResponseWriter, r *http.Request) {
+	campaignID := chi.URLParam(r, "id")
+
+	links, err := h.service.GetLinks(r.Context(), campaignID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{"data": links})
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{"data": links})
 }
 
 type createLinkReq struct {
@@ -63,29 +73,35 @@ type createLinkReq struct {
 	CustomSlug string `json:"custom_slug"` // Optional
 }
 
-func (h *LinkHandler) CreateLink(c echo.Context) error {
-	userID := utils.GetUserIDFromContext(c)
+func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
+	userID := request.GetUserID(r)
+
 	var req createLinkReq
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "bad request"})
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, "bad request")
+		return
 	}
 
-	link, err := h.service.CreateLink(c.Request().Context(), userID, req.CampaignID, req.TargetURL, req.CustomSlug)
+	link, err := h.service.CreateLink(r.Context(), userID, req.CampaignID, req.TargetURL, req.CustomSlug)
 	if err != nil {
-		// Если ошибка лимитов, возвращаем 403
 		if err == services.ErrLimitReached {
-			return c.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+			respondError(w, http.StatusForbidden, err.Error())
+			return
 		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
-	return c.JSON(http.StatusCreated, map[string]interface{}{"data": link})
+	respondJSON(w, http.StatusCreated, map[string]interface{}{"data": link})
 }
 
-func (h *LinkHandler) DeleteLink(c echo.Context) error {
-	id := c.Param("id")
-	if err := h.service.DeleteLink(c.Request().Context(), id); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	if err := h.service.DeleteLink(r.Context(), id); err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	return c.NoContent(http.StatusNoContent)
+
+	w.WriteHeader(http.StatusNoContent)
 }

@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/go-chi/chi/v5"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
 
@@ -17,45 +17,38 @@ func NewQuotaMiddleware(l ports.LinkRepository, u ports.UserRepository, p ports.
 	return &QuotaMiddleware{LinkRepo: l, UserRepo: u, PlanRepo: p}
 }
 
-// CheckClickLimit - middleware, которое вешается на роут редиректа GET /{slug}
-func (m *QuotaMiddleware) CheckClickLimit(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		slug := c.Param("slug")
+func (m *QuotaMiddleware) CheckClickLimit(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		slug := chi.URLParam(r, "slug")
 
-		// 1. Нам нужно быстро узнать, чей это slug.
-		// В идеале это должно быть в кэше (Redis).
-		// Для MVP делаем быстрый lookup в LinkRepo (In-Memory это мгновенно).
-		link, err := m.LinkRepo.FindBySlug(c.Request().Context(), slug)
+		ctx := r.Context()
+
+		link, err := m.LinkRepo.FindBySlug(ctx, slug)
 		if err != nil {
-			return next(c) // Если ссылки нет, пусть RedirectHandler вернет 404
+			next.ServeHTTP(w, r)
+			return
 		}
 
-		// 2. Находим кампанию, чтобы узнать владельца (User)
-		// (Тут лучше денормализация: хранить OwnerID прямо в Link, чтобы не делать лишний запрос)
-		// Предположим, мы добавили UserID в Link struct
-		user, err := m.UserRepo.FindByID(c.Request().Context(), link.UserID)
+		user, err := m.UserRepo.FindByID(ctx, link.UserID)
 		if err != nil {
-			return next(c)
+			next.ServeHTTP(w, r)
+			return
 		}
 
-		// 3. Получаем план
-		plan, err := m.PlanRepo.FindByID(c.Request().Context(), user.PlanID)
+		plan, err := m.PlanRepo.FindByID(ctx, user.PlanID)
 		if err != nil {
-			return next(c)
+			next.ServeHTTP(w, r)
+			return
 		}
 
-		// 4. ПРОВЕРКА (Gatekeeper)
 		if plan.MaxClicksMonth != -1 {
 			if user.ClicksCurrentMonth >= plan.MaxClicksMonth {
-				// ЛИМИТ ИСЧЕРПАН!
-				// Варианты действий:
-				// A. Вернуть 402 Payment Required (плохо для юзера)
-				// B. Редирект на заглушку "Service Suspended" (стандарт)
-				return c.Redirect(http.StatusTemporaryRedirect, "https://tracebit.com/limit-reached")
+				// TODO: alert
+				next.ServeHTTP(w, r)
+				return
 			}
 		}
 
-		// Если ок - пропускаем дальше к редиректу
-		return next(c)
-	}
+		next.ServeHTTP(w, r)
+	})
 }

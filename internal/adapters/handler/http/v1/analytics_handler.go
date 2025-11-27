@@ -1,10 +1,10 @@
 package v1
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo/v4"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/core/services"
 )
@@ -17,86 +17,112 @@ func NewAnalyticsHandler(s *services.AnalyticsService) *AnalyticsHandler {
 	return &AnalyticsHandler{service: s}
 }
 
-// Helper to parse query params
-func (h *AnalyticsHandler) parseFilter(c echo.Context) ports.AnalyticsFilter {
+func (h *AnalyticsHandler) parseFilter(r *http.Request) ports.AnalyticsFilter {
+	query := r.URL.Query()
+
 	// Defaults
 	to := time.Now()
 	from := to.AddDate(0, 0, -7) // Last 7 days
 
-	if t := c.QueryParam("to"); t != "" {
+	if t := query.Get("to"); t != "" {
 		if parsed, err := time.Parse(time.RFC3339, t); err == nil {
 			to = parsed
 		}
 	}
-	if f := c.QueryParam("from"); f != "" {
+	if f := query.Get("from"); f != "" {
 		if parsed, err := time.Parse(time.RFC3339, f); err == nil {
 			from = parsed
 		}
 	}
 
 	return ports.AnalyticsFilter{
-		CampaignID: c.QueryParam("campaign_id"),
-		LinkID:     c.QueryParam("link_id"),
+		CampaignID: query.Get("campaign_id"),
+		LinkID:     query.Get("link_id"),
 		From:       from,
 		To:         to,
 	}
 }
 
 // GET /analytics/summary
-func (h *AnalyticsHandler) GetSummary(c echo.Context) error {
-	filter := h.parseFilter(c)
-	summary, err := h.service.GetSummary(c.Request().Context(), filter)
+func (h *AnalyticsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
+	filter := h.parseFilter(r)
+
+	summary, err := h.service.GetSummary(r.Context(), filter)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{"data": summary})
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{"data": summary})
 }
 
 // GET /analytics/stream?group_by=os&interval=day
-func (h *AnalyticsHandler) GetStreamGraph(c echo.Context) error {
-	filter := h.parseFilter(c)
-	groupBy := c.QueryParam("group_by") // os, browser, country
+func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request) {
+	filter := h.parseFilter(r)
+
+	groupBy := r.URL.Query().Get("group_by") // os, browser, country
 	if groupBy == "" {
 		groupBy = "os"
 	}
 
-	data, err := h.service.GetStreamGraphData(c.Request().Context(), filter, groupBy)
+	data, err := h.service.GetStreamGraphData(r.Context(), filter, groupBy)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{"data": data})
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{"data": data})
 }
 
 // GET /analytics/flow (Sankey)
-func (h *AnalyticsHandler) GetSankeyFlow(c echo.Context) error {
-	filter := h.parseFilter(c)
-	// Жестко задаем этапы потока для начала, либо берем из query params
+func (h *AnalyticsHandler) GetSankeyFlow(w http.ResponseWriter, r *http.Request) {
+	filter := h.parseFilter(r)
 	// stages=referer,device,country
 	stages := []string{"referer", "device", "country"}
 
-	data, err := h.service.GetSankeyData(c.Request().Context(), filter, stages)
+	data, err := h.service.GetSankeyData(r.Context(), filter, stages)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{"data": data})
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{"data": data})
 }
 
 // GET /analytics/geo
-func (h *AnalyticsHandler) GetGeoMap(c echo.Context) error {
-	filter := h.parseFilter(c)
-	data, err := h.service.GetGeoDistribution(c.Request().Context(), filter)
+func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
+	filter := h.parseFilter(r)
+
+	data, err := h.service.GetGeoDistribution(r.Context(), filter)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{"data": data})
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{"data": data})
 }
 
 // GET /analytics/quality
-func (h *AnalyticsHandler) GetQualityRadar(c echo.Context) error {
-	filter := h.parseFilter(c)
-	data, err := h.service.GetTrafficQuality(c.Request().Context(), filter)
+func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Request) {
+	filter := h.parseFilter(r)
+
+	data, err := h.service.GetTrafficQuality(r.Context(), filter)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{"data": data})
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{"data": data})
+}
+
+// --- Helpers (если они еще не вынесены в shared package) ---
+
+func respondJSON(w http.ResponseWriter, status int, payload interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(payload)
+}
+
+func respondError(w http.ResponseWriter, status int, message string) {
+	respondJSON(w, status, map[string]string{"error": message})
 }

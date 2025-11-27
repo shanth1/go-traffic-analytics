@@ -1,9 +1,11 @@
 package v1
 
 import (
+	"net"
 	"net/http"
+	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/go-chi/chi/v5"
 	"github.com/shanth1/gotrace/internal/core/services"
 )
 
@@ -15,20 +17,40 @@ func NewRedirectHandler(s *services.RedirectService) *RedirectHandler {
 	return &RedirectHandler{service: s}
 }
 
-func (h *RedirectHandler) Redirect(c echo.Context) error {
-	slug := c.Param("slug")
+func (h *RedirectHandler) Redirect(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "slug")
 
-	// Получаем IP и User-Agent для аналитики
-	ip := c.RealIP()
-	ua := c.Request().UserAgent()
-	referer := c.Request().Referer()
+	ip := getRealIP(r)
+	ua := r.UserAgent()
+	referer := r.Referer()
 
-	targetURL, err := h.service.ProcessRedirect(c.Request().Context(), slug, ip, ua, referer)
+	targetURL, err := h.service.ProcessRedirect(r.Context(), slug, ip, ua, referer)
 	if err != nil {
-		// Можно вернуть красивую HTML страницу 404
-		return c.JSON(http.StatusNotFound, map[string]string{"error": "Link not found or inactive"})
+		respondError(w, http.StatusNotFound, "Link not found or inactive")
+		return
 	}
 
-	// 307 Temporary Redirect (сохраняет метод POST, если был) или 302 Found
-	return c.Redirect(http.StatusTemporaryRedirect, targetURL)
+	http.Redirect(w, r, targetURL, http.StatusTemporaryRedirect)
+}
+
+// --- Helpers ---
+
+func getRealIP(r *http.Request) string {
+	// Проверяем X-Forwarded-For
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		ips := strings.Split(xff, ",")
+		return strings.TrimSpace(ips[0]) // (client, proxy1, proxy2)
+	}
+
+	// X-Real-IP
+	if xrip := r.Header.Get("X-Real-IP"); xrip != "" {
+		return xrip
+	}
+
+	// Fallback на RemoteAddr
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return ip
 }

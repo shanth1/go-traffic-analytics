@@ -3,10 +3,11 @@ package config
 import "time"
 
 type Config struct {
-	Env    string     `mapstructure:"env" yaml:"env"`
-	Addr   string     `mapstructure:"addr" yaml:"addr"`
-	HTTP   HTTPConfig `mapstructure:"http" yaml:"http"`
-	Logger Logger     `mapstructure:"logger" yaml:"logger"`
+	Env       string     `mapstructure:"env" yaml:"env"`
+	Addr      string     `mapstructure:"addr" yaml:"addr"`
+	HTTP      HTTPConfig `mapstructure:"http" yaml:"http"`
+	Logger    Logger     `mapstructure:"logger" yaml:"logger"`
+	JWTSecret string     `env:"JWT_SECRET" env-required:"true"`
 }
 
 type HTTPConfig struct {

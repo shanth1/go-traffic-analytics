@@ -70,7 +70,6 @@ func (s *DataSeeder) SeedFullTopology() {
 }
 
 func (s *DataSeeder) seedLinksForCampaign(ctx context.Context, campaignID string) {
-	// Генерация 3-5 ссылок на кампанию
 	linksCount := rand.Intn(3) + 3
 
 	for i := 0; i < linksCount; i++ {
@@ -86,7 +85,6 @@ func (s *DataSeeder) seedLinksForCampaign(ctx context.Context, campaignID string
 		_ = s.LinkRepo.Save(ctx, link)
 
 		// 5. Generate Traffic (Clicks)
-		// Генерируем от 50 до 500 кликов на ссылку
 		clicksCount := rand.Intn(450) + 50
 		s.seedClicksForLink(ctx, linkID, clicksCount)
 	}
