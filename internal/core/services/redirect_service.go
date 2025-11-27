@@ -12,22 +12,38 @@ import (
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
 
+type trackingEvent struct {
+	link    *domain.Link
+	ip      string
+	ua      string
+	referer string
+	time    time.Time
+}
+
 type RedirectService struct {
 	linkRepo  ports.LinkRepository
 	clickRepo ports.ClickRepository
 	userRepo  ports.UserRepository
+
+	eventChan chan trackingEvent
 }
 
 func NewRedirectService(
+	ctx context.Context,
 	l ports.LinkRepository,
 	c ports.ClickRepository,
 	u ports.UserRepository,
 ) *RedirectService {
-	return &RedirectService{
+	s := &RedirectService{
 		linkRepo:  l,
 		clickRepo: c,
 		userRepo:  u,
+		eventChan: make(chan trackingEvent, 1000),
 	}
+
+	go s.startBackgroundWorker(ctx)
+
+	return s
 }
 
 func (s *RedirectService) ProcessRedirect(
@@ -43,48 +59,64 @@ func (s *RedirectService) ProcessRedirect(
 	}
 
 	if !link.IsActive {
-		return "", errors.New("link is inactive") // domain.ErrLinkInactive
+		return "", errors.New("link is inactive")
 	}
 
-	go s.trackAndBill(link, ip, userAgentString, referer)
+	select {
+	case s.eventChan <- trackingEvent{
+		link:    link,
+		ip:      ip,
+		ua:      userAgentString,
+		referer: referer,
+		time:    time.Now().UTC(),
+	}:
+	default:
+		log.Printf("WARN: analytics buffer full, dropping click for link %s", link.ID)
+	}
 
 	return link.TargetURL, nil
 }
 
-func (s *RedirectService) trackAndBill(
-	link *domain.Link,
-	ip, uaString, referer string,
-) {
+func (s *RedirectService) startBackgroundWorker(appCtx context.Context) {
+	for {
+		select {
+		case evt := <-s.eventChan:
+			s.processEvent(evt)
+		case <-appCtx.Done():
+			// TODO: write to db
+			log.Println("RedirectService: stopping analytics worker")
+			return
+		}
+	}
+}
+
+func (s *RedirectService) processEvent(evt trackingEvent) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	parsedUA := s.parseUserAgent(uaString)
-	parsedGeo := s.resolveGeoIP(ip)
+	parsedUA := s.parseUserAgent(evt.ua)
+	parsedGeo := s.resolveGeoIP(evt.ip)
 
 	click := &domain.ClickEvent{
 		ID:        uuid.New().String(),
-		LinkID:    link.ID,
-		Timestamp: time.Now().UTC(),
-		IP:        ip,
+		LinkID:    evt.link.ID,
+		Timestamp: evt.time,
+		IP:        evt.ip,
 		Country:   parsedGeo.Country,
 		City:      parsedGeo.City,
 		OS:        parsedUA.OS,
 		Browser:   parsedUA.Browser,
 		Device:    parsedUA.Device,
-		Referer:   s.normalizeReferer(referer),
+		Referer:   s.normalizeReferer(evt.referer),
 	}
 
 	if err := s.clickRepo.Save(ctx, click); err != nil {
 		log.Printf("ERROR: failed to save click analytics: %v", err)
 	}
 
-	if link.CampaignID != "" {
-		userID := link.UserID //
-
-		if userID != "" {
-			if err := s.userRepo.IncrementClickCount(ctx, userID); err != nil {
-				log.Printf("ERROR: failed to increment user quota: %v", err)
-			}
+	if evt.link.CampaignID != "" && evt.link.UserID != "" {
+		if err := s.userRepo.IncrementClickCount(ctx, evt.link.UserID); err != nil {
+			log.Printf("ERROR: failed to increment user quota: %v", err)
 		}
 	}
 }
@@ -102,8 +134,8 @@ type parsedGeo struct {
 	City    string
 }
 
-// parseUserAgent - простая заглушка.
-// В продакшене использовать библиотеку "github.com/mssola/user_agent"
+// parseUserAgent - mock
+// TODO: "github.com/mssola/user_agent"
 func (s *RedirectService) parseUserAgent(ua string) parsedUA {
 	uaLower := strings.ToLower(ua)
 	res := parsedUA{
@@ -112,7 +144,6 @@ func (s *RedirectService) parseUserAgent(ua string) parsedUA {
 		Device:  "Desktop", // Default
 	}
 
-	// Очень примитивная эвристика для MVP
 	if strings.Contains(uaLower, "iphone") || strings.Contains(uaLower, "android") {
 		res.Device = "Mobile"
 	}
@@ -138,15 +169,14 @@ func (s *RedirectService) parseUserAgent(ua string) parsedUA {
 	return res
 }
 
-// resolveGeoIP - простая заглушка.
-// В продакшене использовать GeoLite2 базу и либу "github.com/oschwald/geoip2-golang"
+// resolveGeoIP - mock
+// TODO: "github.com/oschwald/geoip2-golang"
 func (s *RedirectService) resolveGeoIP(ip string) parsedGeo {
-	// Симуляция для MVP/Localhost
+	// TODO:
 	if ip == "127.0.0.1" || ip == "::1" {
 		return parsedGeo{Country: "Local", City: "Host"}
 	}
 
-	// Здесь можно вставить реальный вызов сервиса или базы
 	return parsedGeo{
 		Country: "US", // Default stub
 		City:    "Unknown",
@@ -157,7 +187,7 @@ func (s *RedirectService) normalizeReferer(ref string) string {
 	if ref == "" {
 		return "Direct"
 	}
-	// Можно обрезать до домена, чтобы не хранить полные пути
-	// ex: https://google.com/search?q=... -> google.com
+
+	// TODO: https://google.com/search?q=... -> google.com
 	return ref
 }

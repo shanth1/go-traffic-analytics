@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shanth1/gotrace/internal/core/services"
+	"github.com/shanth1/gotrace/internal/pkg/http/response"
 	"github.com/shanth1/gotrace/internal/pkg/request"
 )
 
@@ -24,11 +25,11 @@ func (h *LinkHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 
 	campaigns, err := h.service.GetUserCampaigns(r.Context(), userID)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondJSON(w, http.StatusOK, map[string]interface{}{"data": campaigns})
+	response.JSON(w, http.StatusOK, map[string]interface{}{"data": campaigns})
 }
 
 type createCampaignReq struct {
@@ -40,17 +41,17 @@ func (h *LinkHandler) CreateCampaign(w http.ResponseWriter, r *http.Request) {
 
 	var req createCampaignReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondError(w, http.StatusBadRequest, "bad request")
+		response.Error(w, http.StatusBadRequest, "bad request")
 		return
 	}
 
 	camp, err := h.service.CreateCampaign(r.Context(), userID, req.Name)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondJSON(w, http.StatusCreated, map[string]interface{}{"data": camp})
+	response.JSON(w, http.StatusCreated, map[string]interface{}{"data": camp})
 }
 
 // --- Links ---
@@ -60,46 +61,46 @@ func (h *LinkHandler) GetLinksByCampaign(w http.ResponseWriter, r *http.Request)
 
 	links, err := h.service.GetLinks(r.Context(), campaignID)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondJSON(w, http.StatusOK, map[string]interface{}{"data": links})
-}
-
-type createLinkReq struct {
-	CampaignID string `json:"campaign_id"`
-	TargetURL  string `json:"target_url"`
-	CustomSlug string `json:"custom_slug"` // Optional
+	response.JSON(w, http.StatusOK, map[string]interface{}{"data": links})
 }
 
 func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
 
-	var req createLinkReq
+	var req CreateLinkRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondError(w, http.StatusBadRequest, "bad request")
+		response.Error(w, http.StatusBadRequest, "bad request")
+		return
+	}
+
+	// TODO: validation
+	if req.TargetURL == "" {
+		response.JSON(w, http.StatusBadRequest, "target_url is required")
 		return
 	}
 
 	link, err := h.service.CreateLink(r.Context(), userID, req.CampaignID, req.TargetURL, req.CustomSlug)
 	if err != nil {
 		if err == services.ErrLimitReached {
-			respondError(w, http.StatusForbidden, err.Error())
+			response.Error(w, http.StatusForbidden, err.Error())
 			return
 		}
-		respondError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondJSON(w, http.StatusCreated, map[string]interface{}{"data": link})
+	response.JSON(w, http.StatusCreated, map[string]interface{}{"data": link})
 }
 
 func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	if err := h.service.DeleteLink(r.Context(), id); err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 

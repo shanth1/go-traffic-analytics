@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shanth1/gotrace/internal/core/services"
+	"github.com/shanth1/gotrace/internal/pkg/http/response"
 )
 
 type RedirectHandler struct {
@@ -26,7 +27,7 @@ func (h *RedirectHandler) Redirect(w http.ResponseWriter, r *http.Request) {
 
 	targetURL, err := h.service.ProcessRedirect(r.Context(), slug, ip, ua, referer)
 	if err != nil {
-		respondError(w, http.StatusNotFound, "Link not found or inactive")
+		response.Error(w, http.StatusNotFound, "Link not found or inactive")
 		return
 	}
 

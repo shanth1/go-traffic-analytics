@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shanth1/gotrace/internal/core/services"
+	"github.com/shanth1/gotrace/internal/pkg/http/response"
 )
 
 type AdminHandler struct {
@@ -29,11 +30,11 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	users, err := h.userService.GetAllUsers(r.Context(), page, limit)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondJSON(w, http.StatusOK, map[string]interface{}{"data": users})
+	response.JSON(w, http.StatusOK, map[string]interface{}{"data": users})
 }
 
 type updateUserStatusReq struct {
@@ -45,16 +46,16 @@ func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) 
 
 	var req updateUserStatusReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondError(w, http.StatusBadRequest, "bad request")
+		response.Error(w, http.StatusBadRequest, "bad request")
 		return
 	}
 
 	if err := h.userService.SetUserStatus(r.Context(), id, req.IsActive); err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondJSON(w, http.StatusOK, map[string]string{"status": "updated"})
+	response.JSON(w, http.StatusOK, map[string]string{"status": "updated"})
 }
 
 type updateUserPlanReq struct {
@@ -66,24 +67,24 @@ func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
 
 	var req updateUserPlanReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondError(w, http.StatusBadRequest, "bad request")
+		response.Error(w, http.StatusBadRequest, "bad request")
 		return
 	}
 
 	if err := h.userService.ChangeUserPlan(r.Context(), id, req.PlanID); err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondJSON(w, http.StatusOK, map[string]string{"status": "updated"})
+	response.JSON(w, http.StatusOK, map[string]string{"status": "updated"})
 }
 
 func (h *AdminHandler) GetPlans(w http.ResponseWriter, r *http.Request) {
 	plans, err := h.userService.GetAllPlans(r.Context())
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondJSON(w, http.StatusOK, map[string]interface{}{"data": plans})
+	response.JSON(w, http.StatusOK, map[string]interface{}{"data": plans})
 }

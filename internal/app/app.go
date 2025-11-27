@@ -29,7 +29,7 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	// Services
 	authService := services.NewAuthService(userRepo, planRepo, cfg)
 	linkService := services.NewLinkService(linkRepo, campRepo, userRepo, planRepo)
-	redirectService := services.NewRedirectService(linkRepo, clickRepo, userRepo)
+	redirectService := services.NewRedirectService(ctx, linkRepo, clickRepo, userRepo)
 	analyticsService := services.NewAnalyticsService(clickRepo)
 	userService := services.NewUserService(userRepo, planRepo)
 
@@ -42,8 +42,8 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 
 	// Middleware
 	quotaMW := middleware.NewQuotaMiddleware(linkRepo, userRepo, planRepo)
-	jwtMW := middleware.InitJWTMiddleware(cfg)
-	adminMW := middleware.InitAdminMiddleware()
+	jwtMW := middleware.Auth(cfg)
+	adminMW := middleware.AdminOnly
 
 	httpHandler := transport.NewRouter(
 		authHandler,

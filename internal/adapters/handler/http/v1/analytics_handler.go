@@ -1,12 +1,12 @@
 package v1
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/core/services"
+	"github.com/shanth1/gotrace/internal/pkg/http/response"
 )
 
 type AnalyticsHandler struct {
@@ -49,11 +49,11 @@ func (h *AnalyticsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 
 	summary, err := h.service.GetSummary(r.Context(), filter)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondJSON(w, http.StatusOK, map[string]interface{}{"data": summary})
+	response.JSON(w, http.StatusOK, map[string]interface{}{"data": summary})
 }
 
 // GET /analytics/stream?group_by=os&interval=day
@@ -67,11 +67,11 @@ func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request
 
 	data, err := h.service.GetStreamGraphData(r.Context(), filter, groupBy)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondJSON(w, http.StatusOK, map[string]interface{}{"data": data})
+	response.JSON(w, http.StatusOK, map[string]interface{}{"data": data})
 }
 
 // GET /analytics/flow (Sankey)
@@ -82,11 +82,11 @@ func (h *AnalyticsHandler) GetSankeyFlow(w http.ResponseWriter, r *http.Request)
 
 	data, err := h.service.GetSankeyData(r.Context(), filter, stages)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondJSON(w, http.StatusOK, map[string]interface{}{"data": data})
+	response.JSON(w, http.StatusOK, map[string]interface{}{"data": data})
 }
 
 // GET /analytics/geo
@@ -95,11 +95,11 @@ func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
 
 	data, err := h.service.GetGeoDistribution(r.Context(), filter)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondJSON(w, http.StatusOK, map[string]interface{}{"data": data})
+	response.JSON(w, http.StatusOK, map[string]interface{}{"data": data})
 }
 
 // GET /analytics/quality
@@ -108,21 +108,9 @@ func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Reques
 
 	data, err := h.service.GetTrafficQuality(r.Context(), filter)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondJSON(w, http.StatusOK, map[string]interface{}{"data": data})
-}
-
-// --- Helpers (если они еще не вынесены в shared package) ---
-
-func respondJSON(w http.ResponseWriter, status int, payload interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(payload)
-}
-
-func respondError(w http.ResponseWriter, status int, message string) {
-	respondJSON(w, status, map[string]string{"error": message})
+	response.JSON(w, http.StatusOK, map[string]interface{}{"data": data})
 }
