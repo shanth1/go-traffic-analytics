@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/shanth1/gotrace/internal/config"
+	"github.com/shanth1/gotrace/internal/utils/generator"
 
 	// Repositories
 	"github.com/shanth1/gotrace/internal/adapters/repository/memory"
@@ -17,9 +18,6 @@ import (
 	handler "github.com/shanth1/gotrace/internal/adapters/handler/http"
 	mw "github.com/shanth1/gotrace/internal/adapters/handler/http/middleware"
 	v1 "github.com/shanth1/gotrace/internal/adapters/handler/http/v1"
-
-	// Generator
-	"github.com/shanth1/gotrace/internal/utils/generator"
 )
 
 func main() {
