@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type DataSeeder struct {
@@ -23,33 +24,33 @@ func (s *DataSeeder) SeedFullTopology() {
 	ctx := context.Background()
 	fmt.Println("🌱 Starting Full Topology Seeding...")
 
-	// 1. Create Admin User
+	hash, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
+	realPasswordHash := string(hash)
+
 	admin := &domain.User{
 		ID:           uuid.New().String(),
-		Email:        "admin@tracebit.com",
-		PasswordHash: "$2a$10$...", // mock hash for 'password'
+		Email:        "admin@gotrace.com",
+		PasswordHash: realPasswordHash,
 		Role:         domain.RoleAdmin,
 		IsActive:     true,
-		PlanID:       "enterprise", // TODO: consts
+		PlanID:       "enterprise",
 		CreatedAt:    time.Now(),
 	}
 	_ = s.UserRepo.Save(ctx, admin)
-	fmt.Printf("👤 Created Admin: %s\n", admin.Email)
+	fmt.Printf("👤 Created Admin: %s (password: password)\n", admin.Email)
 
-	// 2. Create Client User
 	client := &domain.User{
 		ID:           uuid.New().String(),
-		Email:        "client@example.com", // Этот email можно использовать для входа на фронте
-		PasswordHash: "$2a$10$...",
+		Email:        "client@gotrace.com",
+		PasswordHash: realPasswordHash,
 		Role:         domain.RoleClient,
-		PlanID:       "free", // TODO: consts
+		PlanID:       "pro",
 		IsActive:     true,
 		CreatedAt:    time.Now(),
 	}
 	_ = s.UserRepo.Save(ctx, client)
-	fmt.Printf("👤 Created Client: %s\n", client.Email)
+	fmt.Printf("👤 Created Client: %s (password: password)\n", client.Email)
 
-	// 3. Create Campaigns for Client
 	campaignNames := []string{"Black Friday 2024", "Summer Sale", "Influencer Integrations"}
 
 	for _, name := range campaignNames {
@@ -62,30 +63,36 @@ func (s *DataSeeder) SeedFullTopology() {
 		}
 		_ = s.CampaignRepo.Save(ctx, campaign)
 
-		// 4. Create Links inside Campaign
-		s.seedLinksForCampaign(ctx, campID)
+		s.seedLinksForCampaign(ctx, client.ID, campID)
 	}
+
+	testLink := &domain.Link{
+		ID: uuid.NewString(), UserID: client.ID, CampaignID: "",
+		Slug: "google", TargetURL: "https://google.com", IsActive: true, CreatedAt: time.Now(),
+	}
+	_ = s.LinkRepo.Save(ctx, testLink)
+	fmt.Println("🔗 Created Manual Link: /google -> https://google.com")
 
 	fmt.Println("✅ Seeding completed!")
 }
 
-func (s *DataSeeder) seedLinksForCampaign(ctx context.Context, campaignID string) {
+func (s *DataSeeder) seedLinksForCampaign(ctx context.Context, userID, campaignID string) {
 	linksCount := rand.Intn(3) + 3
 
 	for i := 0; i < linksCount; i++ {
 		linkID := uuid.New().String()
 		link := &domain.Link{
 			ID:         linkID,
+			UserID:     userID,
 			CampaignID: campaignID,
-			Slug:       fmt.Sprintf("lnk-%s-%d", campaignID[:4], i), // ex: lnk-a1b2-0
+			Slug:       fmt.Sprintf("lnk-%s-%d", campaignID[:4], i),
 			TargetURL:  "https://google.com",
 			IsActive:   true,
 			CreatedAt:  time.Now(),
 		}
 		_ = s.LinkRepo.Save(ctx, link)
 
-		// 5. Generate Traffic (Clicks)
-		clicksCount := rand.Intn(450) + 50
+		clicksCount := rand.Intn(50) + 10
 		s.seedClicksForLink(ctx, linkID, clicksCount)
 	}
 }
@@ -97,7 +104,7 @@ func (s *DataSeeder) seedClicksForLink(ctx context.Context, linkID string, count
 	now := time.Now()
 
 	for i := 0; i < count; i++ {
-		daysAgo := rand.Intn(14)
+		daysAgo := rand.Intn(7)
 		fakeTime := now.AddDate(0, 0, -daysAgo).Add(time.Duration(rand.Intn(24)) * time.Hour)
 
 		_ = s.ClickRepo.Save(ctx, &domain.ClickEvent{
