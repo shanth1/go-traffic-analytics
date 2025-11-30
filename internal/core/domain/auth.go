@@ -14,3 +14,14 @@ type JwtCustomClaims struct {
 	Role   UserRole `json:"role"`
 	jwt.RegisteredClaims
 }
+
+const (
+	ErrUserNotFound = "user not found"
+	ErrInvalidCreds = "invalid credentials"
+	ErrEmailTaken   = "email already taken"
+	ErrInternal     = "internal server error"
+	ErrForbidden    = "forbidden"
+	ErrUnauthorized = "unauthorized"
+	ErrLinkNotFound = "link not found"
+	ErrLimitReached = "limit reached"
+)
