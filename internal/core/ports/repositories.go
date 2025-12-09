@@ -7,6 +7,8 @@ import (
 	"github.com/shanth1/gotrace/internal/core/domain"
 )
 
+//go:generate mockgen -source=repositories.go -destination=mocks/repositories_mock.go -package=mocks
+
 type UserRepository interface {
 	Save(ctx context.Context, user *domain.User) error
 	FindByID(ctx context.Context, id string) (*domain.User, error)

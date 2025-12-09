@@ -6,6 +6,8 @@ import (
 	"github.com/shanth1/gotrace/internal/core/domain"
 )
 
+//go:generate mockgen -source=services.go -destination=mocks/service_mock.go -package=mocks
+
 type AuthService interface {
 	Register(ctx context.Context, email, password string) (*domain.User, error)
 	Login(ctx context.Context, email, password string) (string, *domain.User, error)
