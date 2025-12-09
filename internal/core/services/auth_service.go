@@ -23,7 +23,7 @@ func NewAuthService(u ports.UserRepository, p ports.PlanRepository, cfg *config.
 	return &AuthService{
 		userRepo:  u,
 		planRepo:  p,
-		jwtSecret: []byte(cfg.JWTSecret),
+		jwtSecret: []byte(cfg.Auth.JWTSecret),
 	}
 }
 

@@ -32,7 +32,7 @@ func Auth(cfg *config.Config) func(http.Handler) http.Handler {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 				}
-				return []byte(cfg.JWTSecret), nil
+				return []byte(cfg.Auth.JWTSecret), nil
 			})
 
 			if err != nil || !token.Valid {
