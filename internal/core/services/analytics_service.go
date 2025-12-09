@@ -52,7 +52,7 @@ func (s *AnalyticsService) GetGeoDistribution(ctx context.Context, filter ports.
 }
 
 // TODO:
-func (s *AnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.AnalyticsFilter) (map[string]int, error) {
+func (s *AnalyticsService) GetTrafficQuality(_ context.Context, _ ports.AnalyticsFilter) (map[string]int, error) {
 	return map[string]int{
 		"high_quality": 85,
 		"suspicious":   10,

@@ -94,6 +94,6 @@ func (s *LinkService) CreateLink(ctx context.Context, userID, campaignID, target
 
 // TODO:
 // soft delete? isActive = true
-func (s *LinkService) DeleteLink(ctx context.Context, id string) error {
+func (s *LinkService) DeleteLink(_ context.Context, _ string) error {
 	return nil
 }

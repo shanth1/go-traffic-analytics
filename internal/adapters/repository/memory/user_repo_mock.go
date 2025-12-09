@@ -22,7 +22,7 @@ func NewUserRepo() ports.UserRepository {
 	}
 }
 
-func (r *InMemoryUserRepo) Save(ctx context.Context, user *domain.User) error {
+func (r *InMemoryUserRepo) Save(_ context.Context, user *domain.User) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -38,7 +38,7 @@ func (r *InMemoryUserRepo) Save(ctx context.Context, user *domain.User) error {
 	return nil
 }
 
-func (r *InMemoryUserRepo) FindByID(ctx context.Context, id string) (*domain.User, error) {
+func (r *InMemoryUserRepo) FindByID(_ context.Context, id string) (*domain.User, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	u, ok := r.users[id]
@@ -48,7 +48,7 @@ func (r *InMemoryUserRepo) FindByID(ctx context.Context, id string) (*domain.Use
 	return u, nil
 }
 
-func (r *InMemoryUserRepo) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
+func (r *InMemoryUserRepo) FindByEmail(_ context.Context, email string) (*domain.User, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	id, ok := r.emails[email]
@@ -58,7 +58,7 @@ func (r *InMemoryUserRepo) FindByEmail(ctx context.Context, email string) (*doma
 	return r.users[id], nil
 }
 
-func (r *InMemoryUserRepo) FindAll(ctx context.Context, limit, offset int) ([]*domain.User, error) {
+func (r *InMemoryUserRepo) FindAll(_ context.Context, limit, offset int) ([]*domain.User, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	// Мок пагинации (очень простой)
@@ -73,7 +73,7 @@ func (r *InMemoryUserRepo) FindAll(ctx context.Context, limit, offset int) ([]*d
 	return result, nil
 }
 
-func (r *InMemoryUserRepo) IncrementClickCount(ctx context.Context, userID string) error {
+func (r *InMemoryUserRepo) IncrementClickCount(_ context.Context, userID string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

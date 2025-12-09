@@ -20,14 +20,14 @@ func NewCampaignRepo() ports.CampaignRepository {
 	}
 }
 
-func (r *InMemoryCampaignRepo) Save(ctx context.Context, camp *domain.Campaign) error {
+func (r *InMemoryCampaignRepo) Save(_ context.Context, camp *domain.Campaign) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.campaigns[camp.ID] = camp
 	return nil
 }
 
-func (r *InMemoryCampaignRepo) FindByID(ctx context.Context, id string) (*domain.Campaign, error) {
+func (r *InMemoryCampaignRepo) FindByID(_ context.Context, id string) (*domain.Campaign, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	c, ok := r.campaigns[id]
@@ -37,7 +37,7 @@ func (r *InMemoryCampaignRepo) FindByID(ctx context.Context, id string) (*domain
 	return c, nil
 }
 
-func (r *InMemoryCampaignRepo) FindAllByUserID(ctx context.Context, userID string) ([]*domain.Campaign, error) {
+func (r *InMemoryCampaignRepo) FindAllByUserID(_ context.Context, userID string) ([]*domain.Campaign, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var result []*domain.Campaign
@@ -49,7 +49,7 @@ func (r *InMemoryCampaignRepo) FindAllByUserID(ctx context.Context, userID strin
 	return result, nil
 }
 
-func (r *InMemoryCampaignRepo) Delete(ctx context.Context, id string) error {
+func (r *InMemoryCampaignRepo) Delete(_ context.Context, id string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	delete(r.campaigns, id)

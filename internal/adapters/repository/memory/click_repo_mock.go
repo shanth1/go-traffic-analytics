@@ -22,7 +22,7 @@ func NewClickRepo() ports.ClickRepository {
 	}
 }
 
-func (r *InMemoryClickRepo) Save(ctx context.Context, click *domain.ClickEvent) error {
+func (r *InMemoryClickRepo) Save(_ context.Context, click *domain.ClickEvent) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.clicks = append(r.clicks, click)
@@ -33,7 +33,7 @@ func (r *InMemoryClickRepo) filterClicks(filter ports.AnalyticsFilter) []*domain
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	var filtered []*domain.ClickEvent
+	filtered := make([]*domain.ClickEvent, 0, len(r.clicks))
 	for _, c := range r.clicks {
 		if filter.LinkID != "" && c.LinkID != filter.LinkID {
 			continue
@@ -46,13 +46,13 @@ func (r *InMemoryClickRepo) filterClicks(filter ports.AnalyticsFilter) []*domain
 	return filtered
 }
 
-func (r *InMemoryClickRepo) CountTotal(ctx context.Context, filter ports.AnalyticsFilter) (int64, error) {
+func (r *InMemoryClickRepo) CountTotal(_ context.Context, filter ports.AnalyticsFilter) (int64, error) {
 	res := r.filterClicks(filter)
 	return int64(len(res)), nil
 }
 
 // Реализация Streamgraph (Bucket by Time + Group by Dimension)
-func (r *InMemoryClickRepo) GetTimeSeriesGrouped(ctx context.Context, filter ports.AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error) {
+func (r *InMemoryClickRepo) GetTimeSeriesGrouped(_ context.Context, filter ports.AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error) {
 	clicks := r.filterClicks(filter)
 
 	// Map: TimeBucket -> Category -> Count
@@ -82,8 +82,7 @@ func (r *InMemoryClickRepo) GetTimeSeriesGrouped(ctx context.Context, filter por
 		buckets[bucketTime][key]++
 	}
 
-	// Превращаем map в сортированный слайс
-	var result []domain.StackedPoint
+	result := make([]domain.StackedPoint, 0, len(buckets))
 	for t, values := range buckets {
 		result = append(result, domain.StackedPoint{
 			Time:   t,
@@ -103,7 +102,7 @@ func (r *InMemoryClickRepo) GetTimeSeriesGrouped(ctx context.Context, filter por
 // Логика: Нужно посчитать переходы между этапами.
 // Referer -> OS (Layer 0 -> Layer 1)
 // OS -> Country (Layer 1 -> Layer 2)
-func (r *InMemoryClickRepo) GetFlowData(ctx context.Context, filter ports.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
+func (r *InMemoryClickRepo) GetFlowData(_ context.Context, filter ports.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
 	clicks := r.filterClicks(filter)
 
 	nodesMap := make(map[string]domain.SankeyNode) // Key: "LayerIndex:Value"
@@ -180,7 +179,7 @@ func getDimensionValue(c *domain.ClickEvent, dim string) string {
 }
 
 // TODO:
-func splitLinkKey(k string) []string {
+func splitLinkKey(_ string) []string {
 	// ... (реализация split)
 	// Представим, что тут strings.Split
 	return []string{"SourceStub", "TargetStub"} // Placeholder

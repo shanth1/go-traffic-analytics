@@ -56,7 +56,7 @@ func (r *InMemoryPlanRepo) bootstrapPlans() {
 	}
 }
 
-func (r *InMemoryPlanRepo) FindByID(ctx context.Context, id string) (*domain.Plan, error) {
+func (r *InMemoryPlanRepo) FindByID(_ context.Context, id string) (*domain.Plan, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	p, ok := r.plans[id]
@@ -70,17 +70,17 @@ func (r *InMemoryPlanRepo) FindDefault(ctx context.Context) (*domain.Plan, error
 	return r.FindByID(ctx, "free")
 }
 
-func (r *InMemoryPlanRepo) FindAll(ctx context.Context) ([]*domain.Plan, error) {
+func (r *InMemoryPlanRepo) FindAll(_ context.Context) ([]*domain.Plan, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	var res []*domain.Plan
+	res := make([]*domain.Plan, len(r.plans))
 	for _, p := range r.plans {
 		res = append(res, p)
 	}
 	return res, nil
 }
 
-func (r *InMemoryPlanRepo) Save(ctx context.Context, plan *domain.Plan) error {
+func (r *InMemoryPlanRepo) Save(_ context.Context, plan *domain.Plan) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.plans[plan.ID] = plan

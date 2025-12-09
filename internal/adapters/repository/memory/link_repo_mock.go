@@ -22,7 +22,7 @@ func NewLinkRepo() ports.LinkRepository {
 	}
 }
 
-func (r *InMemoryLinkRepo) Save(ctx context.Context, link *domain.Link) error {
+func (r *InMemoryLinkRepo) Save(_ context.Context, link *domain.Link) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if _, exists := r.slugs[link.Slug]; exists {
@@ -33,7 +33,7 @@ func (r *InMemoryLinkRepo) Save(ctx context.Context, link *domain.Link) error {
 	return nil
 }
 
-func (r *InMemoryLinkRepo) FindBySlug(ctx context.Context, slug string) (*domain.Link, error) {
+func (r *InMemoryLinkRepo) FindBySlug(_ context.Context, slug string) (*domain.Link, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	id, ok := r.slugs[slug]
@@ -43,7 +43,7 @@ func (r *InMemoryLinkRepo) FindBySlug(ctx context.Context, slug string) (*domain
 	return r.links[id], nil
 }
 
-func (r *InMemoryLinkRepo) FindAll(ctx context.Context) ([]*domain.Link, error) {
+func (r *InMemoryLinkRepo) FindAll(_ context.Context) ([]*domain.Link, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	result := make([]*domain.Link, 0, len(r.links))
@@ -53,7 +53,7 @@ func (r *InMemoryLinkRepo) FindAll(ctx context.Context) ([]*domain.Link, error) 
 	return result, nil
 }
 
-func (r *InMemoryLinkRepo) FindAllByCampaignID(ctx context.Context, campaignID string) ([]*domain.Link, error) {
+func (r *InMemoryLinkRepo) FindAllByCampaignID(_ context.Context, campaignID string) ([]*domain.Link, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	result := make([]*domain.Link, 0, len(r.links))
@@ -65,7 +65,7 @@ func (r *InMemoryLinkRepo) FindAllByCampaignID(ctx context.Context, campaignID s
 	return result, nil
 }
 
-func (r *InMemoryLinkRepo) CountByUserID(ctx context.Context, userID string) (int64, error) {
+func (r *InMemoryLinkRepo) CountByUserID(_ context.Context, userID string) (int64, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var count int64

@@ -148,21 +148,23 @@ func (s *RedirectService) parseUserAgent(ua string) parsedUA {
 		res.Device = "Mobile"
 	}
 
-	if strings.Contains(uaLower, "windows") {
+	switch {
+	case strings.Contains(uaLower, "windows"):
 		res.OS = "Windows"
-	} else if strings.Contains(uaLower, "mac os") {
+	case strings.Contains(uaLower, "mac os"):
 		res.OS = "macOS"
-	} else if strings.Contains(uaLower, "android") {
+	case strings.Contains(uaLower, "android"):
 		res.OS = "Android"
-	} else if strings.Contains(uaLower, "iphone") {
+	case strings.Contains(uaLower, "iphone"):
 		res.OS = "iOS"
 	}
 
-	if strings.Contains(uaLower, "chrome") {
+	switch {
+	case strings.Contains(uaLower, "chrome"):
 		res.Browser = "Chrome"
-	} else if strings.Contains(uaLower, "safari") {
+	case strings.Contains(uaLower, "safari"):
 		res.Browser = "Safari"
-	} else if strings.Contains(uaLower, "firefox") {
+	case strings.Contains(uaLower, "firefox"):
 		res.Browser = "Firefox"
 	}
 
