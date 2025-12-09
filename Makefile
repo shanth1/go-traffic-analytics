@@ -93,4 +93,4 @@ lint-install: ## Install golangci-lint
 format: ## Format code
 	@go fmt ./...
 
-check: format swagger lint test ## Run all checks before commit
+check: format lint test ## Run all checks before commit
