@@ -6,16 +6,21 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 )
 
 type AdminHandler struct {
 	userService ports.UserService
+	logger      log.Logger
 }
 
-func NewAdminHandler(u ports.UserService) *AdminHandler {
-	return &AdminHandler{userService: u}
+func NewAdminHandler(u ports.UserService, l log.Logger) *AdminHandler {
+	return &AdminHandler{
+		userService: u,
+		logger:      l,
+	}
 }
 
 // --- Handlers ---
@@ -87,4 +92,12 @@ func (h *AdminHandler) GetPlans(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.JSON(w, http.StatusOK, map[string]interface{}{"data": plans})
+}
+
+type HealthResponse struct {
+	Status string `json:"status" example:"OK"`
+}
+
+func (h *AdminHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
+	response.JSON(w, http.StatusOK, HealthResponse{Status: "OK"})
 }

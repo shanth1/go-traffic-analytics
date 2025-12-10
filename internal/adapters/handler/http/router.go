@@ -46,13 +46,14 @@ func NewRouter(
 	linkHandler := v1.NewLinkHandler(linkService)
 	redirectHandler := v1.NewRedirectHandler(redirectService)
 	analyticsHandler := v1.NewAnalyticsHandler(analyticsService)
-	adminHandler := v1.NewAdminHandler(userService)
+	adminHandler := v1.NewAdminHandler(userService, logger)
 
 	// Middleware
 	quotaMiddleware := httpMw.NewQuotaMiddleware(linkRepo, userRepo, planRepo)
 	authMiddleware := httpMw.Auth(cfg)
 
 	// --- Public Routes ---
+	r.Get("/health", adminHandler.HealthCheck)
 	r.With(quotaMiddleware.CheckClickLimit).Get("/{slug}", redirectHandler.Redirect)
 
 	// --- API v1 Group ---
