@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/shanth1/gotools/log"
 	httpMw "github.com/shanth1/gotrace/internal/adapters/handler/http/middleware"
 	v1 "github.com/shanth1/gotrace/internal/adapters/handler/http/v1"
@@ -39,6 +40,7 @@ func NewRouter(
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
+	r.Use(httpMw.Metrics)
 	r.Use(middleware.Timeout(cfg.HTTP.RequestTimeout))
 
 	// Handlers
@@ -96,6 +98,7 @@ func NewRouter(
 				r.Patch("/users/{id}/status", adminHandler.UpdateUserStatus)
 				r.Patch("/users/{id}/plan", adminHandler.UpdateUserPlan)
 				r.Get("/plans", adminHandler.GetPlans)
+				r.Handle("/metrics", promhttp.Handler())
 			})
 		})
 	})
