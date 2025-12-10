@@ -73,6 +73,105 @@ func (mr *MockAuthServiceMockRecorder) Register(ctx, email, password any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockAuthService)(nil).Register), ctx, email, password)
 }
 
+// MockAnalyticsService is a mock of AnalyticsService interface.
+type MockAnalyticsService struct {
+	ctrl     *gomock.Controller
+	recorder *MockAnalyticsServiceMockRecorder
+	isgomock struct{}
+}
+
+// MockAnalyticsServiceMockRecorder is the mock recorder for MockAnalyticsService.
+type MockAnalyticsServiceMockRecorder struct {
+	mock *MockAnalyticsService
+}
+
+// NewMockAnalyticsService creates a new mock instance.
+func NewMockAnalyticsService(ctrl *gomock.Controller) *MockAnalyticsService {
+	mock := &MockAnalyticsService{ctrl: ctrl}
+	mock.recorder = &MockAnalyticsServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAnalyticsService) EXPECT() *MockAnalyticsServiceMockRecorder {
+	return m.recorder
+}
+
+// GetGeoDistribution mocks base method.
+func (m *MockAnalyticsService) GetGeoDistribution(ctx context.Context, filter ports.AnalyticsFilter) (any, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetGeoDistribution", ctx, filter)
+	ret0, _ := ret[0].(any)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetGeoDistribution indicates an expected call of GetGeoDistribution.
+func (mr *MockAnalyticsServiceMockRecorder) GetGeoDistribution(ctx, filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGeoDistribution", reflect.TypeOf((*MockAnalyticsService)(nil).GetGeoDistribution), ctx, filter)
+}
+
+// GetSankeyData mocks base method.
+func (m *MockAnalyticsService) GetSankeyData(ctx context.Context, filter ports.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSankeyData", ctx, filter, stages)
+	ret0, _ := ret[0].(*domain.SankeyData)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSankeyData indicates an expected call of GetSankeyData.
+func (mr *MockAnalyticsServiceMockRecorder) GetSankeyData(ctx, filter, stages any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSankeyData", reflect.TypeOf((*MockAnalyticsService)(nil).GetSankeyData), ctx, filter, stages)
+}
+
+// GetStreamGraphData mocks base method.
+func (m *MockAnalyticsService) GetStreamGraphData(ctx context.Context, filter ports.AnalyticsFilter, groupBy string) ([]domain.StackedPoint, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStreamGraphData", ctx, filter, groupBy)
+	ret0, _ := ret[0].([]domain.StackedPoint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStreamGraphData indicates an expected call of GetStreamGraphData.
+func (mr *MockAnalyticsServiceMockRecorder) GetStreamGraphData(ctx, filter, groupBy any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStreamGraphData", reflect.TypeOf((*MockAnalyticsService)(nil).GetStreamGraphData), ctx, filter, groupBy)
+}
+
+// GetSummary mocks base method.
+func (m *MockAnalyticsService) GetSummary(ctx context.Context, filter ports.AnalyticsFilter) (map[string]any, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSummary", ctx, filter)
+	ret0, _ := ret[0].(map[string]any)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSummary indicates an expected call of GetSummary.
+func (mr *MockAnalyticsServiceMockRecorder) GetSummary(ctx, filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSummary", reflect.TypeOf((*MockAnalyticsService)(nil).GetSummary), ctx, filter)
+}
+
+// GetTrafficQuality mocks base method.
+func (m *MockAnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.AnalyticsFilter) (map[string]int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTrafficQuality", ctx, filter)
+	ret0, _ := ret[0].(map[string]int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTrafficQuality indicates an expected call of GetTrafficQuality.
+func (mr *MockAnalyticsServiceMockRecorder) GetTrafficQuality(ctx, filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTrafficQuality", reflect.TypeOf((*MockAnalyticsService)(nil).GetTrafficQuality), ctx, filter)
+}
+
 // MockLinkService is a mock of LinkService interface.
 type MockLinkService struct {
 	ctrl     *gomock.Controller
@@ -171,101 +270,123 @@ func (mr *MockLinkServiceMockRecorder) GetUserCampaigns(ctx, userID any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserCampaigns", reflect.TypeOf((*MockLinkService)(nil).GetUserCampaigns), ctx, userID)
 }
 
-// MockAnalyticsService is a mock of AnalyticsService interface.
-type MockAnalyticsService struct {
+// MockRedirectService is a mock of RedirectService interface.
+type MockRedirectService struct {
 	ctrl     *gomock.Controller
-	recorder *MockAnalyticsServiceMockRecorder
+	recorder *MockRedirectServiceMockRecorder
 	isgomock struct{}
 }
 
-// MockAnalyticsServiceMockRecorder is the mock recorder for MockAnalyticsService.
-type MockAnalyticsServiceMockRecorder struct {
-	mock *MockAnalyticsService
+// MockRedirectServiceMockRecorder is the mock recorder for MockRedirectService.
+type MockRedirectServiceMockRecorder struct {
+	mock *MockRedirectService
 }
 
-// NewMockAnalyticsService creates a new mock instance.
-func NewMockAnalyticsService(ctrl *gomock.Controller) *MockAnalyticsService {
-	mock := &MockAnalyticsService{ctrl: ctrl}
-	mock.recorder = &MockAnalyticsServiceMockRecorder{mock}
+// NewMockRedirectService creates a new mock instance.
+func NewMockRedirectService(ctrl *gomock.Controller) *MockRedirectService {
+	mock := &MockRedirectService{ctrl: ctrl}
+	mock.recorder = &MockRedirectServiceMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockAnalyticsService) EXPECT() *MockAnalyticsServiceMockRecorder {
+func (m *MockRedirectService) EXPECT() *MockRedirectServiceMockRecorder {
 	return m.recorder
 }
 
-// GetGeoDistribution mocks base method.
-func (m *MockAnalyticsService) GetGeoDistribution(ctx context.Context, filter ports.AnalyticsFilter) ([]domain.TimeSeriesPoint, error) {
+// ProcessRedirect mocks base method.
+func (m *MockRedirectService) ProcessRedirect(ctx context.Context, slug, ip, userAgentString, referer string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGeoDistribution", ctx, filter)
-	ret0, _ := ret[0].([]domain.TimeSeriesPoint)
+	ret := m.ctrl.Call(m, "ProcessRedirect", ctx, slug, ip, userAgentString, referer)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetGeoDistribution indicates an expected call of GetGeoDistribution.
-func (mr *MockAnalyticsServiceMockRecorder) GetGeoDistribution(ctx, filter any) *gomock.Call {
+// ProcessRedirect indicates an expected call of ProcessRedirect.
+func (mr *MockRedirectServiceMockRecorder) ProcessRedirect(ctx, slug, ip, userAgentString, referer any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGeoDistribution", reflect.TypeOf((*MockAnalyticsService)(nil).GetGeoDistribution), ctx, filter)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessRedirect", reflect.TypeOf((*MockRedirectService)(nil).ProcessRedirect), ctx, slug, ip, userAgentString, referer)
 }
 
-// GetSankeyData mocks base method.
-func (m *MockAnalyticsService) GetSankeyData(ctx context.Context, filter ports.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
+// MockUserService is a mock of UserService interface.
+type MockUserService struct {
+	ctrl     *gomock.Controller
+	recorder *MockUserServiceMockRecorder
+	isgomock struct{}
+}
+
+// MockUserServiceMockRecorder is the mock recorder for MockUserService.
+type MockUserServiceMockRecorder struct {
+	mock *MockUserService
+}
+
+// NewMockUserService creates a new mock instance.
+func NewMockUserService(ctrl *gomock.Controller) *MockUserService {
+	mock := &MockUserService{ctrl: ctrl}
+	mock.recorder = &MockUserServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockUserService) EXPECT() *MockUserServiceMockRecorder {
+	return m.recorder
+}
+
+// ChangeUserPlan mocks base method.
+func (m *MockUserService) ChangeUserPlan(ctx context.Context, userID, planID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSankeyData", ctx, filter, stages)
-	ret0, _ := ret[0].(*domain.SankeyData)
+	ret := m.ctrl.Call(m, "ChangeUserPlan", ctx, userID, planID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeUserPlan indicates an expected call of ChangeUserPlan.
+func (mr *MockUserServiceMockRecorder) ChangeUserPlan(ctx, userID, planID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeUserPlan", reflect.TypeOf((*MockUserService)(nil).ChangeUserPlan), ctx, userID, planID)
+}
+
+// GetAllPlans mocks base method.
+func (m *MockUserService) GetAllPlans(ctx context.Context) ([]*domain.Plan, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllPlans", ctx)
+	ret0, _ := ret[0].([]*domain.Plan)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetSankeyData indicates an expected call of GetSankeyData.
-func (mr *MockAnalyticsServiceMockRecorder) GetSankeyData(ctx, filter, stages any) *gomock.Call {
+// GetAllPlans indicates an expected call of GetAllPlans.
+func (mr *MockUserServiceMockRecorder) GetAllPlans(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSankeyData", reflect.TypeOf((*MockAnalyticsService)(nil).GetSankeyData), ctx, filter, stages)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllPlans", reflect.TypeOf((*MockUserService)(nil).GetAllPlans), ctx)
 }
 
-// GetStreamGraphData mocks base method.
-func (m *MockAnalyticsService) GetStreamGraphData(ctx context.Context, filter ports.AnalyticsFilter, groupBy string) ([]domain.StackedPoint, error) {
+// GetAllUsers mocks base method.
+func (m *MockUserService) GetAllUsers(ctx context.Context, page, limit int) ([]*domain.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetStreamGraphData", ctx, filter, groupBy)
-	ret0, _ := ret[0].([]domain.StackedPoint)
+	ret := m.ctrl.Call(m, "GetAllUsers", ctx, page, limit)
+	ret0, _ := ret[0].([]*domain.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetStreamGraphData indicates an expected call of GetStreamGraphData.
-func (mr *MockAnalyticsServiceMockRecorder) GetStreamGraphData(ctx, filter, groupBy any) *gomock.Call {
+// GetAllUsers indicates an expected call of GetAllUsers.
+func (mr *MockUserServiceMockRecorder) GetAllUsers(ctx, page, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStreamGraphData", reflect.TypeOf((*MockAnalyticsService)(nil).GetStreamGraphData), ctx, filter, groupBy)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllUsers", reflect.TypeOf((*MockUserService)(nil).GetAllUsers), ctx, page, limit)
 }
 
-// GetSummary mocks base method.
-func (m *MockAnalyticsService) GetSummary(ctx context.Context, filter ports.AnalyticsFilter) (map[string]any, error) {
+// SetUserStatus mocks base method.
+func (m *MockUserService) SetUserStatus(ctx context.Context, userID string, isActive bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSummary", ctx, filter)
-	ret0, _ := ret[0].(map[string]any)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "SetUserStatus", ctx, userID, isActive)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// GetSummary indicates an expected call of GetSummary.
-func (mr *MockAnalyticsServiceMockRecorder) GetSummary(ctx, filter any) *gomock.Call {
+// SetUserStatus indicates an expected call of SetUserStatus.
+func (mr *MockUserServiceMockRecorder) SetUserStatus(ctx, userID, isActive any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSummary", reflect.TypeOf((*MockAnalyticsService)(nil).GetSummary), ctx, filter)
-}
-
-// GetTrafficQuality mocks base method.
-func (m *MockAnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.AnalyticsFilter) (map[string]int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTrafficQuality", ctx, filter)
-	ret0, _ := ret[0].(map[string]int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetTrafficQuality indicates an expected call of GetTrafficQuality.
-func (mr *MockAnalyticsServiceMockRecorder) GetTrafficQuality(ctx, filter any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTrafficQuality", reflect.TypeOf((*MockAnalyticsService)(nil).GetTrafficQuality), ctx, filter)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUserStatus", reflect.TypeOf((*MockUserService)(nil).SetUserStatus), ctx, userID, isActive)
 }
