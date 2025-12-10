@@ -4,15 +4,15 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/shanth1/gotrace/internal/core/services"
+	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 )
 
 type AuthHandler struct {
-	service *services.AuthService
+	service ports.AuthService
 }
 
-func NewAuthHandler(s *services.AuthService) *AuthHandler {
+func NewAuthHandler(s ports.AuthService) *AuthHandler {
 	return &AuthHandler{service: s}
 }
 

@@ -46,13 +46,7 @@ func NewRedirectService(
 	return s
 }
 
-func (s *RedirectService) ProcessRedirect(
-	ctx context.Context,
-	slug string,
-	ip string,
-	userAgentString string,
-	referer string,
-) (string, error) {
+func (s *RedirectService) ProcessRedirect(ctx context.Context, slug, ip, userAgentString, referer string) (string, error) {
 	link, err := s.linkRepo.FindBySlug(ctx, slug)
 	if err != nil {
 		return "", err

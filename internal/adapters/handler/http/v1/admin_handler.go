@@ -6,15 +6,15 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/shanth1/gotrace/internal/core/services"
+	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 )
 
 type AdminHandler struct {
-	userService *services.UserService
+	userService ports.UserService
 }
 
-func NewAdminHandler(u *services.UserService) *AdminHandler {
+func NewAdminHandler(u ports.UserService) *AdminHandler {
 	return &AdminHandler{userService: u}
 }
 

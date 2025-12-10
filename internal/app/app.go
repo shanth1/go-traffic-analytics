@@ -8,8 +8,6 @@ import (
 
 	"github.com/shanth1/gotools/log"
 	transport "github.com/shanth1/gotrace/internal/adapters/handler/http"
-	"github.com/shanth1/gotrace/internal/adapters/handler/http/middleware"
-	v1 "github.com/shanth1/gotrace/internal/adapters/handler/http/v1"
 	"github.com/shanth1/gotrace/internal/adapters/repository/memory"
 	"github.com/shanth1/gotrace/internal/config"
 	"github.com/shanth1/gotrace/internal/core/services"
@@ -28,32 +26,22 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 
 	// Services
 	authService := services.NewAuthService(userRepo, planRepo, cfg)
+	analyticsService := services.NewAnalyticsService(clickRepo)
 	linkService := services.NewLinkService(linkRepo, campRepo, userRepo, planRepo)
 	redirectService := services.NewRedirectService(ctx, linkRepo, clickRepo, userRepo)
-	analyticsService := services.NewAnalyticsService(clickRepo)
 	userService := services.NewUserService(userRepo, planRepo)
 
-	// Handlers
-	authHandler := v1.NewAuthHandler(authService)
-	linkHandler := v1.NewLinkHandler(linkService)
-	redirectHandler := v1.NewRedirectHandler(redirectService)
-	analyticsHandler := v1.NewAnalyticsHandler(analyticsService)
-	adminHandler := v1.NewAdminHandler(userService)
-
-	// Middleware
-	quotaMW := middleware.NewQuotaMiddleware(linkRepo, userRepo, planRepo)
-	jwtMW := middleware.Auth(cfg)
-	adminMW := middleware.AdminOnly
-
 	httpHandler := transport.NewRouter(
-		authHandler,
-		linkHandler,
-		redirectHandler,
-		analyticsHandler,
-		adminHandler,
-		quotaMW,
-		jwtMW,
-		adminMW,
+		cfg,
+		authService,
+		analyticsService,
+		linkService,
+		redirectService,
+		userService,
+		linkRepo,
+		userRepo,
+		planRepo,
+		logger,
 	)
 	// TODO: local/develop env
 	// Seeding Data (Optional, for dev convenience)

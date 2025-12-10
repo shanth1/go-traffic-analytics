@@ -5,15 +5,14 @@ import (
 	"time"
 
 	"github.com/shanth1/gotrace/internal/core/ports"
-	"github.com/shanth1/gotrace/internal/core/services"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 )
 
 type AnalyticsHandler struct {
-	service *services.AnalyticsService
+	service ports.AnalyticsService
 }
 
-func NewAnalyticsHandler(s *services.AnalyticsService) *AnalyticsHandler {
+func NewAnalyticsHandler(s ports.AnalyticsService) *AnalyticsHandler {
 	return &AnalyticsHandler{service: s}
 }
 

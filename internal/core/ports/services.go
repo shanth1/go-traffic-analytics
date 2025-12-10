@@ -13,6 +13,14 @@ type AuthService interface {
 	Login(ctx context.Context, email, password string) (string, *domain.User, error)
 }
 
+type AnalyticsService interface {
+	GetSummary(ctx context.Context, filter AnalyticsFilter) (map[string]interface{}, error)
+	GetStreamGraphData(ctx context.Context, filter AnalyticsFilter, groupBy string) ([]domain.StackedPoint, error)
+	GetSankeyData(ctx context.Context, filter AnalyticsFilter, stages []string) (*domain.SankeyData, error)
+	GetGeoDistribution(ctx context.Context, filter AnalyticsFilter) (interface{}, error)
+	GetTrafficQuality(ctx context.Context, filter AnalyticsFilter) (map[string]int, error)
+}
+
 type LinkService interface {
 	CreateLink(ctx context.Context, userID, campaignID, targetURL, customSlug string) (*domain.Link, error)
 	GetLinks(ctx context.Context, campaignID string) ([]*domain.Link, error)
@@ -21,10 +29,13 @@ type LinkService interface {
 	DeleteLink(ctx context.Context, id string) error
 }
 
-type AnalyticsService interface {
-	GetSummary(ctx context.Context, filter AnalyticsFilter) (map[string]interface{}, error)
-	GetStreamGraphData(ctx context.Context, filter AnalyticsFilter, groupBy string) ([]domain.StackedPoint, error)
-	GetSankeyData(ctx context.Context, filter AnalyticsFilter, stages []string) (*domain.SankeyData, error)
-	GetGeoDistribution(ctx context.Context, filter AnalyticsFilter) ([]domain.TimeSeriesPoint, error) // Упрощено для примера
-	GetTrafficQuality(ctx context.Context, filter AnalyticsFilter) (map[string]int, error)
+type RedirectService interface {
+	ProcessRedirect(ctx context.Context, slug, ip, userAgentString, referer string) (string, error)
+}
+
+type UserService interface {
+	GetAllUsers(ctx context.Context, page, limit int) ([]*domain.User, error)
+	SetUserStatus(ctx context.Context, userID string, isActive bool) error
+	ChangeUserPlan(ctx context.Context, userID, planID string) error
+	GetAllPlans(ctx context.Context) ([]*domain.Plan, error)
 }

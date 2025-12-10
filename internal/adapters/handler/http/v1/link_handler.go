@@ -5,16 +5,17 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/core/services"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 	"github.com/shanth1/gotrace/internal/pkg/request"
 )
 
 type LinkHandler struct {
-	service *services.LinkService
+	service ports.LinkService
 }
 
-func NewLinkHandler(s *services.LinkService) *LinkHandler {
+func NewLinkHandler(s ports.LinkService) *LinkHandler {
 	return &LinkHandler{service: s}
 }
 

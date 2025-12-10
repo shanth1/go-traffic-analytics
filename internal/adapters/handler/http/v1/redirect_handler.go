@@ -6,15 +6,15 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/shanth1/gotrace/internal/core/services"
+	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 )
 
 type RedirectHandler struct {
-	service *services.RedirectService
+	service ports.RedirectService
 }
 
-func NewRedirectHandler(s *services.RedirectService) *RedirectHandler {
+func NewRedirectHandler(s ports.RedirectService) *RedirectHandler {
 	return &RedirectHandler{service: s}
 }
 
