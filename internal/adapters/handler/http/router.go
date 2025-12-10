@@ -7,12 +7,15 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/shanth1/gotools/consts"
 	"github.com/shanth1/gotools/log"
+	_ "github.com/shanth1/gotrace/docs"
 	"github.com/shanth1/gotrace/internal/adapters/handler/http/handlers"
 	httpMw "github.com/shanth1/gotrace/internal/adapters/handler/http/middleware"
 	v1 "github.com/shanth1/gotrace/internal/adapters/handler/http/v1"
 	"github.com/shanth1/gotrace/internal/config"
 	"github.com/shanth1/gotrace/internal/core/ports"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func NewRouter(
@@ -58,13 +61,19 @@ func NewRouter(
 
 	// --- Public Routes ---
 	r.Get("/health", handlers.HealthCheck)
+	r.With(quotaMiddleware.CheckClickLimit).Get("/{slug}", redirectHandler.Redirect)
 	r.Group(func(sys chi.Router) {
 		if cfg.Metrics.User != "" && cfg.Metrics.Password != "" {
 			sys.Use(httpMw.BasicAuth(cfg.Metrics.User, cfg.Metrics.Password))
 		}
 		sys.Handle("/metrics", promhttp.Handler())
 	})
-	r.With(quotaMiddleware.CheckClickLimit).Get("/{slug}", redirectHandler.Redirect)
+	if cfg.Env != consts.EnvProd {
+		logger.Info().Msg("Swagger UI enabled at /swagger/index.html")
+		r.Get("/swagger/*", httpSwagger.Handler(
+			httpSwagger.URL("/swagger/doc.json"),
+		))
+	}
 
 	// --- API v1 Group ---
 	r.Route("/api/v1", func(r chi.Router) {
