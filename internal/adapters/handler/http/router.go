@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/shanth1/gotools/log"
+	"github.com/shanth1/gotrace/internal/adapters/handler/http/handlers"
 	httpMw "github.com/shanth1/gotrace/internal/adapters/handler/http/middleware"
 	v1 "github.com/shanth1/gotrace/internal/adapters/handler/http/v1"
 	"github.com/shanth1/gotrace/internal/config"
@@ -43,62 +44,68 @@ func NewRouter(
 	r.Use(httpMw.Metrics)
 	r.Use(middleware.Timeout(cfg.HTTP.RequestTimeout))
 
+	redirectHandler := handlers.NewRedirectHandler(redirectService)
+
 	// Handlers
-	authHandler := v1.NewAuthHandler(authService)
-	linkHandler := v1.NewLinkHandler(linkService)
-	redirectHandler := v1.NewRedirectHandler(redirectService)
-	analyticsHandler := v1.NewAnalyticsHandler(analyticsService)
-	adminHandler := v1.NewAdminHandler(userService, logger)
+	authHandlerV1 := v1.NewAuthHandler(authService)
+	adminHandlerV1 := v1.NewAdminHandler(userService, logger)
+	linkHandlerV1 := v1.NewLinkHandler(linkService)
+	analyticsHandlerV1 := v1.NewAnalyticsHandler(analyticsService)
 
 	// Middleware
 	quotaMiddleware := httpMw.NewQuotaMiddleware(linkRepo, userRepo, planRepo)
-	authMiddleware := httpMw.Auth(cfg)
+	jwtAuthMiddleware := httpMw.JWTAuth(cfg)
 
 	// --- Public Routes ---
-	r.Get("/health", adminHandler.HealthCheck)
+	r.Get("/health", handlers.HealthCheck)
+	r.Group(func(sys chi.Router) {
+		if cfg.Metrics.User != "" && cfg.Metrics.Password != "" {
+			sys.Use(httpMw.BasicAuth(cfg.Metrics.User, cfg.Metrics.Password))
+		}
+		sys.Handle("/metrics", promhttp.Handler())
+	})
 	r.With(quotaMiddleware.CheckClickLimit).Get("/{slug}", redirectHandler.Redirect)
 
 	// --- API v1 Group ---
 	r.Route("/api/v1", func(r chi.Router) {
 		// --- Auth Routes (Public) ---
 		r.Route("/auth", func(r chi.Router) {
-			r.Post("/register", authHandler.Register)
-			r.Post("/login", authHandler.Login)
+			r.Post("/register", authHandlerV1.Register)
+			r.Post("/login", authHandlerV1.Login)
 		})
 
 		// --- Client Routes (Protected) ---
 		r.Group(func(r chi.Router) {
-			r.Use(authMiddleware)
+			r.Use(jwtAuthMiddleware)
 
 			// Campaigns
-			r.Get("/campaigns", linkHandler.GetCampaigns)
-			r.Post("/campaigns", linkHandler.CreateCampaign)
+			r.Get("/campaigns", linkHandlerV1.GetCampaigns)
+			r.Post("/campaigns", linkHandlerV1.CreateCampaign)
 
 			// Links
-			r.Get("/campaigns/{id}/links", linkHandler.GetLinksByCampaign)
-			r.Post("/links", linkHandler.CreateLink)
-			r.Delete("/links/{id}", linkHandler.DeleteLink)
+			r.Get("/campaigns/{id}/links", linkHandlerV1.GetLinksByCampaign)
+			r.Post("/links", linkHandlerV1.CreateLink)
+			r.Delete("/links/{id}", linkHandlerV1.DeleteLink)
 
 			// Analytics (Visx Ready)
 			r.Route("/analytics", func(r chi.Router) {
-				r.Get("/summary", analyticsHandler.GetSummary)
-				r.Get("/stream", analyticsHandler.GetStreamGraph)
-				r.Get("/flow", analyticsHandler.GetSankeyFlow)
-				r.Get("/geo", analyticsHandler.GetGeoMap)
-				r.Get("/quality", analyticsHandler.GetQualityRadar)
+				r.Get("/summary", analyticsHandlerV1.GetSummary)
+				r.Get("/stream", analyticsHandlerV1.GetStreamGraph)
+				r.Get("/flow", analyticsHandlerV1.GetSankeyFlow)
+				r.Get("/geo", analyticsHandlerV1.GetGeoMap)
+				r.Get("/quality", analyticsHandlerV1.GetQualityRadar)
 			})
 		})
 
 		// --- Admin Routes (Protected + Admin Role) ---
 		r.Group(func(r chi.Router) {
-			r.Use(authMiddleware, httpMw.AdminOnly)
+			r.Use(jwtAuthMiddleware, httpMw.AdminOnly)
 
 			r.Route("/admin", func(r chi.Router) {
-				r.Get("/users", adminHandler.GetUsers)
-				r.Patch("/users/{id}/status", adminHandler.UpdateUserStatus)
-				r.Patch("/users/{id}/plan", adminHandler.UpdateUserPlan)
-				r.Get("/plans", adminHandler.GetPlans)
-				r.Handle("/metrics", promhttp.Handler())
+				r.Get("/users", adminHandlerV1.GetUsers)
+				r.Patch("/users/{id}/status", adminHandlerV1.UpdateUserStatus)
+				r.Patch("/users/{id}/plan", adminHandlerV1.UpdateUserPlan)
+				r.Get("/plans", adminHandlerV1.GetPlans)
 			})
 		})
 	})

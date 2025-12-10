@@ -93,11 +93,3 @@ func (h *AdminHandler) GetPlans(w http.ResponseWriter, r *http.Request) {
 
 	response.JSON(w, http.StatusOK, map[string]interface{}{"data": plans})
 }
-
-type HealthResponse struct {
-	Status string `json:"status" example:"OK"`
-}
-
-func (h *AdminHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
-	response.JSON(w, http.StatusOK, HealthResponse{Status: "OK"})
-}

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"crypto/subtle"
 	"fmt"
 	"net/http"
 	"strings"
@@ -12,7 +13,7 @@ import (
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 )
 
-func Auth(cfg *config.Config) func(http.Handler) http.Handler {
+func JWTAuth(cfg *config.Config) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
@@ -61,4 +62,31 @@ func AdminOnly(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func BasicAuth(user, pass string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			u, p, ok := r.BasicAuth()
+			if !ok {
+				basicAuthFailed(w)
+				return
+			}
+
+			userMatch := subtle.ConstantTimeCompare([]byte(u), []byte(user)) == 1
+			passMatch := subtle.ConstantTimeCompare([]byte(p), []byte(pass)) == 1
+
+			if !userMatch || !passMatch {
+				basicAuthFailed(w)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func basicAuthFailed(w http.ResponseWriter) {
+	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+	response.Error(w, http.StatusUnauthorized, "unauthorized")
 }
