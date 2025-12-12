@@ -18,8 +18,8 @@ func NewAuthHandler(s ports.AuthService) *AuthHandler {
 }
 
 type RegisterReq struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" binding:"required" example:"user@example.com"`
+	Password string `json:"password" binding:"required" example:"secret123"`
 }
 
 type LoginReq struct {
@@ -43,6 +43,11 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	if req.Email == "" || req.Password == "" {
+		response.Error(w, http.StatusBadRequest, "email and password are required")
 		return
 	}
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shanth1/gotools/log"
+	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 )
@@ -33,8 +34,10 @@ func NewAdminHandler(u ports.UserService, l log.Logger) *AdminHandler {
 // @Produce      json
 // @Param        page query int false "Page number"
 // @Success      200  {object}  UsersListResponse
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      403  {object}  response.ErrorResponse "Forbidden"
 // @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/api/v1/admin/users [get]
+// @Router       /api/v1/admin/users [get]
 func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	pageStr := r.URL.Query().Get("page")
 	page, _ := strconv.Atoi(pageStr)
@@ -47,6 +50,10 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	if users == nil {
+		users = []*domain.User{}
 	}
 
 	response.JSON(w, http.StatusOK, UsersListResponse{Data: users})
@@ -67,6 +74,8 @@ type UpdateUserStatusReq struct {
 // @Param        request body UpdateUserStatusReq true "Status"
 // @Success      200  {object}  map[string]string      "Status: updated"
 // @Failure      400  {object}  response.ErrorResponse
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      403  {object}  response.ErrorResponse "Forbidden"
 // @Router       /api/v1/admin/users/{id}/status [patch]
 func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
@@ -99,6 +108,8 @@ type UpdateUserPlanReq struct {
 // @Param        id      path string            true "User ID"
 // @Param        request body UpdateUserPlanReq true "New Plan ID"
 // @Success      200  {object}  map[string]string      "Status: updated"
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      403  {object}  response.ErrorResponse "Forbidden"
 // @Failure      400  {object}  response.ErrorResponse
 // @Router       /api/v1/admin/users/{id}/plan [patch]
 func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
@@ -125,6 +136,8 @@ func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Produce      json
 // @Success      200  {object}  PlansListResponse
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      403  {object}  response.ErrorResponse "Forbidden"
 // @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/admin/plans [get]
 func (h *AdminHandler) GetPlans(w http.ResponseWriter, r *http.Request) {
@@ -132,6 +145,10 @@ func (h *AdminHandler) GetPlans(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	if plans == nil {
+		plans = []*domain.Plan{}
 	}
 
 	response.JSON(w, http.StatusOK, map[string]interface{}{"data": plans})

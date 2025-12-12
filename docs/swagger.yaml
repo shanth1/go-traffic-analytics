@@ -160,7 +160,10 @@ definitions:
       custom_slug:
         type: string
       target_url:
+        example: https://google.com
         type: string
+    required:
+    - target_url
     type: object
   v1.GeoResponse:
     properties:
@@ -209,9 +212,14 @@ definitions:
   v1.RegisterReq:
     properties:
       email:
+        example: user@example.com
         type: string
       password:
+        example: secret123
         type: string
+    required:
+    - email
+    - password
     type: object
   v1.SankeyResponse:
     properties:
@@ -287,6 +295,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/v1.PlansListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -294,6 +310,38 @@ paths:
       security:
       - BearerAuth: []
       summary: List plans
+      tags:
+      - Admin
+  /api/v1/admin/users:
+    get:
+      description: Get paginated users list (Admin)
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.UsersListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List users
       tags:
       - Admin
   /api/v1/admin/users/{id}/plan:
@@ -324,6 +372,14 @@ paths:
             type: object
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       security:
@@ -361,6 +417,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update user status
@@ -393,6 +457,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/v1.SankeyResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -429,6 +501,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/v1.GeoResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -465,6 +545,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/v1.QualityResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -505,6 +593,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/v1.StreamGraphResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -541,6 +637,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/v1.AnalyticsSummaryResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -550,30 +654,6 @@ paths:
       summary: Analytics summary
       tags:
       - Analytics
-  /api/v1/api/v1/admin/users:
-    get:
-      description: Get paginated users list (Admin)
-      parameters:
-      - description: Page number
-        in: query
-        name: page
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.UsersListResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: List users
-      tags:
-      - Admin
   /api/v1/auth/login:
     post:
       consumes:
@@ -644,6 +724,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/v1.CampaignsListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -675,6 +763,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create campaign
@@ -696,6 +792,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/v1.LinksListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -728,6 +832,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "403":
           description: Limit reached
           schema:
@@ -751,6 +859,14 @@ paths:
           description: No Content
           schema:
             type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:

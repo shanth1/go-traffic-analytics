@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/core/services"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
@@ -28,6 +29,8 @@ func NewLinkHandler(s ports.LinkService) *LinkHandler {
 // @Security     BearerAuth
 // @Produce      json
 // @Success      200  {object}  CampaignsListResponse
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      403  {object}  response.ErrorResponse "Forbidden"
 // @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/campaigns [get]
 func (h *LinkHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
@@ -37,6 +40,10 @@ func (h *LinkHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	if campaigns == nil {
+		campaigns = []*domain.Campaign{}
 	}
 
 	response.JSON(w, http.StatusOK, CampaignsListResponse{Data: campaigns})
@@ -51,6 +58,8 @@ func (h *LinkHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        request body CreateCampaignRequest true "Campaign Name"
 // @Success      201  {object}  CampaignResponse
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      403  {object}  response.ErrorResponse "Forbidden"
 // @Failure      400  {object}  response.ErrorResponse
 // @Router       /api/v1/campaigns [post]
 func (h *LinkHandler) CreateCampaign(w http.ResponseWriter, r *http.Request) {
@@ -59,6 +68,11 @@ func (h *LinkHandler) CreateCampaign(w http.ResponseWriter, r *http.Request) {
 	var req CreateCampaignRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, http.StatusBadRequest, "bad request")
+		return
+	}
+
+	if req.Name == "" {
+		response.Error(w, http.StatusBadRequest, "name is required")
 		return
 	}
 
@@ -81,6 +95,8 @@ func (h *LinkHandler) CreateCampaign(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        id   path      string  true  "Campaign ID"
 // @Success      200  {object}  LinksListResponse
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      403  {object}  response.ErrorResponse "Forbidden"
 // @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/campaigns/{id}/links [get]
 func (h *LinkHandler) GetLinksByCampaign(w http.ResponseWriter, r *http.Request) {
@@ -90,6 +106,10 @@ func (h *LinkHandler) GetLinksByCampaign(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	if links == nil {
+		links = []*domain.Link{}
 	}
 
 	response.JSON(w, http.StatusOK, LinksListResponse{Data: links})
@@ -105,6 +125,8 @@ func (h *LinkHandler) GetLinksByCampaign(w http.ResponseWriter, r *http.Request)
 // @Param        request body CreateLinkRequest true "Link Info"
 // @Success      201  {object}  LinkResponse
 // @Failure      400  {object}  response.ErrorResponse
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      403  {object}  response.ErrorResponse "Forbidden"
 // @Failure      403  {object}  response.ErrorResponse "Limit reached"
 // @Router       /api/v1/links [post]
 func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
@@ -118,7 +140,7 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: validation
 	if req.TargetURL == "" {
-		response.JSON(w, http.StatusBadRequest, "target_url is required")
+		response.Error(w, http.StatusBadRequest, "target_url is required")
 		return
 	}
 
@@ -142,6 +164,8 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Param        id   path      string  true  "Link ID"
 // @Success      204  {string}  string  "No Content"
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      403  {object}  response.ErrorResponse "Forbidden"
 // @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/links/{id} [delete]
 func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
@@ -152,5 +176,6 @@ func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Del("Content-Type")
 	w.WriteHeader(http.StatusNoContent)
 }
