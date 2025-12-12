@@ -42,7 +42,19 @@ func (h *AnalyticsHandler) parseFilter(r *http.Request) ports.AnalyticsFilter {
 	}
 }
 
-// GET /analytics/summary
+// GetSummary godoc
+// @Summary      Analytics summary
+// @Description  Get aggregated stats
+// @Tags         Analytics
+// @Security     BearerAuth
+// @Produce      json
+// @Param        campaign_id query string false "Filter by Campaign"
+// @Param        link_id     query string false "Filter by Link"
+// @Param        from        query string false "Date From (RFC3339)"
+// @Param        to          query string false "Date To (RFC3339)"
+// @Success      200  {object}  AnalyticsSummaryResponse
+// @Failure      500  {object}  response.ErrorResponse
+// @Router       /api/v1/analytics/summary [get]
 func (h *AnalyticsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 
@@ -52,10 +64,23 @@ func (h *AnalyticsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusOK, map[string]interface{}{"data": summary})
+	response.JSON(w, http.StatusOK, AnalyticsSummaryResponse{Data: summary})
 }
 
-// GET /analytics/stream?group_by=os&interval=day
+// GetStreamGraph godoc
+// @Summary      Stream graph data
+// @Description  Get time-series data for Streamgraph/Stacked Area charts
+// @Tags         Analytics
+// @Security     BearerAuth
+// @Produce      json
+// @Param        group_by    query string false "os, browser, country"
+// @Param        campaign_id query string false "Filter by Campaign"
+// @Param        link_id     query string false "Filter by Link"
+// @Param        from        query string false "Date From"
+// @Param        to          query string false "Date To"
+// @Success      200  {object}  StreamGraphResponse
+// @Failure      500  {object}  response.ErrorResponse
+// @Router       /api/v1/analytics/stream [get]
 func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 
@@ -70,10 +95,22 @@ func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	response.JSON(w, http.StatusOK, map[string]interface{}{"data": data})
+	response.JSON(w, http.StatusOK, StreamGraphResponse{Data: data})
 }
 
-// GET /analytics/flow (Sankey)
+// GetSankeyFlow godoc
+// @Summary      Sankey flow
+// @Description  Get flow data (Referer -> Device -> Country)
+// @Tags         Analytics
+// @Security     BearerAuth
+// @Produce      json
+// @Param        campaign_id query string false "Filter by Campaign"
+// @Param        link_id     query string false "Filter by Link"
+// @Param        from        query string false "Date From"
+// @Param        to          query string false "Date To"
+// @Success      200  {object}  SankeyResponse
+// @Failure      500  {object}  response.ErrorResponse
+// @Router       /api/v1/analytics/flow [get]
 func (h *AnalyticsHandler) GetSankeyFlow(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 	// stages=referer,device,country
@@ -85,10 +122,22 @@ func (h *AnalyticsHandler) GetSankeyFlow(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	response.JSON(w, http.StatusOK, map[string]interface{}{"data": data})
+	response.JSON(w, http.StatusOK, SankeyResponse{Data: data})
 }
 
-// GET /analytics/geo
+// GetGeoMap godoc
+// @Summary      Geo distribution
+// @Description  Get clicks count by country
+// @Tags         Analytics
+// @Security     BearerAuth
+// @Produce      json
+// @Param        campaign_id query string false "Filter by Campaign"
+// @Param        link_id     query string false "Filter by Link"
+// @Param        from        query string false "Date From"
+// @Param        to          query string false "Date To"
+// @Success      200  {object}  GeoResponse
+// @Failure      500  {object}  response.ErrorResponse
+// @Router       /api/v1/analytics/geo [get]
 func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 
@@ -98,10 +147,22 @@ func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusOK, map[string]interface{}{"data": data})
+	response.JSON(w, http.StatusOK, GeoResponse{Data: data})
 }
 
-// GET /analytics/quality
+// GetQualityRadar godoc
+// @Summary      Traffic quality
+// @Description  Get quality metrics for Radar Chart
+// @Tags         Analytics
+// @Security     BearerAuth
+// @Produce      json
+// @Param        campaign_id query string false "Filter by Campaign"
+// @Param        link_id     query string false "Filter by Link"
+// @Param        from        query string false "Date From"
+// @Param        to          query string false "Date To"
+// @Success      200  {object}  QualityResponse
+// @Failure      500  {object}  response.ErrorResponse
+// @Router       /api/v1/analytics/quality [get]
 func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 
@@ -111,5 +172,5 @@ func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	response.JSON(w, http.StatusOK, map[string]interface{}{"data": data})
+	response.JSON(w, http.StatusOK, QualityResponse{Data: data})
 }

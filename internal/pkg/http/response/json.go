@@ -15,6 +15,10 @@ func JSON(w http.ResponseWriter, status int, data interface{}) {
 	}
 }
 
+type ErrorResponse struct {
+	Error string `json:"error" example:"message"`
+}
+
 func Error(w http.ResponseWriter, status int, message string) {
 	JSON(w, status, Envelope{"error": message})
 }

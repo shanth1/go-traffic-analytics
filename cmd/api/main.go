@@ -30,6 +30,13 @@ var (
 
 // @host            localhost:8080
 // @BasePath        /
+//
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
+//
+// @securityDefinitions.basic BasicAuth
 func main() {
 	ctx, shutdownCtx, cancel, shutdownCancel := ctx.WithGracefulShutdown(10 * time.Second)
 	defer cancel()

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	_ "github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 )
@@ -16,19 +17,29 @@ func NewAuthHandler(s ports.AuthService) *AuthHandler {
 	return &AuthHandler{service: s}
 }
 
-type registerReq struct {
+type RegisterReq struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-type loginReq struct {
+type LoginReq struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-// POST /auth/register
+// Register godoc
+// @Summary      Register new user
+// @Description  Register a new user account
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        request body RegisterReq true "Registration info"
+// @Success      201  {object}  domain.User "Created user"
+// @Failure      400  {object}  response.ErrorResponse
+// @Failure      409  {object}  response.ErrorResponse "Email already taken"
+// @Router       /api/v1/auth/register [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
-	var req registerReq
+	var req RegisterReq
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, http.StatusBadRequest, "invalid request")
@@ -45,9 +56,19 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusCreated, user)
 }
 
-// POST /auth/login
+// Login godoc
+// @Summary      Login user
+// @Description  Authenticate and get JWT token
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        request body LoginReq true "Credentials"
+// @Success      200  {object}  LoginResponse "Token and User info"
+// @Failure      400  {object}  response.ErrorResponse
+// @Failure      401  {object}  response.ErrorResponse
+// @Router       /api/v1/auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	var req loginReq
+	var req LoginReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, http.StatusBadRequest, "invalid request")
 		return

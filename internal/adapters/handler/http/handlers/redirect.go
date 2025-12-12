@@ -18,6 +18,14 @@ func NewRedirectHandler(s ports.RedirectService) *RedirectHandler {
 	return &RedirectHandler{service: s}
 }
 
+// Redirect godoc
+// @Summary      Redirect link
+// @Description  Redirect user to target URL based on slug
+// @Tags         Redirect
+// @Param        slug  path  string  true  "Short Link Slug"
+// @Success      307   {string}  string  "Temporary Redirect"
+// @Failure      404   {object}  response.ErrorResponse "Link not found"
+// @Router       /{slug} [get]
 func (h *RedirectHandler) Redirect(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 

@@ -1,4 +1,247 @@
 basePath: /
+definitions:
+  domain.Campaign:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      user_id:
+        type: string
+    type: object
+  domain.Link:
+    properties:
+      campaign_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      slug:
+        type: string
+      target_url:
+        type: string
+      user_id:
+        type: string
+    type: object
+  domain.Plan:
+    properties:
+      can_export_data:
+        description: 'Фича: экспорт CSV'
+        type: boolean
+      id:
+        description: e.g., "free", "pro"
+        type: string
+      is_active:
+        type: boolean
+      max_clicks_month:
+        description: Лимит кликов
+        type: integer
+      max_links:
+        description: Лимит ссылок (-1 for infinity)
+        type: integer
+      name:
+        description: '"Starter", "Professional"'
+        type: string
+      price_cents:
+        description: 0, 990, 4990
+        type: integer
+    type: object
+  domain.SankeyData:
+    properties:
+      links:
+        items:
+          $ref: '#/definitions/domain.SankeyLink'
+        type: array
+      nodes:
+        items:
+          $ref: '#/definitions/domain.SankeyNode'
+        type: array
+    type: object
+  domain.SankeyLink:
+    properties:
+      source:
+        type: string
+      target:
+        type: string
+      value:
+        type: integer
+    type: object
+  domain.SankeyNode:
+    properties:
+      id:
+        description: Имя узла (напр. "USA" или "Mobile")
+        type: string
+      layer:
+        description: Столбец (0 - Referer, 1 - Device...)
+        type: integer
+    type: object
+  domain.StackedPoint:
+    properties:
+      time:
+        type: string
+      values:
+        additionalProperties:
+          type: integer
+        description: Динамические ключи (OS, Browser...)
+        type: object
+    type: object
+  domain.User:
+    properties:
+      clicks_current_month:
+        type: integer
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      plan_expires:
+        description: nil = forever (for free)
+        type: string
+      plan_id:
+        type: string
+      role:
+        $ref: '#/definitions/domain.UserRole'
+    type: object
+  domain.UserRole:
+    enum:
+    - admin
+    - client
+    type: string
+    x-enum-varnames:
+    - RoleAdmin
+    - RoleClient
+  handlers.HealthResponse:
+    properties:
+      status:
+        example: OK
+        type: string
+    type: object
+  response.ErrorResponse:
+    properties:
+      error:
+        example: message
+        type: string
+    type: object
+  v1.AnalyticsSummaryResponse:
+    properties:
+      data:
+        additionalProperties: true
+        type: object
+    type: object
+  v1.CampaignResponse:
+    properties:
+      data:
+        $ref: '#/definitions/domain.Campaign'
+    type: object
+  v1.CampaignsListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/domain.Campaign'
+        type: array
+    type: object
+  v1.CreateCampaignRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  v1.CreateLinkRequest:
+    properties:
+      campaign_id:
+        type: string
+      custom_slug:
+        type: string
+      target_url:
+        type: string
+    type: object
+  v1.GeoResponse:
+    properties:
+      data: {}
+    type: object
+  v1.LinkResponse:
+    properties:
+      data:
+        $ref: '#/definitions/domain.Link'
+    type: object
+  v1.LinksListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/domain.Link'
+        type: array
+    type: object
+  v1.LoginReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  v1.LoginResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/domain.User'
+    type: object
+  v1.PlansListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/domain.Plan'
+        type: array
+    type: object
+  v1.QualityResponse:
+    properties:
+      data:
+        additionalProperties:
+          type: integer
+        type: object
+    type: object
+  v1.RegisterReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  v1.SankeyResponse:
+    properties:
+      data:
+        $ref: '#/definitions/domain.SankeyData'
+    type: object
+  v1.StreamGraphResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/domain.StackedPoint'
+        type: array
+    type: object
+  v1.UpdateUserPlanReq:
+    properties:
+      plan_id:
+        type: string
+    type: object
+  v1.UpdateUserStatusReq:
+    properties:
+      is_active:
+        type: boolean
+    type: object
+  v1.UsersListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/domain.User'
+        type: array
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -12,5 +255,530 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Traffic Analytics
   version: "1.0"
-paths: {}
+paths:
+  /{slug}:
+    get:
+      description: Redirect user to target URL based on slug
+      parameters:
+      - description: Short Link Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      responses:
+        "307":
+          description: Temporary Redirect
+          schema:
+            type: string
+        "404":
+          description: Link not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Redirect link
+      tags:
+      - Redirect
+  /api/v1/admin/plans:
+    get:
+      description: Get all available plans
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.PlansListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List plans
+      tags:
+      - Admin
+  /api/v1/admin/users/{id}/plan:
+    patch:
+      consumes:
+      - application/json
+      description: Set new plan for user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New Plan ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.UpdateUserPlanReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Status: updated'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Change user plan
+      tags:
+      - Admin
+  /api/v1/admin/users/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Activate/Deactivate user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.UpdateUserStatusReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Status: updated'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user status
+      tags:
+      - Admin
+  /api/v1/analytics/flow:
+    get:
+      description: Get flow data (Referer -> Device -> Country)
+      parameters:
+      - description: Filter by Campaign
+        in: query
+        name: campaign_id
+        type: string
+      - description: Filter by Link
+        in: query
+        name: link_id
+        type: string
+      - description: Date From
+        in: query
+        name: from
+        type: string
+      - description: Date To
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.SankeyResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Sankey flow
+      tags:
+      - Analytics
+  /api/v1/analytics/geo:
+    get:
+      description: Get clicks count by country
+      parameters:
+      - description: Filter by Campaign
+        in: query
+        name: campaign_id
+        type: string
+      - description: Filter by Link
+        in: query
+        name: link_id
+        type: string
+      - description: Date From
+        in: query
+        name: from
+        type: string
+      - description: Date To
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.GeoResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Geo distribution
+      tags:
+      - Analytics
+  /api/v1/analytics/quality:
+    get:
+      description: Get quality metrics for Radar Chart
+      parameters:
+      - description: Filter by Campaign
+        in: query
+        name: campaign_id
+        type: string
+      - description: Filter by Link
+        in: query
+        name: link_id
+        type: string
+      - description: Date From
+        in: query
+        name: from
+        type: string
+      - description: Date To
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.QualityResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Traffic quality
+      tags:
+      - Analytics
+  /api/v1/analytics/stream:
+    get:
+      description: Get time-series data for Streamgraph/Stacked Area charts
+      parameters:
+      - description: os, browser, country
+        in: query
+        name: group_by
+        type: string
+      - description: Filter by Campaign
+        in: query
+        name: campaign_id
+        type: string
+      - description: Filter by Link
+        in: query
+        name: link_id
+        type: string
+      - description: Date From
+        in: query
+        name: from
+        type: string
+      - description: Date To
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.StreamGraphResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Stream graph data
+      tags:
+      - Analytics
+  /api/v1/analytics/summary:
+    get:
+      description: Get aggregated stats
+      parameters:
+      - description: Filter by Campaign
+        in: query
+        name: campaign_id
+        type: string
+      - description: Filter by Link
+        in: query
+        name: link_id
+        type: string
+      - description: Date From (RFC3339)
+        in: query
+        name: from
+        type: string
+      - description: Date To (RFC3339)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AnalyticsSummaryResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Analytics summary
+      tags:
+      - Analytics
+  /api/v1/api/v1/admin/users:
+    get:
+      description: Get paginated users list (Admin)
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.UsersListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List users
+      tags:
+      - Admin
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate and get JWT token
+      parameters:
+      - description: Credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token and User info
+          schema:
+            $ref: '#/definitions/v1.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Login user
+      tags:
+      - Auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user account
+      parameters:
+      - description: Registration info
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.RegisterReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created user
+          schema:
+            $ref: '#/definitions/domain.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Email already taken
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Register new user
+      tags:
+      - Auth
+  /api/v1/campaigns:
+    get:
+      description: Get list of user campaigns
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.CampaignsListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get campaigns
+      tags:
+      - Campaigns
+    post:
+      consumes:
+      - application/json
+      description: Create a new campaign
+      parameters:
+      - description: Campaign Name
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.CreateCampaignRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/v1.CampaignResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create campaign
+      tags:
+      - Campaigns
+  /api/v1/campaigns/{id}/links:
+    get:
+      description: Get all links for a specific campaign
+      parameters:
+      - description: Campaign ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.LinksListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get links
+      tags:
+      - Links
+  /api/v1/links:
+    post:
+      consumes:
+      - application/json
+      description: Shorten a URL
+      parameters:
+      - description: Link Info
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.CreateLinkRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/v1.LinkResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Limit reached
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create link
+      tags:
+      - Links
+  /api/v1/links/{id}:
+    delete:
+      description: Remove a link
+      parameters:
+      - description: Link ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete link
+      tags:
+      - Links
+  /health:
+    get:
+      description: Check if the server is running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HealthResponse'
+      summary: Health check
+      tags:
+      - System
+securityDefinitions:
+  BasicAuth:
+    type: basic
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
