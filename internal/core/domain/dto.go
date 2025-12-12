@@ -33,3 +33,33 @@ type SankeyLink struct {
 	Target string `json:"target"`
 	Value  int    `json:"value"`
 }
+
+// HeatmapPoint - для графика активности (День недели / Час)
+// Visx Heatmap: x=Hour, y=Day, val=Count
+type HeatmapPoint struct {
+	DayOfWeek int `json:"day"`   // 0=Sun, 1=Mon, ..., 6=Sat
+	Hour      int `json:"hour"`  // 0-23
+	Count     int `json:"count"` // Интенсивность цвета
+}
+
+// CategoryStat - универсальная структура для Pie/Bar/Donut charts
+// Например: [{Name: "Chrome", Value: 100}, {Name: "Firefox", Value: 50}]
+type CategoryStat struct {
+	Name  string  `json:"name"`
+	Value int     `json:"value"`
+	Share float64 `json:"share"` // Процент от общего (опционально, можно считать на фронте)
+}
+
+// RadarPoint - для Radar Chart (качество трафика)
+type RadarPoint struct {
+	Metric string `json:"metric"` // "Bot Score", "Unique IP", "Mobile %"
+	Value  int    `json:"value"`  // 0-100
+}
+
+// --- Tree / Hierarchy (User -> Campaign -> Link) ---
+type HierarchyNode struct {
+	Name     string           `json:"name"`
+	Type     string           `json:"type,omitempty"`  // "root", "campaign", "link"
+	Value    int              `json:"value,omitempty"` // Например, клики (опционально)
+	Children []*HierarchyNode `json:"children,omitempty"`
+}

@@ -162,6 +162,96 @@ func (r *InMemoryClickRepo) GetFlowData(_ context.Context, filter ports.Analytic
 	return data, nil
 }
 
+func (r *InMemoryClickRepo) GetHeatmapData(_ context.Context, filter ports.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
+	clicks := r.filterClicks(filter)
+
+	// Матрица [ДеньНедели][Час]
+	matrix := make(map[int]map[int]int)
+
+	for _, c := range clicks {
+		// time.Weekday: Sunday=0
+		day := int(c.Timestamp.Weekday())
+		hour := c.Timestamp.Hour()
+
+		if matrix[day] == nil {
+			matrix[day] = make(map[int]int)
+		}
+		matrix[day][hour]++
+	}
+
+	// Превращаем в плоский список для Visx
+	var result []domain.HeatmapPoint
+	for d := 0; d < 7; d++ {
+		for h := 0; h < 24; h++ {
+			val := 0
+			if matrix[d] != nil {
+				val = matrix[d][h]
+			}
+
+			if val > 0 {
+				result = append(result, domain.HeatmapPoint{
+					DayOfWeek: d,
+					Hour:      h,
+					Count:     val,
+				})
+			}
+		}
+	}
+	return result, nil
+}
+
+func (r *InMemoryClickRepo) GetTopStats(_ context.Context, filter ports.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error) {
+	clicks := r.filterClicks(filter)
+	counts := make(map[string]int)
+
+	for _, c := range clicks {
+		key := "Unknown"
+		switch dimension {
+		case "browser":
+			key = c.Browser
+		case "os":
+			key = c.OS
+		case "device":
+			key = c.Device
+		case "country":
+			key = c.Country
+		case "referer":
+			key = c.Referer
+		}
+		if key == "" {
+			key = "Direct/None"
+		}
+		counts[key]++
+	}
+
+	// Map -> Slice
+	var stats []domain.CategoryStat
+	for k, v := range counts {
+		stats = append(stats, domain.CategoryStat{Name: k, Value: v})
+	}
+
+	// Sort Descending
+	sort.Slice(stats, func(i, j int) bool {
+		return stats[i].Value > stats[j].Value
+	})
+
+	// Limit
+	if limit > 0 && len(stats) > limit {
+		top := stats[:limit]
+		// Считаем "Others"
+		othersCount := 0
+		for _, s := range stats[limit:] {
+			othersCount += s.Value
+		}
+		if othersCount > 0 {
+			top = append(top, domain.CategoryStat{Name: "Others", Value: othersCount})
+		}
+		return top, nil
+	}
+
+	return stats, nil
+}
+
 func getDimensionValue(c *domain.ClickEvent, dim string) string {
 	switch dim {
 	case "referer":

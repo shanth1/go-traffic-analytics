@@ -59,4 +59,11 @@ type ClickRepository interface {
 	// Для Sankey Diagram
 	// stages: []string{"referer", "device", "country"}
 	GetFlowData(ctx context.Context, filter AnalyticsFilter, stages []string) (*domain.SankeyData, error)
+
+	GetHeatmapData(ctx context.Context, filter AnalyticsFilter) ([]domain.HeatmapPoint, error)
+
+	// Для Pie/Bar/Donut/Geo
+	// dimension: "browser", "os", "country", "referer"
+	// limit: например, топ 10 + "Others"
+	GetTopStats(ctx context.Context, filter AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error)
 }

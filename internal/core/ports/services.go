@@ -19,6 +19,8 @@ type AnalyticsService interface {
 	GetSankeyData(ctx context.Context, filter AnalyticsFilter, stages []string) (*domain.SankeyData, error)
 	GetGeoDistribution(ctx context.Context, filter AnalyticsFilter) (interface{}, error)
 	GetTrafficQuality(ctx context.Context, filter AnalyticsFilter) (map[string]int, error)
+	GetHeatmapData(ctx context.Context, filter AnalyticsFilter) ([]domain.HeatmapPoint, error)
+	GetCategoryStats(ctx context.Context, filter AnalyticsFilter, dimension string) ([]domain.CategoryStat, error)
 }
 
 type LinkService interface {
@@ -27,6 +29,7 @@ type LinkService interface {
 	GetUserCampaigns(ctx context.Context, userID string) ([]*domain.Campaign, error)
 	CreateCampaign(ctx context.Context, userID, name string) (*domain.Campaign, error)
 	DeleteLink(ctx context.Context, id string) error
+	GetUserHierarchy(ctx context.Context, userID string) (*domain.HierarchyNode, error)
 }
 
 type RedirectService interface {

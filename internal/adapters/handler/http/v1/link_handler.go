@@ -179,3 +179,23 @@ func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 	w.Header().Del("Content-Type")
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// GetProfileTree godoc
+// @Summary      Profile Hierarchy
+// @Description  Get hierarchical structure of User -> Campaigns -> Links for Tree visualization
+// @Tags         Campaigns
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  domain.HierarchyNode
+// @Router       /api/v1/campaigns/tree [get]
+func (h *LinkHandler) GetProfileTree(w http.ResponseWriter, r *http.Request) {
+	userID := request.GetUserID(r)
+
+	tree, err := h.service.GetUserHierarchy(r.Context(), userID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.JSON(w, http.StatusOK, map[string]interface{}{"data": tree})
+}

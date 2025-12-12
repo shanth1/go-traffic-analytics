@@ -90,6 +90,7 @@ func NewRouter(
 			// Campaigns
 			r.Get("/campaigns", linkHandlerV1.GetCampaigns)
 			r.Post("/campaigns", linkHandlerV1.CreateCampaign)
+			r.Get("/campaigns/tree", linkHandlerV1.GetProfileTree)
 
 			// Links
 			r.Get("/campaigns/{id}/links", linkHandlerV1.GetLinksByCampaign)
@@ -104,6 +105,9 @@ func NewRouter(
 				r.Get("/geo", analyticsHandlerV1.GetGeoMap)
 				r.Get("/quality", analyticsHandlerV1.GetQualityRadar)
 			})
+
+			r.Get("/heatmap", analyticsHandlerV1.GetHeatmap) // Для Heatmap
+			r.Get("/stats", analyticsHandlerV1.GetStats)     // Для BarGroup, Pies
 		})
 
 		// --- Admin Routes (Protected + Admin Role) ---

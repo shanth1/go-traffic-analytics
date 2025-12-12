@@ -184,3 +184,47 @@ func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Reques
 
 	response.JSON(w, http.StatusOK, QualityResponse{Data: data})
 }
+
+// GetHeatmap godoc
+// @Summary      Heatmap data
+// @Description  Get click intensity by Day of Week and Hour
+// @Tags         Analytics
+// @Security     BearerAuth
+// @Produce      json
+// @Param        campaign_id query string false "Filter"
+// @Param        link_id     query string false "Filter"
+// @Success      200  {object}  map[string]interface{}
+// @Router       /api/v1/analytics/heatmap [get]
+func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
+	filter := h.parseFilter(r)
+	data, err := h.service.GetHeatmapData(r.Context(), filter)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.JSON(w, http.StatusOK, map[string]interface{}{"data": data})
+}
+
+// GetStats godoc
+// @Summary      Category Stats (Pie/Bar)
+// @Description  Get top metrics for a dimension (browser, os, device)
+// @Tags         Analytics
+// @Security     BearerAuth
+// @Produce      json
+// @Param        dimension   query string true  "browser, os, device"
+// @Success      200  {object}  map[string]interface{}
+// @Router       /api/v1/analytics/stats [get]
+func (h *AnalyticsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
+	filter := h.parseFilter(r)
+	dim := r.URL.Query().Get("dimension")
+	if dim == "" {
+		dim = "browser"
+	}
+
+	data, err := h.service.GetCategoryStats(r.Context(), filter, dim)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.JSON(w, http.StatusOK, map[string]interface{}{"data": data})
+}

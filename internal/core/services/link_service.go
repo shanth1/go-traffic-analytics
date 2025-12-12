@@ -97,3 +97,52 @@ func (s *LinkService) CreateLink(ctx context.Context, userID, campaignID, target
 func (s *LinkService) DeleteLink(_ context.Context, _ string) error {
 	return nil
 }
+
+func (s *LinkService) GetUserHierarchy(ctx context.Context, userID string) (*domain.HierarchyNode, error) {
+	// 1. Получаем пользователя
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Получаем все кампании
+	campaigns, err := s.campRepo.FindAllByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Получаем все ссылки пользователя (чтобы не делать запросы в цикле)
+	// В портах LinkRepo нет метода FindAllByUserID, но есть Count.
+	// Лучше добавить FindAllByUserID в LinkRepository, но раз мы в In-Memory,
+	// можно просто сделать FindAll и отфильтровать (плохо для прода)
+	// или использовать существующий FindAllByCampaignID в цикле (N+1, но ок для user dashboard).
+	// Давай используем цикл по кампаниям, так как кампаний у юзера обычно немного.
+
+	root := &domain.HierarchyNode{
+		Name:     user.Email, // Или "My Account"
+		Type:     "root",
+		Children: []*domain.HierarchyNode{},
+	}
+
+	for _, camp := range campaigns {
+		campNode := &domain.HierarchyNode{
+			Name:     camp.Name,
+			Type:     "campaign",
+			Children: []*domain.HierarchyNode{},
+		}
+
+		links, _ := s.linkRepo.FindAllByCampaignID(ctx, camp.ID)
+		for _, l := range links {
+			linkNode := &domain.HierarchyNode{
+				Name:  l.Slug, // Или l.TargetURL
+				Type:  "link",
+				Value: 1, // Visx Hierarchy часто требует вес листа
+			}
+			campNode.Children = append(campNode.Children, linkNode)
+		}
+
+		root.Children = append(root.Children, campNode)
+	}
+
+	return root, nil
+}
