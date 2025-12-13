@@ -3,20 +3,19 @@ package services
 import (
 	"context"
 	"errors"
-	"log"
-	"net"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/mssola/user_agent"
-	"github.com/oschwald/geoip2-golang"
+	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
 
 type trackingEvent struct {
+	ctx     context.Context
 	link    *domain.Link
 	ip      string
 	ua      string
@@ -28,10 +27,10 @@ type RedirectService struct {
 	linkRepo  ports.LinkRepository
 	clickRepo ports.ClickRepository
 	userRepo  ports.UserRepository
+	geoIPRepo ports.GeoIPRepository
 
-	eventChan chan trackingEvent
-
-	geoDB *geoip2.Reader
+	fallbackLogger log.Logger
+	eventChan      chan trackingEvent
 }
 
 func NewRedirectService(
@@ -39,18 +38,17 @@ func NewRedirectService(
 	l ports.LinkRepository,
 	c ports.ClickRepository,
 	u ports.UserRepository,
+	g ports.GeoIPRepository,
 ) *RedirectService {
-	db, err := geoip2.Open("GeoLite2-City.mmdb")
-	if err != nil {
-		log.Printf("WARN: GeoIP database not found (GeoLite2-City.mmdb). Geo stats will be empty. Err: %v", err)
-	}
-
+	fallbackLogger := log.FromContext(ctx)
 	s := &RedirectService{
 		linkRepo:  l,
 		clickRepo: c,
 		userRepo:  u,
-		eventChan: make(chan trackingEvent, 1000),
-		geoDB:     db,
+		geoIPRepo: g,
+
+		fallbackLogger: fallbackLogger,
+		eventChan:      make(chan trackingEvent, 1000),
 	}
 
 	go s.startBackgroundWorker(ctx)
@@ -59,6 +57,8 @@ func NewRedirectService(
 }
 
 func (s *RedirectService) ProcessRedirect(ctx context.Context, slug, ip, userAgentString, referer string) (string, error) {
+	logger := log.FromContextOr(ctx, s.fallbackLogger)
+
 	link, err := s.linkRepo.FindBySlug(ctx, slug)
 	if err != nil {
 		return "", err
@@ -70,6 +70,7 @@ func (s *RedirectService) ProcessRedirect(ctx context.Context, slug, ip, userAge
 
 	select {
 	case s.eventChan <- trackingEvent{
+		ctx:     ctx,
 		link:    link,
 		ip:      ip,
 		ua:      userAgentString,
@@ -77,7 +78,7 @@ func (s *RedirectService) ProcessRedirect(ctx context.Context, slug, ip, userAge
 		time:    time.Now().UTC(),
 	}:
 	default:
-		log.Printf("WARN: analytics buffer full, dropping click for link %s", link.ID)
+		logger.Warn().Msgf("analytics buffer full, dropping click for link %s", link.ID)
 	}
 
 	return link.TargetURL, nil
@@ -90,7 +91,7 @@ func (s *RedirectService) startBackgroundWorker(appCtx context.Context) {
 			s.processEvent(evt)
 		case <-appCtx.Done():
 			// TODO: write to db
-			log.Println("RedirectService: stopping analytics worker")
+			s.fallbackLogger.Info().Msg("RedirectService: stopping analytics worker")
 			return
 		}
 	}
@@ -100,16 +101,24 @@ func (s *RedirectService) processEvent(evt trackingEvent) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	logger := log.FromContextOr(ctx, s.fallbackLogger)
+
 	parsedUA := s.parseUserAgent(evt.ua)
-	parsedGeo := s.resolveGeoIP(evt.ip)
+
+	country, city, err := s.geoIPRepo.GetInfo(ctx, evt.ip)
+	if err != nil {
+		country = "Unknown"
+		city = "Unknown"
+		logger.Warn().Err(err).Msg("get geo ip info")
+	}
 
 	click := &domain.ClickEvent{
 		ID:        uuid.New().String(),
 		LinkID:    evt.link.ID,
 		Timestamp: evt.time,
 		IP:        evt.ip,
-		Country:   parsedGeo.Country,
-		City:      parsedGeo.City,
+		Country:   country,
+		City:      city,
 		OS:        parsedUA.OS,
 		Browser:   parsedUA.Browser,
 		Device:    parsedUA.Device,
@@ -117,12 +126,12 @@ func (s *RedirectService) processEvent(evt trackingEvent) {
 	}
 
 	if err := s.clickRepo.Save(ctx, click); err != nil {
-		log.Printf("ERROR: failed to save click analytics: %v", err)
+		logger.Error().Err(err).Msg("save click analytics")
 	}
 
 	if evt.link.CampaignID != "" && evt.link.UserID != "" {
 		if err := s.userRepo.IncrementClickCount(ctx, evt.link.UserID); err != nil {
-			log.Printf("ERROR: failed to increment user quota: %v", err)
+			logger.Error().Err(err).Msg("increment user quota")
 		}
 	}
 }
@@ -170,45 +179,6 @@ func (s *RedirectService) parseUserAgent(uaString string) parsedUA {
 		OS:      os,
 		Browser: name,
 		Device:  device,
-	}
-}
-
-func (s *RedirectService) resolveGeoIP(ipStr string) parsedGeo {
-	// 1. Handle Localhost
-	if ipStr == "127.0.0.1" || ipStr == "::1" {
-		return parsedGeo{Country: "Local", City: "Host"}
-	}
-
-	// 2. Если база не загружена
-	if s.geoDB == nil {
-		return parsedGeo{Country: "Unknown", City: "Unknown"}
-	}
-
-	// 3. Парсинг IP
-	ip := net.ParseIP(ipStr)
-	if ip == nil {
-		return parsedGeo{Country: "Unknown", City: "Unknown"}
-	}
-
-	// 4. Поиск в базе
-	record, err := s.geoDB.City(ip)
-	if err != nil {
-		return parsedGeo{Country: "Unknown", City: "Unknown"}
-	}
-
-	country := record.Country.IsoCode // "US", "RU"
-	city := record.City.Names["en"]   // "New York"
-
-	if country == "" {
-		country = "Unknown"
-	}
-	if city == "" {
-		city = "Unknown"
-	}
-
-	return parsedGeo{
-		Country: country,
-		City:    city,
 	}
 }
 

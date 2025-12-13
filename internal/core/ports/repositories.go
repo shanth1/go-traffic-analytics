@@ -67,3 +67,7 @@ type ClickRepository interface {
 	// limit: например, топ 10 + "Others"
 	GetTopStats(ctx context.Context, filter AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error)
 }
+
+type GeoIPRepository interface {
+	GetInfo(ctx context.Context, ipStr string) (country, city string, err error)
+}

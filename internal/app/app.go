@@ -8,6 +8,7 @@ import (
 
 	"github.com/shanth1/gotools/log"
 	transport "github.com/shanth1/gotrace/internal/adapters/handler/http"
+	"github.com/shanth1/gotrace/internal/adapters/repository/geoip"
 	"github.com/shanth1/gotrace/internal/adapters/repository/memory"
 	"github.com/shanth1/gotrace/internal/config"
 	"github.com/shanth1/gotrace/internal/core/services"
@@ -16,6 +17,11 @@ import (
 
 func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	logger := log.FromContext(ctx)
+
+	geoIPRepo, err := geoip.NewGeoIPRepo(cfg)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("new geo ip repo")
+	}
 
 	// Repositories (In-Memory)
 	userRepo := memory.NewUserRepo()
@@ -28,7 +34,7 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	authService := services.NewAuthService(userRepo, planRepo, cfg)
 	analyticsService := services.NewAnalyticsService(clickRepo)
 	linkService := services.NewLinkService(linkRepo, campRepo, userRepo, planRepo)
-	redirectService := services.NewRedirectService(ctx, linkRepo, clickRepo, userRepo)
+	redirectService := services.NewRedirectService(ctx, linkRepo, clickRepo, userRepo, geoIPRepo)
 	userService := services.NewUserService(userRepo, planRepo)
 
 	httpHandler := transport.NewRouter(
