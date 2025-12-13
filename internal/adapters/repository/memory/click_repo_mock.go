@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -268,9 +269,6 @@ func getDimensionValue(c *domain.ClickEvent, dim string) string {
 	return "Other"
 }
 
-// TODO:
-func splitLinkKey(_ string) []string {
-	// ... (реализация split)
-	// Представим, что тут strings.Split
-	return []string{"SourceStub", "TargetStub"} // Placeholder
+func splitLinkKey(key string) []string {
+	return strings.Split(key, "|")
 }

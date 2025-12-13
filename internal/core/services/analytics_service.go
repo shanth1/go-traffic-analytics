@@ -82,13 +82,51 @@ func (s *AnalyticsService) GetCategoryStats(ctx context.Context, filter ports.An
 	return s.clickRepo.GetTopStats(ctx, filter, dimension, 10)
 }
 
-// TODO:
+// GetTrafficQuality - Рассчитывает метрики качества трафика
 func (s *AnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.AnalyticsFilter) (map[string]int, error) {
+	total, err := s.clickRepo.CountTotal(ctx, filter)
+	if err != nil || total == 0 {
+		// Возвращаем дефолтные значения, если данных нет
+		return map[string]int{
+			"mobile_friendly": 0,
+			"bot_score":       0,
+			"unique_ip":       0, // Сложно посчитать без raw queries
+			"human_score":     100,
+		}, nil
+	}
+
+	// 1. Считаем Mobile Friendly (% мобильных устройств)
+	devices, _ := s.clickRepo.GetTopStats(ctx, filter, "device", 100)
+	mobileClicks := 0
+	for _, d := range devices {
+		if d.Name == "Mobile" || d.Name == "Tablet" {
+			mobileClicks += d.Value
+		}
+	}
+	mobileScore := int((float64(mobileClicks) / float64(total)) * 100)
+
+	// 2. Считаем Bot Score (на основе "Unknown" OS или Browser)
+	// Это эвристика. В реальности нужны спец. базы ботов.
+	osStats, _ := s.clickRepo.GetTopStats(ctx, filter, "os", 100)
+	suspiciousClicks := 0
+	for _, stat := range osStats {
+		if stat.Name == "Unknown" || stat.Name == "Bot" {
+			suspiciousClicks += stat.Value
+		}
+	}
+	botScore := int((float64(suspiciousClicks) / float64(total)) * 100)
+
+	// 3. Geo Diversity (простая метрика: если стран > 5, то 100%, иначе пропорционально)
+	countries, _ := s.clickRepo.GetTopStats(ctx, filter, "country", 100)
+	geoScore := len(countries) * 20
+	if geoScore > 100 {
+		geoScore = 100
+	}
+
 	return map[string]int{
-		"bot_score":       5,
-		"mobile_friendly": 85,
-		"unique_ip":       90,
-		"geo_diversity":   40,
-		"suspicious":      2,
+		"mobile_friendly": mobileScore,
+		"bot_score":       botScore,
+		"human_score":     100 - botScore,
+		"geo_diversity":   geoScore,
 	}, nil
 }

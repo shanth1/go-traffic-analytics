@@ -4,10 +4,14 @@ import (
 	"context"
 	"errors"
 	"log"
+	"net"
+	"net/url"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mssola/user_agent"
+	"github.com/oschwald/geoip2-golang"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
@@ -26,6 +30,8 @@ type RedirectService struct {
 	userRepo  ports.UserRepository
 
 	eventChan chan trackingEvent
+
+	geoDB *geoip2.Reader
 }
 
 func NewRedirectService(
@@ -34,11 +40,17 @@ func NewRedirectService(
 	c ports.ClickRepository,
 	u ports.UserRepository,
 ) *RedirectService {
+	db, err := geoip2.Open("GeoLite2-City.mmdb")
+	if err != nil {
+		log.Printf("WARN: GeoIP database not found (GeoLite2-City.mmdb). Geo stats will be empty. Err: %v", err)
+	}
+
 	s := &RedirectService{
 		linkRepo:  l,
 		clickRepo: c,
 		userRepo:  u,
 		eventChan: make(chan trackingEvent, 1000),
+		geoDB:     db,
 	}
 
 	go s.startBackgroundWorker(ctx)
@@ -128,54 +140,75 @@ type parsedGeo struct {
 	City    string
 }
 
-// parseUserAgent - mock
-// TODO: "github.com/mssola/user_agent"
-func (s *RedirectService) parseUserAgent(ua string) parsedUA {
-	uaLower := strings.ToLower(ua)
-	res := parsedUA{
-		OS:      "Unknown",
-		Browser: "Unknown",
-		Device:  "Desktop", // Default
+func (s *RedirectService) parseUserAgent(uaString string) parsedUA {
+	ua := user_agent.New(uaString)
+
+	os := ua.OS()
+	name, _ := ua.Browser()
+
+	device := "Desktop"
+	if ua.Mobile() {
+		device = "Mobile"
+	} else if ua.Bot() {
+		device = "Bot"
+	} else {
+		// Простая эвристика для планшетов (iPad определяется как Mobile часто, но проверим)
+		if strings.Contains(strings.ToLower(uaString), "ipad") || strings.Contains(strings.ToLower(uaString), "tablet") {
+			device = "Tablet"
+		}
 	}
 
-	if strings.Contains(uaLower, "iphone") || strings.Contains(uaLower, "android") {
-		res.Device = "Mobile"
+	// Fallbacks
+	if os == "" {
+		os = "Unknown"
+	}
+	if name == "" {
+		name = "Unknown"
 	}
 
-	switch {
-	case strings.Contains(uaLower, "windows"):
-		res.OS = "Windows"
-	case strings.Contains(uaLower, "mac os"):
-		res.OS = "macOS"
-	case strings.Contains(uaLower, "android"):
-		res.OS = "Android"
-	case strings.Contains(uaLower, "iphone"):
-		res.OS = "iOS"
+	return parsedUA{
+		OS:      os,
+		Browser: name,
+		Device:  device,
 	}
-
-	switch {
-	case strings.Contains(uaLower, "chrome"):
-		res.Browser = "Chrome"
-	case strings.Contains(uaLower, "safari"):
-		res.Browser = "Safari"
-	case strings.Contains(uaLower, "firefox"):
-		res.Browser = "Firefox"
-	}
-
-	return res
 }
 
-// resolveGeoIP - mock
-// TODO: "github.com/oschwald/geoip2-golang"
-func (s *RedirectService) resolveGeoIP(ip string) parsedGeo {
-	// TODO:
-	if ip == "127.0.0.1" || ip == "::1" {
+func (s *RedirectService) resolveGeoIP(ipStr string) parsedGeo {
+	// 1. Handle Localhost
+	if ipStr == "127.0.0.1" || ipStr == "::1" {
 		return parsedGeo{Country: "Local", City: "Host"}
 	}
 
+	// 2. Если база не загружена
+	if s.geoDB == nil {
+		return parsedGeo{Country: "Unknown", City: "Unknown"}
+	}
+
+	// 3. Парсинг IP
+	ip := net.ParseIP(ipStr)
+	if ip == nil {
+		return parsedGeo{Country: "Unknown", City: "Unknown"}
+	}
+
+	// 4. Поиск в базе
+	record, err := s.geoDB.City(ip)
+	if err != nil {
+		return parsedGeo{Country: "Unknown", City: "Unknown"}
+	}
+
+	country := record.Country.IsoCode // "US", "RU"
+	city := record.City.Names["en"]   // "New York"
+
+	if country == "" {
+		country = "Unknown"
+	}
+	if city == "" {
+		city = "Unknown"
+	}
+
 	return parsedGeo{
-		Country: "US", // Default stub
-		City:    "Unknown",
+		Country: country,
+		City:    city,
 	}
 }
 
@@ -184,6 +217,20 @@ func (s *RedirectService) normalizeReferer(ref string) string {
 		return "Direct"
 	}
 
-	// TODO: https://google.com/search?q=... -> google.com
-	return ref
+	u, err := url.Parse(ref)
+	if err != nil {
+		// Если не удалось распарсить, возвращаем как есть (или обрезанный)
+		if len(ref) > 50 {
+			return ref[:50] + "..."
+		}
+		return ref
+	}
+
+	// Возвращаем только хост (google.com, t.co, facebook.com)
+	// Это делает графики чище.
+	if u.Host != "" {
+		return strings.TrimPrefix(u.Host, "www.")
+	}
+
+	return "Unknown"
 }
