@@ -187,6 +187,8 @@ func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Produce      json
 // @Success      200  {object}  domain.HierarchyNode
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/campaigns/tree [get]
 func (h *LinkHandler) GetProfileTree(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)

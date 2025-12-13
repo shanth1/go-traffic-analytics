@@ -195,6 +195,8 @@ func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Reques
 // @Param        campaign_id query string false "Filter"
 // @Param        link_id     query string false "Filter"
 // @Success      200  {object}  map[string]interface{}
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/analytics/heatmap [get]
 func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
@@ -214,6 +216,8 @@ func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        dimension   query string true  "browser, os, device"
 // @Success      200  {object}  map[string]interface{}
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/analytics/stats [get]
 func (h *AnalyticsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)

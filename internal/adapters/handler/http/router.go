@@ -88,15 +88,17 @@ func NewRouter(
 		r.Group(func(r chi.Router) {
 			r.Use(jwtAuthMiddleware)
 
-			// Campaigns
-			r.Get("/campaigns", linkHandlerV1.GetCampaigns)
-			r.Post("/campaigns", linkHandlerV1.CreateCampaign)
-			r.Get("/campaigns/tree", linkHandlerV1.GetProfileTree)
+			r.Route("/campaigns", func(r chi.Router) {
+				r.Get("/", linkHandlerV1.GetCampaigns)
+				r.Post("/", linkHandlerV1.CreateCampaign)
+				r.Get("/tree", linkHandlerV1.GetProfileTree)
+				r.Get("/{id}/links", linkHandlerV1.GetLinksByCampaign)
+			})
 
-			// Links
-			r.Get("/campaigns/{id}/links", linkHandlerV1.GetLinksByCampaign)
-			r.Post("/links", linkHandlerV1.CreateLink)
-			r.Delete("/links/{id}", linkHandlerV1.DeleteLink)
+			r.Route("/links", func(r chi.Router) {
+				r.Post("/", linkHandlerV1.CreateLink)
+				r.Delete("/{id}", linkHandlerV1.DeleteLink)
+			})
 
 			// Analytics (Visx Ready)
 			r.Route("/analytics", func(r chi.Router) {
@@ -105,10 +107,9 @@ func NewRouter(
 				r.Get("/flow", analyticsHandlerV1.GetSankeyFlow)
 				r.Get("/geo", analyticsHandlerV1.GetGeoMap)
 				r.Get("/quality", analyticsHandlerV1.GetQualityRadar)
+				r.Get("/heatmap", analyticsHandlerV1.GetHeatmap) // Для Heatmap
+				r.Get("/stats", analyticsHandlerV1.GetStats)     // Для BarGroup, Pies
 			})
-
-			r.Get("/heatmap", analyticsHandlerV1.GetHeatmap) // Для Heatmap
-			r.Get("/stats", analyticsHandlerV1.GetStats)     // Для BarGroup, Pies
 		})
 
 		// --- Admin Routes (Protected + Admin Role) ---

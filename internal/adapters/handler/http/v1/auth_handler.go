@@ -36,6 +36,7 @@ type LoginReq struct {
 // @Param        request body RegisterReq true "Registration info"
 // @Success      201  {object}  domain.User "Created user"
 // @Failure      400  {object}  response.ErrorResponse
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
 // @Failure      409  {object}  response.ErrorResponse "Email already taken"
 // @Router       /api/v1/auth/register [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
