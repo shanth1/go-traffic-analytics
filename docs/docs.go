@@ -726,6 +726,11 @@ const docTemplate = `{
         },
         "/api/v1/auth/register": {
             "post": {
+                "security": [
+                    {
+                        "APIKeyAuth": []
+                    }
+                ],
                 "description": "Register a new user account",
                 "consumes": [
                     "application/json"
@@ -1508,6 +1513,12 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
+        "APIKeyAuth": {
+            "description": "Static API Key for admin/service access",
+            "type": "apiKey",
+            "name": "X-API-Key",
+            "in": "header"
+        },
         "BasicAuth": {
             "type": "basic"
         },

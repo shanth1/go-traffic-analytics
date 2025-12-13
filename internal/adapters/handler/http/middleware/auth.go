@@ -64,6 +64,25 @@ func AdminOnly(next http.Handler) http.Handler {
 	})
 }
 
+func APIKeyAuth(cfg *config.Config) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			apiKey := r.Header.Get("X-API-Key")
+			if apiKey == "" {
+				response.Error(w, http.StatusUnauthorized, "Missing authorization header")
+				return
+			}
+
+			if subtle.ConstantTimeCompare([]byte(apiKey), []byte(cfg.Auth.APIKey)) != 1 {
+				response.Error(w, http.StatusUnauthorized, "Invalid API token")
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func BasicAuth(user, pass string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

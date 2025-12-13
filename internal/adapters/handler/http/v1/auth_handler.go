@@ -30,6 +30,7 @@ type LoginReq struct {
 // @Summary      Register new user
 // @Description  Register a new user account
 // @Tags         Auth
+// @Security     APIKeyAuth
 // @Accept       json
 // @Produce      json
 // @Param        request body RegisterReq true "Registration info"

@@ -773,6 +773,8 @@ paths:
           description: Email already taken
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - APIKeyAuth: []
       summary: Register new user
       tags:
       - Auth
@@ -968,6 +970,11 @@ paths:
       tags:
       - System
 securityDefinitions:
+  APIKeyAuth:
+    description: Static API Key for admin/service access
+    in: header
+    name: X-API-Key
+    type: apiKey
   BasicAuth:
     type: basic
   BearerAuth:

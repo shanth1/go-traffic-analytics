@@ -58,6 +58,7 @@ func NewRouter(
 	// Middleware
 	quotaMiddleware := httpMw.NewQuotaMiddleware(linkRepo, userRepo, planRepo)
 	jwtAuthMiddleware := httpMw.JWTAuth(cfg)
+	apiKeyAuthMiddleware := httpMw.APIKeyAuth(cfg)
 
 	// --- Public Routes ---
 	r.Get("/health", handlers.HealthCheck)
@@ -77,9 +78,9 @@ func NewRouter(
 
 	// --- API v1 Group ---
 	r.Route("/api/v1", func(r chi.Router) {
-		// --- Auth Routes (Public) ---
+		// --- Auth Routes  ---
 		r.Route("/auth", func(r chi.Router) {
-			r.Post("/register", authHandlerV1.Register)
+			r.With(apiKeyAuthMiddleware).Post("/register", authHandlerV1.Register)
 			r.Post("/login", authHandlerV1.Login)
 		})
 

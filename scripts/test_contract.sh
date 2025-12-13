@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+API_KEY=x-api-key
+
 LOCAL_API_URL="http://localhost:8080"
 SWAGGER_PATH_SUFFIX="/swagger/doc.json"
 
@@ -20,6 +22,7 @@ curl -s -o /dev/null --retry 5 --retry-connrefused "$LOCAL_API_URL/health" || \
 echo "--- 2. Getting Auth Token ---"
 curl -s -X POST "$LOCAL_API_URL/api/v1/auth/register" \
     -H "Content-Type: application/json" \
+    -H "X-API-KEY: ${API_KEY}" \
     -d "{\"email\": \"$TEST_EMAIL\", \"password\": \"$TEST_PASS\"}" > /dev/null
 
 TOKEN=$(curl -s -X POST "$LOCAL_API_URL/api/v1/auth/login" \

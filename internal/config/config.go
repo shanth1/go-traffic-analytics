@@ -27,6 +27,7 @@ type Config struct {
 
 type Auth struct {
 	JWTSecret string `env:"JWT_SECRET" env-required:"true" validate:"required"`
+	APIKey    string `env:"API_KEY" env-required:"true" validate:"required"`
 }
 
 type HTTP struct {
