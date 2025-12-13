@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source .env
+
 BASE_URL="http://localhost:8080"
 ADMIN_EMAIL="admin@gotrace.com"
 CLIENT_EMAIL="client@gotrace.com"
@@ -62,6 +64,7 @@ NEW_EMAIL="newuser_$(date +%s)@test.com"
 echo -n "Registering new user ($NEW_EMAIL)... "
 REG_RES=$(curl -s -X POST "$BASE_URL/api/v1/auth/register" \
     -H "Content-Type: application/json" \
+    -H "X-API-Key: ${API_KEY}" \
     -d "{\"email\":\"$NEW_EMAIL\", \"password\":\"password\"}")
 NEW_USER_ID=$(echo $REG_RES | jq -r .id)
 

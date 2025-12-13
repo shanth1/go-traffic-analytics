@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-API_KEY=x-api-key
+source .env
 
 LOCAL_API_URL="http://localhost:8080"
 SWAGGER_PATH_SUFFIX="/swagger/doc.json"
