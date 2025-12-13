@@ -10,6 +10,7 @@ import (
 
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
+	"github.com/shanth1/gotrace/internal/pkg/consts"
 )
 
 type InMemoryClickRepo struct {
@@ -68,11 +69,11 @@ func (r *InMemoryClickRepo) GetTimeSeriesGrouped(_ context.Context, filter ports
 		}
 
 		// Извлекаем значение измерения через рефлексию или switch (проще switch для мока)
-		key := "unknown"
+		key := consts.Unknown
 		switch dimension {
-		case "os":
+		case consts.OS:
 			key = c.OS
-		case "browser":
+		case consts.Browser:
 			key = c.Browser
 		case "device":
 			key = c.Device
@@ -206,17 +207,17 @@ func (r *InMemoryClickRepo) GetTopStats(_ context.Context, filter ports.Analytic
 	counts := make(map[string]int)
 
 	for _, c := range clicks {
-		key := "Unknown"
+		key := consts.Unknown
 		switch dimension {
-		case "browser":
+		case consts.Browser:
 			key = c.Browser
-		case "os":
+		case consts.OS:
 			key = c.OS
-		case "device":
+		case consts.Device:
 			key = c.Device
-		case "country":
+		case consts.Country:
 			key = c.Country
-		case "referer":
+		case consts.Referer:
 			key = c.Referer
 		}
 		if key == "" {
@@ -226,7 +227,7 @@ func (r *InMemoryClickRepo) GetTopStats(_ context.Context, filter ports.Analytic
 	}
 
 	// Map -> Slice
-	var stats []domain.CategoryStat
+	stats := make([]domain.CategoryStat, len(counts))
 	for k, v := range counts {
 		stats = append(stats, domain.CategoryStat{Name: k, Value: v})
 	}
@@ -255,11 +256,11 @@ func (r *InMemoryClickRepo) GetTopStats(_ context.Context, filter ports.Analytic
 
 func getDimensionValue(c *domain.ClickEvent, dim string) string {
 	switch dim {
-	case "referer":
+	case consts.Referer:
 		return c.Referer
-	case "os":
+	case consts.OS:
 		return c.OS
-	case "browser":
+	case consts.Browser:
 		return c.Browser
 	case "country":
 		return c.Country

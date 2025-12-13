@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/shanth1/gotrace/internal/core/ports"
+	"github.com/shanth1/gotrace/internal/pkg/consts"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 )
 
@@ -90,7 +91,7 @@ func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request
 
 	groupBy := r.URL.Query().Get("group_by") // os, browser, country
 	if groupBy == "" {
-		groupBy = "os"
+		groupBy = consts.OS
 	}
 
 	data, err := h.service.GetStreamGraphData(r.Context(), filter, groupBy)
@@ -120,7 +121,7 @@ func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request
 func (h *AnalyticsHandler) GetSankeyFlow(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 	// stages=referer,device,country
-	stages := []string{"referer", "device", "country"}
+	stages := []string{consts.Referer, consts.Device, consts.Country}
 
 	data, err := h.service.GetSankeyData(r.Context(), filter, stages)
 	if err != nil {

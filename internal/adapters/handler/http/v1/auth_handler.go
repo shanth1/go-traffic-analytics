@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	_ "github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 )

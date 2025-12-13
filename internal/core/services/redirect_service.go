@@ -12,6 +12,7 @@ import (
 	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
+	"github.com/shanth1/gotrace/internal/pkg/consts"
 )
 
 type trackingEvent struct {
@@ -107,8 +108,8 @@ func (s *RedirectService) processEvent(evt trackingEvent) {
 
 	country, city, err := s.geoIPRepo.GetInfo(ctx, evt.ip)
 	if err != nil {
-		country = "Unknown"
-		city = "Unknown"
+		country = consts.Unknown
+		city = consts.Unknown
 		logger.Warn().Err(err).Msg("get geo ip info")
 	}
 
@@ -144,35 +145,29 @@ type parsedUA struct {
 	Device  string
 }
 
-type parsedGeo struct {
-	Country string
-	City    string
-}
-
 func (s *RedirectService) parseUserAgent(uaString string) parsedUA {
 	ua := user_agent.New(uaString)
 
 	os := ua.OS()
 	name, _ := ua.Browser()
+	ua.UA()
 
 	device := "Desktop"
-	if ua.Mobile() {
+	switch {
+	case ua.Mobile():
 		device = "Mobile"
-	} else if ua.Bot() {
+	case ua.Bot():
 		device = "Bot"
-	} else {
-		// Простая эвристика для планшетов (iPad определяется как Mobile часто, но проверим)
-		if strings.Contains(strings.ToLower(uaString), "ipad") || strings.Contains(strings.ToLower(uaString), "tablet") {
-			device = "Tablet"
-		}
+	case strings.Contains(strings.ToLower(uaString), "ipad") || strings.Contains(strings.ToLower(uaString), "tablet"):
+		device = "Tablet"
 	}
 
 	// Fallbacks
 	if os == "" {
-		os = "Unknown"
+		os = consts.Unknown
 	}
 	if name == "" {
-		name = "Unknown"
+		name = consts.Unknown
 	}
 
 	return parsedUA{
@@ -202,5 +197,5 @@ func (s *RedirectService) normalizeReferer(ref string) string {
 		return strings.TrimPrefix(u.Host, "www.")
 	}
 
-	return "Unknown"
+	return consts.Unknown
 }

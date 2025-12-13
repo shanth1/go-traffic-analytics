@@ -1,4 +1,4 @@
-package geoip
+package geography
 
 import (
 	"context"
@@ -31,7 +31,7 @@ func NewGeoIPRepo(cfg *config.Config) (ports.GeoIPRepository, error) {
 	}, nil
 }
 
-func (g *GeoIPRepo) GetInfo(ctx context.Context, ipStr string) (country, city string, err error) {
+func (g *GeoIPRepo) GetInfo(_ context.Context, ipStr string) (country, city string, err error) {
 	if ipStr == "127.0.0.1" || ipStr == "::1" {
 		return "Local", "Host", nil
 	}

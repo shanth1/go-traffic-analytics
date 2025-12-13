@@ -8,7 +8,7 @@ import (
 
 	"github.com/shanth1/gotools/log"
 	transport "github.com/shanth1/gotrace/internal/adapters/handler/http"
-	"github.com/shanth1/gotrace/internal/adapters/repository/geoip"
+	"github.com/shanth1/gotrace/internal/adapters/repository/geography"
 	"github.com/shanth1/gotrace/internal/adapters/repository/memory"
 	"github.com/shanth1/gotrace/internal/config"
 	"github.com/shanth1/gotrace/internal/core/services"
@@ -18,7 +18,7 @@ import (
 func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	logger := log.FromContext(ctx)
 
-	geoIPRepo, err := geoip.NewGeoIPRepo(cfg)
+	geoIPRepo, err := geography.NewGeoIPRepo(cfg)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("new geo ip repo")
 	}

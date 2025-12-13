@@ -2,10 +2,12 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
+	"github.com/shanth1/gotrace/internal/pkg/consts"
 )
 
 type AnalyticsService struct {
@@ -82,15 +84,17 @@ func (s *AnalyticsService) GetCategoryStats(ctx context.Context, filter ports.An
 	return s.clickRepo.GetTopStats(ctx, filter, dimension, 10)
 }
 
-// GetTrafficQuality - Рассчитывает метрики качества трафика
 func (s *AnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.AnalyticsFilter) (map[string]int, error) {
 	total, err := s.clickRepo.CountTotal(ctx, filter)
-	if err != nil || total == 0 {
-		// Возвращаем дефолтные значения, если данных нет
+	if err != nil {
+		return nil, fmt.Errorf("counting total clicks: %w", err)
+	}
+
+	if total == 0 {
 		return map[string]int{
 			"mobile_friendly": 0,
 			"bot_score":       0,
-			"unique_ip":       0, // Сложно посчитать без raw queries
+			"unique_ip":       0,
 			"human_score":     100,
 		}, nil
 	}
@@ -110,7 +114,7 @@ func (s *AnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.A
 	osStats, _ := s.clickRepo.GetTopStats(ctx, filter, "os", 100)
 	suspiciousClicks := 0
 	for _, stat := range osStats {
-		if stat.Name == "Unknown" || stat.Name == "Bot" {
+		if stat.Name == consts.Unknown || stat.Name == "Bot" {
 			suspiciousClicks += stat.Value
 		}
 	}
