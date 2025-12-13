@@ -199,5 +199,5 @@ func (h *LinkHandler) GetProfileTree(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusOK, map[string]interface{}{"data": tree})
+	response.JSON(w, http.StatusOK, ProfileTreeResponse{Data: tree})
 }

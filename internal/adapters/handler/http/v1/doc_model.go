@@ -52,3 +52,15 @@ type GeoResponse struct {
 type QualityResponse struct {
 	Data map[string]int `json:"data"`
 }
+
+type HeatmapResponse struct {
+	Data []domain.HeatmapPoint `json:"data"`
+}
+
+type StatsResponse struct {
+	Data []domain.CategoryStat `json:"data"`
+}
+
+type ProfileTreeResponse struct {
+	Data *domain.HierarchyNode `json:"data"`
+}

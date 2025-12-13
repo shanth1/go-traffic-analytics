@@ -205,7 +205,7 @@ func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	response.JSON(w, http.StatusOK, map[string]interface{}{"data": data})
+	response.JSON(w, http.StatusOK, HeatmapResponse{Data: data})
 }
 
 // GetStats godoc
@@ -231,5 +231,5 @@ func (h *AnalyticsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	response.JSON(w, http.StatusOK, map[string]interface{}{"data": data})
+	response.JSON(w, http.StatusOK, StatsResponse{Data: data})
 }
