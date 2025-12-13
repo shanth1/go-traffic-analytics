@@ -11,6 +11,21 @@ definitions:
       user_id:
         type: string
     type: object
+  domain.HierarchyNode:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/domain.HierarchyNode'
+        type: array
+      name:
+        type: string
+      type:
+        description: '"root", "campaign", "link"'
+        type: string
+      value:
+        description: Например, клики (опционально)
+        type: integer
+    type: object
   domain.Link:
     properties:
       campaign_id:
@@ -518,6 +533,31 @@ paths:
       summary: Geo distribution
       tags:
       - Analytics
+  /api/v1/analytics/heatmap:
+    get:
+      description: Get click intensity by Day of Week and Hour
+      parameters:
+      - description: Filter
+        in: query
+        name: campaign_id
+        type: string
+      - description: Filter
+        in: query
+        name: link_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Heatmap data
+      tags:
+      - Analytics
   /api/v1/analytics/quality:
     get:
       description: Get quality metrics for Radar Chart
@@ -560,6 +600,28 @@ paths:
       security:
       - BearerAuth: []
       summary: Traffic quality
+      tags:
+      - Analytics
+  /api/v1/analytics/stats:
+    get:
+      description: Get top metrics for a dimension (browser, os, device)
+      parameters:
+      - description: browser, os, device
+        in: query
+        name: dimension
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Category Stats (Pie/Bar)
       tags:
       - Analytics
   /api/v1/analytics/stream:
@@ -809,6 +871,22 @@ paths:
       summary: Get links
       tags:
       - Links
+  /api/v1/campaigns/tree:
+    get:
+      description: Get hierarchical structure of User -> Campaigns -> Links for Tree
+        visualization
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.HierarchyNode'
+      security:
+      - BearerAuth: []
+      summary: Profile Hierarchy
+      tags:
+      - Campaigns
   /api/v1/links:
     post:
       consumes:

@@ -390,6 +390,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/analytics/heatmap": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get click intensity by Day of Week and Hour",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Heatmap data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter",
+                        "name": "campaign_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter",
+                        "name": "link_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/analytics/quality": {
             "get": {
                 "security": [
@@ -454,6 +494,41 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/analytics/stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get top metrics for a dimension (browser, os, device)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Category Stats (Pie/Bar)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "browser, os, device",
+                        "name": "dimension",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -793,6 +868,31 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/campaigns/tree": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get hierarchical structure of User -\u003e Campaigns -\u003e Links for Tree visualization",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Campaigns"
+                ],
+                "summary": "Profile Hierarchy",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HierarchyNode"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/campaigns/{id}/links": {
             "get": {
                 "security": [
@@ -1019,6 +1119,28 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.HierarchyNode": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.HierarchyNode"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "\"root\", \"campaign\", \"link\"",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "Например, клики (опционально)",
+                    "type": "integer"
                 }
             }
         },
