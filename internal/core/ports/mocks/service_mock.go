@@ -97,6 +97,21 @@ func (m *MockAnalyticsService) EXPECT() *MockAnalyticsServiceMockRecorder {
 	return m.recorder
 }
 
+// GetCategoryStats mocks base method.
+func (m *MockAnalyticsService) GetCategoryStats(ctx context.Context, filter ports.AnalyticsFilter, dimension string) ([]domain.CategoryStat, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategoryStats", ctx, filter, dimension)
+	ret0, _ := ret[0].([]domain.CategoryStat)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategoryStats indicates an expected call of GetCategoryStats.
+func (mr *MockAnalyticsServiceMockRecorder) GetCategoryStats(ctx, filter, dimension any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoryStats", reflect.TypeOf((*MockAnalyticsService)(nil).GetCategoryStats), ctx, filter, dimension)
+}
+
 // GetGeoDistribution mocks base method.
 func (m *MockAnalyticsService) GetGeoDistribution(ctx context.Context, filter ports.AnalyticsFilter) (any, error) {
 	m.ctrl.T.Helper()
@@ -110,6 +125,21 @@ func (m *MockAnalyticsService) GetGeoDistribution(ctx context.Context, filter po
 func (mr *MockAnalyticsServiceMockRecorder) GetGeoDistribution(ctx, filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGeoDistribution", reflect.TypeOf((*MockAnalyticsService)(nil).GetGeoDistribution), ctx, filter)
+}
+
+// GetHeatmapData mocks base method.
+func (m *MockAnalyticsService) GetHeatmapData(ctx context.Context, filter ports.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHeatmapData", ctx, filter)
+	ret0, _ := ret[0].([]domain.HeatmapPoint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetHeatmapData indicates an expected call of GetHeatmapData.
+func (mr *MockAnalyticsServiceMockRecorder) GetHeatmapData(ctx, filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHeatmapData", reflect.TypeOf((*MockAnalyticsService)(nil).GetHeatmapData), ctx, filter)
 }
 
 // GetSankeyData mocks base method.
@@ -268,6 +298,21 @@ func (m *MockLinkService) GetUserCampaigns(ctx context.Context, userID string) (
 func (mr *MockLinkServiceMockRecorder) GetUserCampaigns(ctx, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserCampaigns", reflect.TypeOf((*MockLinkService)(nil).GetUserCampaigns), ctx, userID)
+}
+
+// GetUserHierarchy mocks base method.
+func (m *MockLinkService) GetUserHierarchy(ctx context.Context, userID string) (*domain.HierarchyNode, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserHierarchy", ctx, userID)
+	ret0, _ := ret[0].(*domain.HierarchyNode)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserHierarchy indicates an expected call of GetUserHierarchy.
+func (mr *MockLinkServiceMockRecorder) GetUserHierarchy(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserHierarchy", reflect.TypeOf((*MockLinkService)(nil).GetUserHierarchy), ctx, userID)
 }
 
 // MockRedirectService is a mock of RedirectService interface.

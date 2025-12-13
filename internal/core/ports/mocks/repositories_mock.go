@@ -433,6 +433,21 @@ func (mr *MockClickRepositoryMockRecorder) GetFlowData(ctx, filter, stages any) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFlowData", reflect.TypeOf((*MockClickRepository)(nil).GetFlowData), ctx, filter, stages)
 }
 
+// GetHeatmapData mocks base method.
+func (m *MockClickRepository) GetHeatmapData(ctx context.Context, filter ports.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHeatmapData", ctx, filter)
+	ret0, _ := ret[0].([]domain.HeatmapPoint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetHeatmapData indicates an expected call of GetHeatmapData.
+func (mr *MockClickRepositoryMockRecorder) GetHeatmapData(ctx, filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHeatmapData", reflect.TypeOf((*MockClickRepository)(nil).GetHeatmapData), ctx, filter)
+}
+
 // GetTimeSeriesGrouped mocks base method.
 func (m *MockClickRepository) GetTimeSeriesGrouped(ctx context.Context, filter ports.AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error) {
 	m.ctrl.T.Helper()
@@ -448,6 +463,21 @@ func (mr *MockClickRepositoryMockRecorder) GetTimeSeriesGrouped(ctx, filter, dim
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTimeSeriesGrouped", reflect.TypeOf((*MockClickRepository)(nil).GetTimeSeriesGrouped), ctx, filter, dimension, interval)
 }
 
+// GetTopStats mocks base method.
+func (m *MockClickRepository) GetTopStats(ctx context.Context, filter ports.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTopStats", ctx, filter, dimension, limit)
+	ret0, _ := ret[0].([]domain.CategoryStat)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTopStats indicates an expected call of GetTopStats.
+func (mr *MockClickRepositoryMockRecorder) GetTopStats(ctx, filter, dimension, limit any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTopStats", reflect.TypeOf((*MockClickRepository)(nil).GetTopStats), ctx, filter, dimension, limit)
+}
+
 // Save mocks base method.
 func (m *MockClickRepository) Save(ctx context.Context, click *domain.ClickEvent) error {
 	m.ctrl.T.Helper()
@@ -460,4 +490,44 @@ func (m *MockClickRepository) Save(ctx context.Context, click *domain.ClickEvent
 func (mr *MockClickRepositoryMockRecorder) Save(ctx, click any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockClickRepository)(nil).Save), ctx, click)
+}
+
+// MockGeoIPRepository is a mock of GeoIPRepository interface.
+type MockGeoIPRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockGeoIPRepositoryMockRecorder
+	isgomock struct{}
+}
+
+// MockGeoIPRepositoryMockRecorder is the mock recorder for MockGeoIPRepository.
+type MockGeoIPRepositoryMockRecorder struct {
+	mock *MockGeoIPRepository
+}
+
+// NewMockGeoIPRepository creates a new mock instance.
+func NewMockGeoIPRepository(ctrl *gomock.Controller) *MockGeoIPRepository {
+	mock := &MockGeoIPRepository{ctrl: ctrl}
+	mock.recorder = &MockGeoIPRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockGeoIPRepository) EXPECT() *MockGeoIPRepositoryMockRecorder {
+	return m.recorder
+}
+
+// GetInfo mocks base method.
+func (m *MockGeoIPRepository) GetInfo(ctx context.Context, ipStr string) (string, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetInfo", ctx, ipStr)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetInfo indicates an expected call of GetInfo.
+func (mr *MockGeoIPRepositoryMockRecorder) GetInfo(ctx, ipStr any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInfo", reflect.TypeOf((*MockGeoIPRepository)(nil).GetInfo), ctx, ipStr)
 }
