@@ -22,6 +22,7 @@ type Config struct {
 	Logger  Logger     `mapstructure:"logger" yaml:"logger" validate:"required"`
 	Metrics Metrics    `mapstructure:"metrics" yaml:"metrics"`
 	Auth    Auth       `validate:"required"`
+	GeoIP   GeoIP      `mapstructure:"geo_ip" yaml:"geo_ip"`
 }
 
 type Auth struct {
@@ -46,6 +47,11 @@ type Logger struct {
 type Metrics struct {
 	User     string `mapstructure:"user" yaml:"user" env:"METRICS_USER"`
 	Password string `mapstructure:"password" yaml:"password" env:"METRICS_PASSWORD"`
+}
+
+type GeoIP struct {
+	DBPath  string `mapstructure:"db_path" yaml:"db_path" env:"GEOIP_DB_PATH" envDefault:"GeoLite2-City.mmdb"`
+	Enabled bool   `mapstructure:"enabled" yaml:"enabled" env:"GEOIP_ENABLED" envDefault:"true"`
 }
 
 func (c *Config) Validate() error {

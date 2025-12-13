@@ -16,3 +16,5 @@
 
 # Vendor (if needed, but usually ignored in modules mode)
 vendor/
+
+*.mmdb

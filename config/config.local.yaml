@@ -16,3 +16,7 @@ logger:
 metrics:
   user:
   password:
+
+geo_ip:
+  db_path: database/GeoLite2-City.mmdb
+  enabled: true
