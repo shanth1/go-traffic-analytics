@@ -16,16 +16,17 @@ export const MainLayout = () => {
   const isObjActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-50">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-50 overflow-hidden">
       {/* --- Desktop Sidebar --- */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 fixed inset-y-0 left-0 z-50">
+      {/* Добавляем flex-shrink-0, чтобы сайдбар не сжимался */}
+      <aside className="hidden md:flex flex-col w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 fixed inset-y-0 left-0 z-40 shrink-0">
         <div className="p-6">
           <h1 className="text-2xl font-bold tracking-tight text-indigo-600">
             Analytics
           </h1>
         </div>
 
-        <nav className="flex-1 px-4 space-y-2">
+        <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.path}
@@ -55,21 +56,22 @@ export const MainLayout = () => {
       </aside>
 
       {/* --- Main Content Area --- */}
-      <main className="flex-1 md:ml-64 pb-20 md:pb-0 relative">
+
+      <main className="flex-1 min-w-0 md:ml-64 pb-24 md:pb-8 relative overflow-x-hidden">
         <div className="container mx-auto p-4 md:p-8 max-w-7xl">
           <Outlet />
         </div>
       </main>
 
       {/* --- Mobile Bottom Nav --- */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 z-50 pb-safe">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md dark:bg-slate-950/90 border-t border-slate-200 dark:border-slate-800 z-50 pb-safe shadow-lg">
         <div className="flex justify-around items-center h-16">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.path}
               to={item.path}
               className={cn(
-                'flex flex-col items-center justify-center w-full h-full gap-1',
+                'flex flex-col items-center justify-center w-full h-full gap-1 active:scale-95 transition-transform',
                 isObjActive(item.path)
                   ? 'text-indigo-600 dark:text-indigo-400'
                   : 'text-slate-500 dark:text-slate-500'
@@ -84,7 +86,7 @@ export const MainLayout = () => {
           ))}
           <button
             onClick={logout}
-            className="flex flex-col items-center justify-center w-full h-full gap-1 text-slate-500"
+            className="flex flex-col items-center justify-center w-full h-full gap-1 text-slate-500 active:scale-95 transition-transform"
           >
             <LogOutIcon size={24} />
             <span className="text-[10px] font-medium">Выход</span>
