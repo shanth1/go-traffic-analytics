@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/shanth1/gotools/consts"
 	"github.com/shanth1/gotools/log"
+	"github.com/shanth1/gotrace/internal/adapters/generator"
 	transport "github.com/shanth1/gotrace/internal/adapters/handler/http"
 	"github.com/shanth1/gotrace/internal/adapters/repository/geography"
 	"github.com/shanth1/gotrace/internal/adapters/repository/memory"
 	"github.com/shanth1/gotrace/internal/config"
 	"github.com/shanth1/gotrace/internal/core/services"
-	"github.com/shanth1/gotrace/internal/pkg/generator"
 )
 
 func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
@@ -29,6 +30,11 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	linkRepo := memory.NewLinkRepo()
 	clickRepo := memory.NewClickRepo()
 	planRepo := memory.NewPlanRepo()
+
+	if cfg.Env != consts.EnvProd {
+		generator := generator.New(userRepo, campRepo, linkRepo, clickRepo, planRepo)
+		generator.SeedFullTopology()
+	}
 
 	// Services
 	authService := services.NewAuthService(userRepo, planRepo, cfg)
@@ -49,16 +55,6 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 		planRepo,
 		logger,
 	)
-	// TODO: local/develop env
-	// Seeding Data (Optional, for dev convenience)
-	seeder := &generator.DataSeeder{
-		UserRepo:     userRepo,
-		CampaignRepo: campRepo,
-		LinkRepo:     linkRepo,
-		ClickRepo:    clickRepo,
-		PlanRepo:     planRepo,
-	}
-	seeder.SeedFullTopology()
 
 	runHTTPServer(ctx, shutdownCtx, cfg, httpHandler, logger)
 }

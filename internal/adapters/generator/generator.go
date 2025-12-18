@@ -13,11 +13,27 @@ import (
 )
 
 type DataSeeder struct {
-	UserRepo     ports.UserRepository
-	CampaignRepo ports.CampaignRepository
-	LinkRepo     ports.LinkRepository
-	ClickRepo    ports.ClickRepository
-	PlanRepo     ports.PlanRepository
+	userRepo     ports.UserRepository
+	campaignRepo ports.CampaignRepository
+	linkRepo     ports.LinkRepository
+	clickRepo    ports.ClickRepository
+	planRepo     ports.PlanRepository
+}
+
+func New(
+	ur ports.UserRepository,
+	cr ports.CampaignRepository,
+	lr ports.LinkRepository,
+	clr ports.ClickRepository,
+	pr ports.PlanRepository,
+) *DataSeeder {
+	return &DataSeeder{
+		userRepo:     ur,
+		campaignRepo: cr,
+		linkRepo:     lr,
+		clickRepo:    clr,
+		planRepo:     pr,
+	}
 }
 
 func (s *DataSeeder) SeedFullTopology() {
@@ -36,7 +52,7 @@ func (s *DataSeeder) SeedFullTopology() {
 		PlanID:       "enterprise",
 		CreatedAt:    time.Now(),
 	}
-	_ = s.UserRepo.Save(ctx, admin)
+	_ = s.userRepo.Save(ctx, admin)
 	fmt.Printf("👤 Created Admin: %s (password: password)\n", admin.Email)
 
 	client := &domain.User{
@@ -48,7 +64,7 @@ func (s *DataSeeder) SeedFullTopology() {
 		IsActive:     true,
 		CreatedAt:    time.Now(),
 	}
-	_ = s.UserRepo.Save(ctx, client)
+	_ = s.userRepo.Save(ctx, client)
 	fmt.Printf("👤 Created Client: %s (password: password)\n", client.Email)
 
 	campaignNames := []string{"Black Friday 2024", "Summer Sale", "Influencer Integrations"}
@@ -61,7 +77,7 @@ func (s *DataSeeder) SeedFullTopology() {
 			Name:      name,
 			CreatedAt: time.Now(),
 		}
-		_ = s.CampaignRepo.Save(ctx, campaign)
+		_ = s.campaignRepo.Save(ctx, campaign)
 
 		s.seedLinksForCampaign(ctx, client.ID, campID)
 	}
@@ -70,7 +86,7 @@ func (s *DataSeeder) SeedFullTopology() {
 		ID: uuid.NewString(), UserID: client.ID, CampaignID: "",
 		Slug: "google", TargetURL: "https://google.com", IsActive: true, CreatedAt: time.Now(),
 	}
-	_ = s.LinkRepo.Save(ctx, testLink)
+	_ = s.linkRepo.Save(ctx, testLink)
 	fmt.Println("🔗 Created Manual Link: /google -> https://google.com")
 
 	fmt.Println("✅ Seeding completed!")
@@ -90,7 +106,7 @@ func (s *DataSeeder) seedLinksForCampaign(ctx context.Context, userID, campaignI
 			IsActive:   true,
 			CreatedAt:  time.Now(),
 		}
-		_ = s.LinkRepo.Save(ctx, link)
+		_ = s.linkRepo.Save(ctx, link)
 
 		clicksCount := rand.Intn(50) + 10
 		s.seedClicksForLink(ctx, linkID, clicksCount)
@@ -107,7 +123,7 @@ func (s *DataSeeder) seedClicksForLink(ctx context.Context, linkID string, count
 		daysAgo := rand.Intn(7)
 		fakeTime := now.AddDate(0, 0, -daysAgo).Add(time.Duration(rand.Intn(24)) * time.Hour)
 
-		_ = s.ClickRepo.Save(ctx, &domain.ClickEvent{
+		_ = s.clickRepo.Save(ctx, &domain.ClickEvent{
 			ID:        uuid.New().String(),
 			LinkID:    linkID,
 			Timestamp: fakeTime,
