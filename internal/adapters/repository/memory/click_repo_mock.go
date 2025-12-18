@@ -227,7 +227,7 @@ func (r *InMemoryClickRepo) GetTopStats(_ context.Context, filter ports.Analytic
 	}
 
 	// Map -> Slice
-	stats := make([]domain.CategoryStat, len(counts))
+	stats := make([]domain.CategoryStat, 0, len(counts))
 	for k, v := range counts {
 		stats = append(stats, domain.CategoryStat{Name: k, Value: v})
 	}

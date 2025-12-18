@@ -89,9 +89,33 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 
 func (s *DataSeeder) seedPlans(ctx context.Context) []*domain.Plan {
 	plans := []*domain.Plan{
-		{ID: "free", Name: "Free Plan", PriceCents: 0, MaxLinks: 5, MaxClicksMonth: 1000, CanExportData: false, IsActive: true},
-		{ID: "pro", Name: "Pro Plan", PriceCents: 1900, MaxLinks: 100, MaxClicksMonth: 50000, CanExportData: true, IsActive: true},
-		{ID: "enterprise", Name: "Enterprise", PriceCents: 9900, MaxLinks: -1, MaxClicksMonth: 1000000, CanExportData: true, IsActive: true},
+		{
+			ID:             "free",
+			Name:           "Free Plan",
+			PriceCents:     0,
+			MaxLinks:       5,
+			MaxClicksMonth: 1000,
+			CanExportData:  false,
+			IsActive:       true,
+		},
+		{
+			ID:             "pro",
+			Name:           "Pro Plan",
+			PriceCents:     1900,
+			MaxLinks:       100,
+			MaxClicksMonth: 50000,
+			CanExportData:  true,
+			IsActive:       true,
+		},
+		{
+			ID:             "enterprise",
+			Name:           "Enterprise",
+			PriceCents:     9900,
+			MaxLinks:       -1,
+			MaxClicksMonth: 1000000,
+			CanExportData:  true,
+			IsActive:       true,
+		},
 	}
 	for _, p := range plans {
 		_ = s.planRepo.Save(ctx, p)

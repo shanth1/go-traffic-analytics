@@ -18,42 +18,8 @@ func NewPlanRepo() ports.PlanRepository {
 	repo := &InMemoryPlanRepo{
 		plans: make(map[string]*domain.Plan),
 	}
-	// Инициализация базовых тарифов при создании репо
-	repo.bootstrapPlans()
-	return repo
-}
 
-func (r *InMemoryPlanRepo) bootstrapPlans() {
-	// 1. Free
-	r.plans["free"] = &domain.Plan{
-		ID:             "free",
-		Name:           "Starter Free",
-		PriceCents:     0,
-		MaxLinks:       10,
-		MaxClicksMonth: 1000,
-		CanExportData:  false,
-		IsActive:       true,
-	}
-	// 2. Pro
-	r.plans["pro"] = &domain.Plan{
-		ID:             "pro",
-		Name:           "Professional",
-		PriceCents:     1900, // $19.00
-		MaxLinks:       100,
-		MaxClicksMonth: 50000,
-		CanExportData:  true,
-		IsActive:       true,
-	}
-	// 3. Enterprise
-	r.plans["enterprise"] = &domain.Plan{
-		ID:             "enterprise",
-		Name:           "Business Unlimited",
-		PriceCents:     9900,
-		MaxLinks:       -1, // Безлимит
-		MaxClicksMonth: 1000000,
-		CanExportData:  true,
-		IsActive:       true,
-	}
+	return repo
 }
 
 func (r *InMemoryPlanRepo) FindByID(_ context.Context, id string) (*domain.Plan, error) {
@@ -73,7 +39,7 @@ func (r *InMemoryPlanRepo) FindDefault(ctx context.Context) (*domain.Plan, error
 func (r *InMemoryPlanRepo) FindAll(_ context.Context) ([]*domain.Plan, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	res := make([]*domain.Plan, len(r.plans))
+	res := make([]*domain.Plan, 0, len(r.plans))
 	for _, p := range r.plans {
 		res = append(res, p)
 	}
