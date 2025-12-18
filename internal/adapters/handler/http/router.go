@@ -37,7 +37,7 @@ func NewRouter(
 	r.Use(httpMw.Logger(logger))
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"},
+		AllowedOrigins:   []string{"*"}, // TODO: cfg.HTTP.AllowedOrigins
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
@@ -78,10 +78,26 @@ func NewRouter(
 
 	// --- API v1 Group ---
 	r.Route("/api/v1", func(r chi.Router) {
+
 		// --- Auth Routes  ---
 		r.Route("/auth", func(r chi.Router) {
 			r.With(apiKeyAuthMiddleware).Post("/register", authHandlerV1.Register)
 			r.Post("/login", authHandlerV1.Login)
+
+			// TODO:
+			// r.Post("/refresh", authHandlerV1.RefreshToken)
+		})
+
+		// TODO:
+		// r.Route("/users", func(r chi.Router) {
+		// 	r.Get("/me", handlers.User.GetMe)
+		// 	r.Patch("/me", handlers.User.UpdateMe)
+		// })
+
+		// --- Service Routes  ---
+		r.Route("/billing", func(r chi.Router) {
+			// TODO: r.Get("/plans", linkHandlerV1.GetPlans)
+			// TODO: currencies, payment systems, etc.
 		})
 
 		// --- Client Routes (Protected) ---
@@ -98,6 +114,10 @@ func NewRouter(
 			r.Route("/links", func(r chi.Router) {
 				r.Post("/", linkHandlerV1.CreateLink)
 				r.Delete("/{id}", linkHandlerV1.DeleteLink)
+
+				// TODO:
+				// r.Get("/{id}", handlers.linkHandlerV1.GetLink)
+				// r.Patch("/{id}", handlers.Link.UpdateLink)
 			})
 
 			// Analytics (Visx Ready)
@@ -107,8 +127,8 @@ func NewRouter(
 				r.Get("/flow", analyticsHandlerV1.GetSankeyFlow)
 				r.Get("/geo", analyticsHandlerV1.GetGeoMap)
 				r.Get("/quality", analyticsHandlerV1.GetQualityRadar)
-				r.Get("/heatmap", analyticsHandlerV1.GetHeatmap) // Для Heatmap
-				r.Get("/stats", analyticsHandlerV1.GetStats)     // Для BarGroup, Pies
+				r.Get("/heatmap", analyticsHandlerV1.GetHeatmap) // Heatmap
+				r.Get("/stats", analyticsHandlerV1.GetStats)     // BarGroup, Pies
 			})
 		})
 
@@ -120,7 +140,9 @@ func NewRouter(
 				r.Get("/users", adminHandlerV1.GetUsers)
 				r.Patch("/users/{id}/status", adminHandlerV1.UpdateUserStatus)
 				r.Patch("/users/{id}/plan", adminHandlerV1.UpdateUserPlan)
-				r.Get("/plans", adminHandlerV1.GetPlans)
+
+				// TODO: plan CRUD
+				// r.Get("/plans", handlers.adminHandlerV1.GetAllPlansIncludingHidden)
 			})
 		})
 	})
