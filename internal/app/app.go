@@ -32,8 +32,15 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	planRepo := memory.NewPlanRepo()
 
 	if cfg.Env != consts.EnvProd {
-		generator := generator.New(userRepo, campRepo, linkRepo, clickRepo, planRepo)
-		generator.SeedFullTopology()
+		cfg := generator.Config{
+			UsersCount:      5,
+			LinksPerUser:    10,
+			ClicksPerLink:   20,
+			DaysHistory:     30,
+			PasswordDefault: "password",
+		}
+		seeder := generator.New(userRepo, campRepo, linkRepo, clickRepo, planRepo)
+		_ = seeder.Seed(context.Background(), cfg)
 	}
 
 	// Services
