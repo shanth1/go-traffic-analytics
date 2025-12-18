@@ -392,21 +392,6 @@ func (mr *MockUserServiceMockRecorder) ChangeUserPlan(ctx, userID, planID any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeUserPlan", reflect.TypeOf((*MockUserService)(nil).ChangeUserPlan), ctx, userID, planID)
 }
 
-// GetAllPlans mocks base method.
-func (m *MockUserService) GetAllPlans(ctx context.Context) ([]*domain.Plan, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllPlans", ctx)
-	ret0, _ := ret[0].([]*domain.Plan)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAllPlans indicates an expected call of GetAllPlans.
-func (mr *MockUserServiceMockRecorder) GetAllPlans(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllPlans", reflect.TypeOf((*MockUserService)(nil).GetAllPlans), ctx)
-}
-
 // GetAllUsers mocks base method.
 func (m *MockUserService) GetAllUsers(ctx context.Context, page, limit int) ([]*domain.User, error) {
 	m.ctrl.T.Helper()
@@ -434,4 +419,43 @@ func (m *MockUserService) SetUserStatus(ctx context.Context, userID string, isAc
 func (mr *MockUserServiceMockRecorder) SetUserStatus(ctx, userID, isActive any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUserStatus", reflect.TypeOf((*MockUserService)(nil).SetUserStatus), ctx, userID, isActive)
+}
+
+// MockBillingService is a mock of BillingService interface.
+type MockBillingService struct {
+	ctrl     *gomock.Controller
+	recorder *MockBillingServiceMockRecorder
+	isgomock struct{}
+}
+
+// MockBillingServiceMockRecorder is the mock recorder for MockBillingService.
+type MockBillingServiceMockRecorder struct {
+	mock *MockBillingService
+}
+
+// NewMockBillingService creates a new mock instance.
+func NewMockBillingService(ctrl *gomock.Controller) *MockBillingService {
+	mock := &MockBillingService{ctrl: ctrl}
+	mock.recorder = &MockBillingServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockBillingService) EXPECT() *MockBillingServiceMockRecorder {
+	return m.recorder
+}
+
+// GetAllPlans mocks base method.
+func (m *MockBillingService) GetAllPlans(ctx context.Context) ([]*domain.Plan, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllPlans", ctx)
+	ret0, _ := ret[0].([]*domain.Plan)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllPlans indicates an expected call of GetAllPlans.
+func (mr *MockBillingServiceMockRecorder) GetAllPlans(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllPlans", reflect.TypeOf((*MockBillingService)(nil).GetAllPlans), ctx)
 }
