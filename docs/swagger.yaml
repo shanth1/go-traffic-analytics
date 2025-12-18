@@ -300,33 +300,6 @@ paths:
       summary: Redirect link
       tags:
       - Redirect
-  /api/v1/admin/plans:
-    get:
-      description: Get all available plans
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.PlansListResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: List plans
-      tags:
-      - Admin
   /api/v1/admin/users:
     get:
       description: Get paginated users list (Admin)
@@ -798,6 +771,23 @@ paths:
       summary: Register new user
       tags:
       - Auth
+  /api/v1/billing/plans:
+    get:
+      description: Get all available plans
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.PlansListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: List plans
+      tags:
+      - Billing
   /api/v1/campaigns:
     get:
       description: Get list of user campaigns

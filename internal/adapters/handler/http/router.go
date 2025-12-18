@@ -18,6 +18,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// TODO: router config struct
 func NewRouter(
 	cfg *config.Config,
 	authService ports.AuthService,
@@ -25,6 +26,7 @@ func NewRouter(
 	linkService ports.LinkService,
 	redirectService ports.RedirectService,
 	userService ports.UserService,
+	billingService ports.BillingService,
 	linkRepo ports.LinkRepository,
 	userRepo ports.UserRepository,
 	planRepo ports.PlanRepository,
@@ -54,6 +56,7 @@ func NewRouter(
 	adminHandlerV1 := v1.NewAdminHandler(userService, logger)
 	linkHandlerV1 := v1.NewLinkHandler(linkService)
 	analyticsHandlerV1 := v1.NewAnalyticsHandler(analyticsService)
+	billingHandlerV1 := v1.NewBillingHandler(billingService)
 
 	// Middleware
 	quotaMiddleware := httpMw.NewQuotaMiddleware(linkRepo, userRepo, planRepo)
@@ -96,7 +99,8 @@ func NewRouter(
 
 		// --- Service Routes  ---
 		r.Route("/billing", func(r chi.Router) {
-			// TODO: r.Get("/plans", linkHandlerV1.GetPlans)
+			r.Get("/plans", billingHandlerV1.GetPlans)
+
 			// TODO: currencies, payment systems, etc.
 		})
 

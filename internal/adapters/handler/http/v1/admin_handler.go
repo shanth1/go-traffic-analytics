@@ -128,28 +128,3 @@ func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
 
 	response.JSON(w, http.StatusOK, map[string]string{"status": "updated"})
 }
-
-// GetPlans godoc
-// @Summary      List plans
-// @Description  Get all available plans
-// @Tags         Admin
-// @Security     BearerAuth
-// @Produce      json
-// @Success      200  {object}  PlansListResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/admin/plans [get]
-func (h *AdminHandler) GetPlans(w http.ResponseWriter, r *http.Request) {
-	plans, err := h.userService.GetAllPlans(r.Context())
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	if plans == nil {
-		plans = []*domain.Plan{}
-	}
-
-	response.JSON(w, http.StatusOK, map[string]interface{}{"data": plans})
-}

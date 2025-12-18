@@ -49,6 +49,7 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	linkService := services.NewLinkService(linkRepo, campRepo, userRepo, planRepo)
 	redirectService := services.NewRedirectService(ctx, linkRepo, clickRepo, userRepo, geoIPRepo)
 	userService := services.NewUserService(userRepo, planRepo)
+	billingService := services.NewBillingService(planRepo)
 
 	httpHandler := transport.NewRouter(
 		cfg,
@@ -57,6 +58,7 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 		linkService,
 		redirectService,
 		userService,
+		billingService,
 		linkRepo,
 		userRepo,
 		planRepo,

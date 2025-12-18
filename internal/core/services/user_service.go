@@ -41,7 +41,3 @@ func (s *UserService) ChangeUserPlan(ctx context.Context, userID, planID string)
 	user.PlanID = planID
 	return s.userRepo.Save(ctx, user)
 }
-
-func (s *UserService) GetAllPlans(ctx context.Context) ([]*domain.Plan, error) {
-	return s.planRepo.FindAll(ctx)
-}

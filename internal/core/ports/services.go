@@ -40,5 +40,8 @@ type UserService interface {
 	GetAllUsers(ctx context.Context, page, limit int) ([]*domain.User, error)
 	SetUserStatus(ctx context.Context, userID string, isActive bool) error
 	ChangeUserPlan(ctx context.Context, userID, planID string) error
+}
+
+type BillingService interface {
 	GetAllPlans(ctx context.Context) ([]*domain.Plan, error)
 }
