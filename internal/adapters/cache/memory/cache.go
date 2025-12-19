@@ -1,4 +1,4 @@
-package memory
+package cachememory
 
 import (
 	"context"
@@ -44,10 +44,7 @@ func (c *InMemoryCache) Get(ctx context.Context, key string) (interface{}, error
 		return nil, ports.ErrCacheMiss
 	}
 
-	// Проверяем протухание (TTL)
 	if time.Now().After(item.expiresAt) {
-		// В реальном Redis это делается автоматически,
-		// здесь мы лениво удаляем при чтении или можно запустить горутину очистки
 		delete(c.items, key)
 		return nil, ports.ErrCacheMiss
 	}
