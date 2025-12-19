@@ -8,8 +8,10 @@ import (
 
 	"github.com/shanth1/gotools/consts"
 	"github.com/shanth1/gotools/log"
+	cachememory "github.com/shanth1/gotrace/internal/adapters/cache/memory"
 	"github.com/shanth1/gotrace/internal/adapters/generator"
 	transport "github.com/shanth1/gotrace/internal/adapters/handler/http"
+	"github.com/shanth1/gotrace/internal/adapters/repository/cached"
 	"github.com/shanth1/gotrace/internal/adapters/repository/geography"
 	"github.com/shanth1/gotrace/internal/adapters/repository/memory"
 	"github.com/shanth1/gotrace/internal/config"
@@ -24,12 +26,23 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 		logger.Fatal().Err(err).Msg("new geo ip repo")
 	}
 
+	memoryCache := cachememory.NewCache()
+
 	// Repositories (In-Memory)
-	userRepo := memory.NewUserRepo()
-	campRepo := memory.NewCampaignRepo()
-	linkRepo := memory.NewLinkRepo()
-	clickRepo := memory.NewClickRepo()
-	planRepo := memory.NewPlanRepo()
+	baseUserRepo := memory.NewUserRepo()
+	userRepo := cached.NewUserRepo(baseUserRepo, memoryCache, 5*time.Minute)
+
+	baseCampRepo := memory.NewCampaignRepo()
+	campRepo := cached.NewCampaignRepo(baseCampRepo, memoryCache, 10*time.Minute)
+
+	baseLinkRepo := memory.NewLinkRepo()
+	linkRepo := cached.NewCachedLinkRepo(baseLinkRepo, memoryCache, 10*time.Minute)
+
+	baseClickRepo := memory.NewClickRepo()
+	clickRepo := cached.NewClickRepo(baseClickRepo, memoryCache, 30*time.Second)
+
+	basePlanRepo := memory.NewPlanRepo()
+	planRepo := cached.NewCachedPlanRepo(basePlanRepo, memoryCache, 24*time.Hour)
 
 	if cfg.Env != consts.EnvProd {
 		cfg := generator.Config{
