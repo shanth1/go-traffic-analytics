@@ -2,6 +2,9 @@ package cached
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/shanth1/gotrace/internal/core/domain"
@@ -22,22 +25,129 @@ func NewUserRepo(repo ports.UserRepository, cache ports.Cache, ttl time.Duration
 	}
 }
 
-func (r *CachedUserRepo) Save(_ context.Context, user *domain.User) error {
-
+func (r *CachedUserRepo) buildIDKey(id string) string {
+	return fmt.Sprintf("gotrace:user:id:%s", id)
 }
 
-func (r *CachedUserRepo) FindByID(_ context.Context, id string) (*domain.User, error) {
-
+func (r *CachedUserRepo) buildEmailKey(email string) string {
+	return fmt.Sprintf("gotrace:user:email:%s", email)
 }
 
-func (r *CachedUserRepo) FindByEmail(_ context.Context, email string) (*domain.User, error) {
+func (r *CachedUserRepo) Save(ctx context.Context, user *domain.User) error {
+	if err := r.repo.Save(ctx, user); err != nil {
+		return err
+	}
 
+	go func() {
+		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := r.cache.Delete(bgCtx, r.buildIDKey(user.ID)); err != nil {
+			// TODO: logging
+		}
+		if err := r.cache.Delete(bgCtx, r.buildEmailKey(user.Email)); err != nil {
+			// TODO: logging
+		}
+	}()
+
+	return nil
 }
 
-func (r *CachedUserRepo) FindAll(_ context.Context, limit, offset int) ([]*domain.User, error) {
+func (r *CachedUserRepo) FindByID(ctx context.Context, id string) (*domain.User, error) {
+	key := r.buildIDKey(id)
 
+	val, err := r.cache.Get(ctx, key)
+	if err == nil {
+		if bytesVal, ok := val.([]byte); ok {
+			var user domain.User
+			if jsonErr := json.Unmarshal(bytesVal, &user); jsonErr == nil {
+				return &user, nil
+			}
+			// TODO: logging (unmarshal error)
+		}
+	} else if !errors.Is(err, ports.ErrCacheMiss) {
+		// TODO: logging (cache error)
+	}
+
+	user, err := r.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		bytes, err := json.Marshal(user)
+		if err != nil {
+			// TODO: logging (marshal error)
+			return
+		}
+
+		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := r.cache.Set(bgCtx, key, bytes, r.ttl); err != nil {
+			// TODO: logging (failed to set cache)
+		}
+	}()
+
+	return user, nil
 }
 
-func (r *CachedUserRepo) IncrementClickCount(_ context.Context, userID string) error {
+func (r *CachedUserRepo) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
+	key := r.buildEmailKey(email)
 
+	val, err := r.cache.Get(ctx, key)
+	if err == nil {
+		if bytesVal, ok := val.([]byte); ok {
+			var user domain.User
+			if jsonErr := json.Unmarshal(bytesVal, &user); jsonErr == nil {
+				return &user, nil
+			}
+			// TODO: logging (unmarshal error)
+		}
+	} else if !errors.Is(err, ports.ErrCacheMiss) {
+		// TODO: logging (cache error)
+	}
+
+	user, err := r.repo.FindByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		bytes, err := json.Marshal(user)
+		if err != nil {
+			// TODO: logging (marshal error)
+			return
+		}
+
+		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := r.cache.Set(bgCtx, key, bytes, r.ttl); err != nil {
+			// TODO: logging (failed to set cache)
+		}
+	}()
+
+	return user, nil
+}
+
+func (r *CachedUserRepo) FindAll(ctx context.Context, limit, offset int) ([]*domain.User, error) {
+	return r.repo.FindAll(ctx, limit, offset)
+}
+
+func (r *CachedUserRepo) IncrementClickCount(ctx context.Context, userID string) error {
+	if err := r.repo.IncrementClickCount(ctx, userID); err != nil {
+		return err
+	}
+
+	go func() {
+		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := r.cache.Delete(bgCtx, r.buildIDKey(userID)); err != nil {
+			// TODO: logging
+		}
+	}()
+
+	return nil
 }
