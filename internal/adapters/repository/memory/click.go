@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -59,7 +58,7 @@ func (r *InMemoryClickRepo) CountTotal(_ context.Context, filter ports.Analytics
 	return int64(len(res)), nil
 }
 
-// Реализация Streamgraph (Bucket by Time + Group by Dimension)
+// GetTimeSeriesGrouped needed for Streamgraph (Bucket by Time + Group by Dimension)
 func (r *InMemoryClickRepo) GetTimeSeriesGrouped(_ context.Context, filter ports.AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error) {
 	clicks := r.filterClicks(filter)
 
@@ -67,23 +66,21 @@ func (r *InMemoryClickRepo) GetTimeSeriesGrouped(_ context.Context, filter ports
 	buckets := make(map[time.Time]map[string]int)
 
 	for _, c := range clicks {
-		// Округляем время до интервала (truncation)
 		bucketTime := c.Timestamp.Truncate(interval)
 
 		if buckets[bucketTime] == nil {
 			buckets[bucketTime] = make(map[string]int)
 		}
 
-		// Извлекаем значение измерения через рефлексию или switch (проще switch для мока)
 		key := consts.Unknown
 		switch dimension {
 		case consts.OS:
 			key = c.OS
 		case consts.Browser:
 			key = c.Browser
-		case "device":
+		case consts.Device:
 			key = c.Device
-		case "country":
+		case consts.Country:
 			key = c.Country
 		}
 
@@ -98,7 +95,6 @@ func (r *InMemoryClickRepo) GetTimeSeriesGrouped(_ context.Context, filter ports
 		})
 	}
 
-	// Сортировка по времени
 	sort.Slice(result, func(i, j int) bool {
 		return result[i].Time.Before(result[j].Time)
 	})
@@ -106,18 +102,24 @@ func (r *InMemoryClickRepo) GetTimeSeriesGrouped(_ context.Context, filter ports
 	return result, nil
 }
 
-// Реализация Sankey (Flow Data)
-// Логика: Нужно посчитать переходы между этапами.
+type linkKey struct {
+	srcID string
+	tgtID string
+}
+
+// GetFlowData needed for Sankey (Flow Data)
+//
+// Transitions between stages:
 // Referer -> OS (Layer 0 -> Layer 1)
 // OS -> Country (Layer 1 -> Layer 2)
 func (r *InMemoryClickRepo) GetFlowData(_ context.Context, filter ports.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
 	clicks := r.filterClicks(filter)
 
 	nodesMap := make(map[string]domain.SankeyNode) // Key: "LayerIndex:Value"
-	linksMap := make(map[string]int)               // Key: "Source|Target", Value: Count
+	linksMap := make(map[linkKey]int)              // Key: "linkKey", Value: Count
 
 	for _, c := range clicks {
-		// Проходим по этапам парами
+		// Passable in stages in pairs
 		for i := 0; i < len(stages)-1; i++ {
 			sourceDim := stages[i]
 			targetDim := stages[i+1]
@@ -125,17 +127,16 @@ func (r *InMemoryClickRepo) GetFlowData(_ context.Context, filter ports.Analytic
 			sourceVal := getDimensionValue(c, sourceDim)
 			targetVal := getDimensionValue(c, targetDim)
 
-			// Создаем уникальные ID для нод, чтобы "Chrome" в Referer и "Chrome" в Browser не склеились, если они на разных слоях
-			// Но для визуализации лучше называть их просто по значению.
-			// Для простоты мока считаем, что значения уникальны между слоями, или добавляем префикс.
+			srcID := fmt.Sprintf("%d:%s", i, sourceVal) // "0:Google"
+			tgtID := fmt.Sprintf("%d:%s", i+1, targetVal)
 
 			// Nodes logic
-			nodesMap[sourceVal] = domain.SankeyNode{ID: sourceVal, Layer: i}
-			nodesMap[targetVal] = domain.SankeyNode{ID: targetVal, Layer: i + 1}
+			nodesMap[sourceVal] = domain.SankeyNode{ID: srcID, Layer: i}
+			nodesMap[targetVal] = domain.SankeyNode{ID: tgtID, Layer: i + 1}
 
 			// Links logic
-			linkKey := fmt.Sprintf("%s|%s", sourceVal, targetVal)
-			linksMap[linkKey]++
+			key := linkKey{srcID: srcID, tgtID: tgtID}
+			linksMap[key]++
 		}
 	}
 
@@ -149,22 +150,12 @@ func (r *InMemoryClickRepo) GetFlowData(_ context.Context, filter ports.Analytic
 		data.Nodes = append(data.Nodes, n)
 	}
 
-	for k, v := range linksMap {
-		// Парсим ключ обратно (в проде лучше структуру использовать как ключ мапы)
-		var src, tgt string
-		_, _ = fmt.Sscanf(k, "%s|%s", &src, &tgt) // Упрощено, лучше split string
-
-		// *Фикс для парсинга, так как | может быть разделителем
-		// Тут лучше использовать strings.Split(k, "|")
-
-		parts := splitLinkKey(k)
-		if len(parts) == 2 {
-			data.Links = append(data.Links, domain.SankeyLink{
-				Source: parts[0],
-				Target: parts[1],
-				Value:  v,
-			})
-		}
+	for key, count := range linksMap {
+		data.Links = append(data.Links, domain.SankeyLink{
+			Source: key.srcID,
+			Target: key.tgtID,
+			Value:  count,
+		})
 	}
 
 	return data, nil
@@ -173,7 +164,7 @@ func (r *InMemoryClickRepo) GetFlowData(_ context.Context, filter ports.Analytic
 func (r *InMemoryClickRepo) GetHeatmapData(_ context.Context, filter ports.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
 	clicks := r.filterClicks(filter)
 
-	// Матрица [ДеньНедели][Час]
+	// Matrix [DayOfWeek][Hour]
 	matrix := make(map[int]map[int]int)
 
 	for _, c := range clicks {
@@ -187,7 +178,6 @@ func (r *InMemoryClickRepo) GetHeatmapData(_ context.Context, filter ports.Analy
 		matrix[day][hour]++
 	}
 
-	// Превращаем в плоский список для Visx
 	var result []domain.HeatmapPoint
 	for d := 0; d < 7; d++ {
 		for h := 0; h < 24; h++ {
@@ -210,25 +200,50 @@ func (r *InMemoryClickRepo) GetHeatmapData(_ context.Context, filter ports.Analy
 
 func (r *InMemoryClickRepo) GetTopStats(_ context.Context, filter ports.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error) {
 	clicks := r.filterClicks(filter)
+	if len(clicks) == 0 {
+		return []domain.CategoryStat{}, nil
+	}
+
 	counts := make(map[string]int)
 
+	const (
+		ValueDirect  = "Direct"
+		ValueUnknown = "Unknown"
+	)
+
 	for _, c := range clicks {
-		key := consts.Unknown
+		var key string
+
 		switch dimension {
 		case consts.Browser:
 			key = c.Browser
+			if key == "" {
+				key = ValueUnknown
+			}
 		case consts.OS:
 			key = c.OS
+			if key == "" {
+				key = ValueUnknown
+			}
 		case consts.Device:
 			key = c.Device
+			if key == "" {
+				key = ValueUnknown
+			}
 		case consts.Country:
 			key = c.Country
+			if key == "" {
+				key = ValueUnknown
+			}
 		case consts.Referer:
 			key = c.Referer
+			if key == "" {
+				key = ValueDirect
+			}
+		default:
+			return nil, fmt.Errorf("unsupported dimension for stats: %s", dimension)
 		}
-		if key == "" {
-			key = "Direct/None"
-		}
+
 		counts[key]++
 	}
 
@@ -245,16 +260,28 @@ func (r *InMemoryClickRepo) GetTopStats(_ context.Context, filter ports.Analytic
 
 	// Limit
 	if limit > 0 && len(stats) > limit {
-		top := stats[:limit]
-		// Считаем "Others"
-		othersCount := 0
-		for _, s := range stats[limit:] {
-			othersCount += s.Value
+		result := make([]domain.CategoryStat, limit)
+		copy(result, stats[:limit])
+
+		topSum := 0
+		for _, s := range result {
+			topSum += s.Value
 		}
+
+		totalCount := 0
+		for _, v := range counts {
+			totalCount += v
+		}
+
+		othersCount := totalCount - topSum
+
 		if othersCount > 0 {
-			top = append(top, domain.CategoryStat{Name: "Others", Value: othersCount})
+			result = append(result, domain.CategoryStat{
+				Name:  "Others",
+				Value: othersCount,
+			})
 		}
-		return top, nil
+		return result, nil
 	}
 
 	return stats, nil
@@ -268,14 +295,10 @@ func getDimensionValue(c *domain.ClickEvent, dim string) string {
 		return c.OS
 	case consts.Browser:
 		return c.Browser
-	case "country":
+	case consts.Country:
 		return c.Country
-	case "device":
+	case consts.Device:
 		return c.Device
 	}
 	return "Other"
-}
-
-func splitLinkKey(key string) []string {
-	return strings.Split(key, "|")
 }

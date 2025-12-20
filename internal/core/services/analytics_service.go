@@ -57,14 +57,14 @@ func (s *AnalyticsService) GetStreamGraphData(ctx context.Context, filter ports.
 
 func (s *AnalyticsService) GetSankeyData(ctx context.Context, filter ports.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
 	if len(stages) == 0 {
-		stages = []string{"referer", "device", "country"}
+		stages = []string{consts.Referer, consts.Device, consts.Country}
 	}
 
 	return s.clickRepo.GetFlowData(ctx, filter, stages)
 }
 
 func (s *AnalyticsService) GetGeoDistribution(ctx context.Context, filter ports.AnalyticsFilter) (interface{}, error) {
-	stats, err := s.clickRepo.GetTopStats(ctx, filter, "country", 200)
+	stats, err := s.clickRepo.GetTopStats(ctx, filter, consts.Country, 200)
 	if err != nil {
 		return nil, err
 	}
