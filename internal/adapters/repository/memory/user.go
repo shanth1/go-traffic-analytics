@@ -26,7 +26,6 @@ func (r *InMemoryUserRepo) Save(_ context.Context, user *domain.User) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	// Проверка на уникальность email (если это создание нового юзера или смена email)
 	if existingID, exists := r.emails[user.Email]; exists {
 		if existingID != user.ID {
 			return errors.New("email already exists")
@@ -61,7 +60,6 @@ func (r *InMemoryUserRepo) FindByEmail(_ context.Context, email string) (*domain
 func (r *InMemoryUserRepo) FindAll(_ context.Context, limit, offset int) ([]*domain.User, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	// Мок пагинации (очень простой)
 	var result []*domain.User
 	i := 0
 	for _, u := range r.users {
