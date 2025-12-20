@@ -173,10 +173,10 @@ func (mr *MockAnalyticsServiceMockRecorder) GetStreamGraphData(ctx, filter, grou
 }
 
 // GetSummary mocks base method.
-func (m *MockAnalyticsService) GetSummary(ctx context.Context, filter ports.AnalyticsFilter) (map[string]any, error) {
+func (m *MockAnalyticsService) GetSummary(ctx context.Context, filter ports.AnalyticsFilter) (*domain.Summary, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSummary", ctx, filter)
-	ret0, _ := ret[0].(map[string]any)
+	ret0, _ := ret[0].(*domain.Summary)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -188,10 +188,10 @@ func (mr *MockAnalyticsServiceMockRecorder) GetSummary(ctx, filter any) *gomock.
 }
 
 // GetTrafficQuality mocks base method.
-func (m *MockAnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.AnalyticsFilter) (map[string]int, error) {
+func (m *MockAnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.AnalyticsFilter) (*domain.TrafficQuality, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTrafficQuality", ctx, filter)
-	ret0, _ := ret[0].(map[string]int)
+	ret0, _ := ret[0].(*domain.TrafficQuality)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
