@@ -50,7 +50,7 @@ type GeoResponse struct {
 }
 
 type QualityResponse struct {
-	Data map[string]int `json:"data"`
+	Data *domain.TrafficQuality `json:"data"`
 }
 
 type HeatmapResponse struct {

@@ -18,7 +18,7 @@ type AnalyticsService interface {
 	GetStreamGraphData(ctx context.Context, filter AnalyticsFilter, groupBy string) ([]domain.StackedPoint, error)
 	GetSankeyData(ctx context.Context, filter AnalyticsFilter, stages []string) (*domain.SankeyData, error)
 	GetGeoDistribution(ctx context.Context, filter AnalyticsFilter) (interface{}, error)
-	GetTrafficQuality(ctx context.Context, filter AnalyticsFilter) (map[string]int, error)
+	GetTrafficQuality(ctx context.Context, filter AnalyticsFilter) (*domain.TrafficQuality, error)
 	GetHeatmapData(ctx context.Context, filter AnalyticsFilter) ([]domain.HeatmapPoint, error)
 	GetCategoryStats(ctx context.Context, filter AnalyticsFilter, dimension string) ([]domain.CategoryStat, error)
 }

@@ -63,3 +63,12 @@ type HierarchyNode struct {
 	Value    int              `json:"value,omitempty"` // E.g., clicks (optional)
 	Children []*HierarchyNode `json:"children,omitempty"`
 }
+
+// --- Traffic Quality ---
+type TrafficQuality struct {
+	MobileFriendlyScore int  `json:"mobile_friendly_score"`
+	BotScore            int  `json:"bot_score"`
+	HumanScore          int  `json:"human_score"`
+	GeoDiversityScore   int  `json:"geo_diversity_score"`
+	IsSuspicious        bool `json:"is_suspicious"`
+}

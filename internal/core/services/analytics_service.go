@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/shanth1/gotrace/internal/core/domain"
@@ -24,13 +25,13 @@ func (s *AnalyticsService) GetSummary(ctx context.Context, filter ports.Analytic
 		return nil, err
 	}
 
-	browsers, err := s.clickRepo.GetTopStats(ctx, filter, "browser", 5)
+	browsers, err := s.clickRepo.GetTopStats(ctx, filter, consts.Browser, 5)
 	if err != nil {
 		// TODO: logging
 		browsers = []domain.CategoryStat{}
 	}
 
-	osStats, err := s.clickRepo.GetTopStats(ctx, filter, "os", 5)
+	osStats, err := s.clickRepo.GetTopStats(ctx, filter, consts.OS, 5)
 	if err != nil {
 		// TODO: logging
 		osStats = []domain.CategoryStat{}
@@ -84,23 +85,23 @@ func (s *AnalyticsService) GetCategoryStats(ctx context.Context, filter ports.An
 	return s.clickRepo.GetTopStats(ctx, filter, dimension, 10)
 }
 
-func (s *AnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.AnalyticsFilter) (map[string]int, error) {
+func (s *AnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.AnalyticsFilter) (*domain.TrafficQuality, error) {
 	total, err := s.clickRepo.CountTotal(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("counting total clicks: %w", err)
 	}
 
 	if total == 0 {
-		return map[string]int{
-			"mobile_friendly": 0,
-			"bot_score":       0,
-			"unique_ip":       0,
-			"human_score":     100,
+		return &domain.TrafficQuality{
+			HumanScore: 100,
 		}, nil
 	}
 
-	// 1. Считаем Mobile Friendly (% мобильных устройств)
-	devices, _ := s.clickRepo.GetTopStats(ctx, filter, "device", 100)
+	// 1. Mobile Friendly
+	devices, err := s.clickRepo.GetTopStats(ctx, filter, consts.Device, 100)
+	if err != nil {
+		return nil, fmt.Errorf("get top device stats: %w", err)
+	}
 	mobileClicks := 0
 	for _, d := range devices {
 		if d.Name == "Mobile" || d.Name == "Tablet" {
@@ -109,28 +110,74 @@ func (s *AnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.A
 	}
 	mobileScore := int((float64(mobileClicks) / float64(total)) * 100)
 
-	// 2. Считаем Bot Score (на основе "Unknown" OS или Browser)
-	// Это эвристика. В реальности нужны спец. базы ботов.
-	osStats, _ := s.clickRepo.GetTopStats(ctx, filter, "os", 100)
-	suspiciousClicks := 0
+	// 2. Bot score
+	// А. OS check
+	osStats, err := s.clickRepo.GetTopStats(ctx, filter, consts.OS, 100)
+	if err != nil {
+		return nil, fmt.Errorf("get top os stats: %w", err)
+	}
+	suspiciousOsClicks := 0
+	badOS := map[string]bool{
+		consts.Unknown: true,
+		"Bot":          true,
+		"Linux":        true,
+		"Unix":         true,
+	}
+
 	for _, stat := range osStats {
-		if stat.Name == consts.Unknown || stat.Name == "Bot" {
-			suspiciousClicks += stat.Value
+		if badOS[stat.Name] {
+			suspiciousOsClicks += stat.Value
 		}
 	}
-	botScore := int((float64(suspiciousClicks) / float64(total)) * 100)
 
-	// 3. Geo Diversity (простая метрика: если стран > 5, то 100%, иначе пропорционально)
-	countries, _ := s.clickRepo.GetTopStats(ctx, filter, "country", 100)
-	geoScore := len(countries) * 20
-	if geoScore > 100 {
-		geoScore = 100
+	// B. Browser check
+	browserStats, err := s.clickRepo.GetTopStats(ctx, filter, consts.Browser, 100)
+	if err != nil {
+		return nil, fmt.Errorf("get top browser stats: %w", err)
+	}
+	suspiciousBrowserClicks := 0
+	badBrowsers := map[string]bool{
+		consts.Unknown:      true,
+		"Bot":               true,
+		"curl":              true,
+		"python-requests":   true,
+		"Go-http-client":    true,
+		"HeadlessChrome":    true,
+		"Apache-HttpClient": true,
 	}
 
-	return map[string]int{
-		"mobile_friendly": mobileScore,
-		"bot_score":       botScore,
-		"human_score":     100 - botScore,
-		"geo_diversity":   geoScore,
+	for _, stat := range browserStats {
+		if stat.Name == "" || badBrowsers[stat.Name] {
+			suspiciousBrowserClicks += stat.Value
+		}
+	}
+
+	pctBadOS := (float64(suspiciousOsClicks) / float64(total)) * 100
+	pctBadBrowser := (float64(suspiciousBrowserClicks) / float64(total)) * 100
+
+	botScore := int(math.Max(pctBadOS, pctBadBrowser))
+	if botScore > 100 {
+		botScore = 100
+	}
+
+	// 3. Geo Diversity
+	countries, err := s.clickRepo.GetTopStats(ctx, filter, consts.Country, 100)
+	if err != nil {
+		return nil, fmt.Errorf("get top county stats: %w", err)
+	}
+	geoScore := 0
+	if len(countries) > 0 {
+		topCountryClicks := countries[0].Value
+		concentration := float64(topCountryClicks) / float64(total)
+
+		geoScore = int((1.0 - concentration) * 100)
+	}
+
+	return &domain.TrafficQuality{
+		MobileFriendlyScore: mobileScore,
+		BotScore:            botScore,
+		HumanScore:          100 - botScore,
+		GeoDiversityScore:   geoScore,
+		IsSuspicious:        false,
 	}, nil
 }
