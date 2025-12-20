@@ -11,29 +11,29 @@ import (
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
 
-type CachedUserRepo struct {
+type UserRepo struct {
 	repo  ports.UserRepository
 	cache ports.Cache
 	ttl   time.Duration
 }
 
 func NewUserRepo(repo ports.UserRepository, cache ports.Cache, ttl time.Duration) ports.UserRepository {
-	return &CachedUserRepo{
+	return &UserRepo{
 		repo:  repo,
 		cache: cache,
 		ttl:   ttl,
 	}
 }
 
-func (r *CachedUserRepo) buildIDKey(id string) string {
+func (r *UserRepo) buildIDKey(id string) string {
 	return fmt.Sprintf("gotrace:user:id:%s", id)
 }
 
-func (r *CachedUserRepo) buildEmailKey(email string) string {
+func (r *UserRepo) buildEmailKey(email string) string {
 	return fmt.Sprintf("gotrace:user:email:%s", email)
 }
 
-func (r *CachedUserRepo) Save(ctx context.Context, user *domain.User) error {
+func (r *UserRepo) Save(ctx context.Context, user *domain.User) error {
 	if err := r.repo.Save(ctx, user); err != nil {
 		return err
 	}
@@ -42,18 +42,15 @@ func (r *CachedUserRepo) Save(ctx context.Context, user *domain.User) error {
 		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if err := r.cache.Delete(bgCtx, r.buildIDKey(user.ID)); err != nil {
-			// TODO: logging
-		}
-		if err := r.cache.Delete(bgCtx, r.buildEmailKey(user.Email)); err != nil {
-			// TODO: logging
-		}
+		// TODO: logging
+		_ = r.cache.Delete(bgCtx, r.buildIDKey(user.ID))
+		_ = r.cache.Delete(bgCtx, r.buildEmailKey(user.Email))
 	}()
 
 	return nil
 }
 
-func (r *CachedUserRepo) FindByID(ctx context.Context, id string) (*domain.User, error) {
+func (r *UserRepo) FindByID(ctx context.Context, id string) (*domain.User, error) {
 	key := r.buildIDKey(id)
 
 	val, err := r.cache.Get(ctx, key)
@@ -84,15 +81,14 @@ func (r *CachedUserRepo) FindByID(ctx context.Context, id string) (*domain.User,
 		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if err := r.cache.Set(bgCtx, key, bytes, r.ttl); err != nil {
-			// TODO: logging (failed to set cache)
-		}
+		// TODO: logging (failed to set cache)
+		_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
 	}()
 
 	return user, nil
 }
 
-func (r *CachedUserRepo) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
+func (r *UserRepo) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
 	key := r.buildEmailKey(email)
 
 	val, err := r.cache.Get(ctx, key)
@@ -123,19 +119,18 @@ func (r *CachedUserRepo) FindByEmail(ctx context.Context, email string) (*domain
 		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if err := r.cache.Set(bgCtx, key, bytes, r.ttl); err != nil {
-			// TODO: logging (failed to set cache)
-		}
+		// TODO: logging (failed to set cache)
+		_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
 	}()
 
 	return user, nil
 }
 
-func (r *CachedUserRepo) FindAll(ctx context.Context, limit, offset int) ([]*domain.User, error) {
+func (r *UserRepo) FindAll(ctx context.Context, limit, offset int) ([]*domain.User, error) {
 	return r.repo.FindAll(ctx, limit, offset)
 }
 
-func (r *CachedUserRepo) IncrementClickCount(ctx context.Context, userID string) error {
+func (r *UserRepo) IncrementClickCount(ctx context.Context, userID string) error {
 	if err := r.repo.IncrementClickCount(ctx, userID); err != nil {
 		return err
 	}
@@ -144,9 +139,8 @@ func (r *CachedUserRepo) IncrementClickCount(ctx context.Context, userID string)
 		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if err := r.cache.Delete(bgCtx, r.buildIDKey(userID)); err != nil {
-			// TODO: logging
-		}
+		// TODO: logging
+		_ = r.cache.Delete(bgCtx, r.buildIDKey(userID))
 	}()
 
 	return nil

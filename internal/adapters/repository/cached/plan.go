@@ -11,29 +11,29 @@ import (
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
 
-type CachedPlanRepo struct {
+type PlanRepo struct {
 	repo  ports.PlanRepository
 	cache ports.Cache
 	ttl   time.Duration
 }
 
-func NewCachedPlanRepo(repo ports.PlanRepository, cache ports.Cache, ttl time.Duration) ports.PlanRepository {
-	return &CachedPlanRepo{
+func NewPlanRepo(repo ports.PlanRepository, cache ports.Cache, ttl time.Duration) ports.PlanRepository {
+	return &PlanRepo{
 		repo:  repo,
 		cache: cache,
 		ttl:   ttl,
 	}
 }
 
-func (r *CachedPlanRepo) buildKey(id string) string {
+func (r *PlanRepo) buildKey(id string) string {
 	return fmt.Sprintf("gotrace:plan:id:%s", id)
 }
 
-func (r *CachedPlanRepo) buildAllKey() string {
+func (r *PlanRepo) buildAllKey() string {
 	return "gotrace:plan:all"
 }
 
-func (r *CachedPlanRepo) FindByID(ctx context.Context, id string) (*domain.Plan, error) {
+func (r *PlanRepo) FindByID(ctx context.Context, id string) (*domain.Plan, error) {
 	key := r.buildKey(id)
 
 	val, err := r.cache.Get(ctx, key)
@@ -64,19 +64,18 @@ func (r *CachedPlanRepo) FindByID(ctx context.Context, id string) (*domain.Plan,
 		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if err := r.cache.Set(bgCtx, key, bytes, r.ttl); err != nil {
-			// TODO: logging (failed to set cache)
-		}
+		// TODO: logging (failed to set cache)
+		_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
 	}()
 
 	return plan, nil
 }
 
-func (r *CachedPlanRepo) FindDefault(ctx context.Context) (*domain.Plan, error) {
+func (r *PlanRepo) FindDefault(ctx context.Context) (*domain.Plan, error) {
 	return r.FindByID(ctx, "free")
 }
 
-func (r *CachedPlanRepo) FindAll(ctx context.Context) ([]*domain.Plan, error) {
+func (r *PlanRepo) FindAll(ctx context.Context) ([]*domain.Plan, error) {
 	key := r.buildAllKey()
 
 	val, err := r.cache.Get(ctx, key)
@@ -107,15 +106,14 @@ func (r *CachedPlanRepo) FindAll(ctx context.Context) ([]*domain.Plan, error) {
 		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if err := r.cache.Set(bgCtx, key, bytes, r.ttl); err != nil {
-			// TODO: logging (failed to set cache)
-		}
+		// TODO: logging (failed to set cache)
+		_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
 	}()
 
 	return plans, nil
 }
 
-func (r *CachedPlanRepo) Save(ctx context.Context, plan *domain.Plan) error {
+func (r *PlanRepo) Save(ctx context.Context, plan *domain.Plan) error {
 	if err := r.repo.Save(ctx, plan); err != nil {
 		return err
 	}
@@ -124,13 +122,9 @@ func (r *CachedPlanRepo) Save(ctx context.Context, plan *domain.Plan) error {
 		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if err := r.cache.Delete(bgCtx, r.buildKey(plan.ID)); err != nil {
-			// TODO: logging
-		}
-
-		if err := r.cache.Delete(bgCtx, r.buildAllKey()); err != nil {
-			// TODO: logging
-		}
+		// TODO: logging
+		_ = r.cache.Delete(bgCtx, r.buildKey(plan.ID))
+		_ = r.cache.Delete(bgCtx, r.buildAllKey())
 	}()
 
 	return nil

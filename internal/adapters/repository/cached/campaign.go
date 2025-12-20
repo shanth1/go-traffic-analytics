@@ -11,25 +11,25 @@ import (
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
 
-type CachedCampaignRepo struct {
+type CampaignRepo struct {
 	repo  ports.CampaignRepository
 	cache ports.Cache
 	ttl   time.Duration
 }
 
 func NewCampaignRepo(repo ports.CampaignRepository, cache ports.Cache, ttl time.Duration) ports.CampaignRepository {
-	return &CachedCampaignRepo{
+	return &CampaignRepo{
 		repo:  repo,
 		cache: cache,
 		ttl:   ttl,
 	}
 }
 
-func (r *CachedCampaignRepo) buildKey(id string) string {
+func (r *CampaignRepo) buildKey(id string) string {
 	return fmt.Sprintf("gotrace:campaign:id:%s", id)
 }
 
-func (r *CachedCampaignRepo) Save(ctx context.Context, camp *domain.Campaign) error {
+func (r *CampaignRepo) Save(ctx context.Context, camp *domain.Campaign) error {
 	if err := r.repo.Save(ctx, camp); err != nil {
 		return err
 	}
@@ -39,15 +39,15 @@ func (r *CachedCampaignRepo) Save(ctx context.Context, camp *domain.Campaign) er
 		defer cancel()
 
 		key := r.buildKey(camp.ID)
-		if err := r.cache.Delete(bgCtx, key); err != nil {
-			// TODO: logging (failed to clear cache)
-		}
+
+		// TODO: logging (failed to clear cache)
+		_ = r.cache.Delete(bgCtx, key)
 	}()
 
 	return nil
 }
 
-func (r *CachedCampaignRepo) FindByID(ctx context.Context, id string) (*domain.Campaign, error) {
+func (r *CampaignRepo) FindByID(ctx context.Context, id string) (*domain.Campaign, error) {
 	key := r.buildKey(id)
 
 	val, err := r.cache.Get(ctx, key)
@@ -57,9 +57,8 @@ func (r *CachedCampaignRepo) FindByID(ctx context.Context, id string) (*domain.C
 			var camp domain.Campaign
 			if jsonErr := json.Unmarshal(bytesVal, &camp); jsonErr == nil {
 				return &camp, nil
-			} else {
-				// TODO: logging (unmarshal error)
 			}
+			// TODO: logging (unmarshal error)
 		}
 	} else if !errors.Is(err, ports.ErrCacheMiss) {
 		// TODO: logging (cache error)
@@ -80,19 +79,18 @@ func (r *CachedCampaignRepo) FindByID(ctx context.Context, id string) (*domain.C
 		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if err := r.cache.Set(bgCtx, key, bytes, r.ttl); err != nil {
-			// TODO: logging (failed to set cache)
-		}
+		// TODO: logging (failed to set cache)
+		_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
 	}()
 
 	return camp, nil
 }
 
-func (r *CachedCampaignRepo) FindAllByUserID(ctx context.Context, userID string) ([]*domain.Campaign, error) {
+func (r *CampaignRepo) FindAllByUserID(ctx context.Context, userID string) ([]*domain.Campaign, error) {
 	return r.repo.FindAllByUserID(ctx, userID)
 }
 
-func (r *CachedCampaignRepo) Delete(ctx context.Context, id string) error {
+func (r *CampaignRepo) Delete(ctx context.Context, id string) error {
 	if err := r.repo.Delete(ctx, id); err != nil {
 		return err
 	}
@@ -102,9 +100,9 @@ func (r *CachedCampaignRepo) Delete(ctx context.Context, id string) error {
 		defer cancel()
 
 		key := r.buildKey(id)
-		if err := r.cache.Delete(bgCtx, key); err != nil {
-			// TODO: logging (failed to delete from cache)
-		}
+
+		// TODO: logging (failed to delete from cache)
+		_ = r.cache.Delete(bgCtx, key)
 	}()
 
 	return nil
