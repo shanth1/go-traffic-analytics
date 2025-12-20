@@ -185,15 +185,12 @@ func (s *RedirectService) normalizeReferer(ref string) string {
 
 	u, err := url.Parse(ref)
 	if err != nil {
-		// Если не удалось распарсить, возвращаем как есть (или обрезанный)
 		if len(ref) > 50 {
 			return ref[:50] + "..."
 		}
 		return ref
 	}
 
-	// Возвращаем только хост (google.com, t.co, facebook.com)
-	// Это делает графики чище.
 	if u.Host != "" {
 		return strings.TrimPrefix(u.Host, "www.")
 	}
