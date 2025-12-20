@@ -2,30 +2,30 @@ package domain
 
 import "time"
 
-// --- DTO для Аналитики (Visx Friendly) ---
+// --- Analytics DTOs (Visx Friendly) ---
 
-// DataPoint - точка для линейных графиков
+// TimeSeriesPoint - point for line charts
 type TimeSeriesPoint struct {
 	Time  time.Time `json:"time"`
 	Value int       `json:"value"`
 }
 
-// StackedPoint - для Streamgraph (Time + категории)
-// Пример: { Time: "12:00", "iOS": 10, "Android": 5 }
+// StackedPoint - for Streamgraph (Time + categories)
+// Example: { Time: "12:00", "iOS": 10, "Android": 5 }
 type StackedPoint struct {
 	Time   time.Time      `json:"time"`
-	Values map[string]int `json:"values"` // Динамические ключи (OS, Browser...)
+	Values map[string]int `json:"values"` // Dynamic keys (OS, Browser...)
 }
 
-// SankeyData - для диаграммы потоков
+// SankeyData - for flow diagrams
 type SankeyData struct {
 	Nodes []SankeyNode `json:"nodes"`
 	Links []SankeyLink `json:"links"`
 }
 
 type SankeyNode struct {
-	ID    string `json:"id"`    // Имя узла (напр. "USA" или "Mobile")
-	Layer int    `json:"layer"` // Столбец (0 - Referer, 1 - Device...)
+	ID    string `json:"id"`    // Node name (e.g., "USA" or "Mobile")
+	Layer int    `json:"layer"` // Column (0 - Referer, 1 - Device...)
 }
 
 type SankeyLink struct {
@@ -34,23 +34,23 @@ type SankeyLink struct {
 	Value  int    `json:"value"`
 }
 
-// HeatmapPoint - для графика активности (День недели / Час)
+// HeatmapPoint - for activity chart (Day of Week / Hour)
 // Visx Heatmap: x=Hour, y=Day, val=Count
 type HeatmapPoint struct {
 	DayOfWeek int `json:"day"`   // 0=Sun, 1=Mon, ..., 6=Sat
 	Hour      int `json:"hour"`  // 0-23
-	Count     int `json:"count"` // Интенсивность цвета
+	Count     int `json:"count"` // Color intensity
 }
 
-// CategoryStat - универсальная структура для Pie/Bar/Donut charts
-// Например: [{Name: "Chrome", Value: 100}, {Name: "Firefox", Value: 50}]
+// CategoryStat - universal structure for Pie/Bar/Donut charts
+// Example: [{Name: "Chrome", Value: 100}, {Name: "Firefox", Value: 50}]
 type CategoryStat struct {
 	Name  string  `json:"name"`
 	Value int     `json:"value"`
-	Share float64 `json:"share"` // Процент от общего (опционально, можно считать на фронте)
+	Share float64 `json:"share"` // Percentage of total (optional, can be calculated on frontend)
 }
 
-// RadarPoint - для Radar Chart (качество трафика)
+// RadarPoint - for Radar Chart (traffic quality)
 type RadarPoint struct {
 	Metric string `json:"metric"` // "Bot Score", "Unique IP", "Mobile %"
 	Value  int    `json:"value"`  // 0-100
@@ -60,6 +60,6 @@ type RadarPoint struct {
 type HierarchyNode struct {
 	Name     string           `json:"name"`
 	Type     string           `json:"type,omitempty"`  // "root", "campaign", "link"
-	Value    int              `json:"value,omitempty"` // Например, клики (опционально)
+	Value    int              `json:"value,omitempty"` // E.g., clicks (optional)
 	Children []*HierarchyNode `json:"children,omitempty"`
 }

@@ -3,6 +3,7 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;
 CREATE TABLE IF NOT EXISTS plans (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
+    description TEXT,
     price_cents INT NOT NULL,
     max_links INT NOT NULL,
     max_clicks_month INT NOT NULL,
