@@ -40,7 +40,13 @@ func (r *InMemoryClickRepo) filterClicks(filter ports.AnalyticsFilter) []*domain
 		if filter.LinkID != "" && c.LinkID != filter.LinkID {
 			continue
 		}
-		if !c.Timestamp.After(filter.From) || !c.Timestamp.Before(filter.To) {
+		if filter.CampaignID != "" && c.CampaignID != filter.CampaignID {
+			continue
+		}
+		if !filter.From.IsZero() && c.Timestamp.Before(filter.From) {
+			continue
+		}
+		if !filter.To.IsZero() && c.Timestamp.After(filter.To) {
 			continue
 		}
 		filtered = append(filtered, c)
