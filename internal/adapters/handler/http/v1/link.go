@@ -144,7 +144,8 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	link, err := h.service.CreateLink(r.Context(), userID, req.CampaignID, req.TargetURL, req.CustomSlug)
+	// TODO: custom slug
+	link, err := h.service.CreateLink(r.Context(), userID, req.CampaignID, req.TargetURL, "")
 	if err != nil {
 		if err == services.ErrLimitReached {
 			response.Error(w, http.StatusForbidden, err.Error())
