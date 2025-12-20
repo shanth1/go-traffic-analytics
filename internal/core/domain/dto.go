@@ -72,3 +72,9 @@ type TrafficQuality struct {
 	GeoDiversityScore   int  `json:"geo_diversity_score"`
 	IsSuspicious        bool `json:"is_suspicious"`
 }
+
+type Summary struct {
+	TotalClicks int64          `json:"total_clicks"`
+	TopBrowsers []CategoryStat `json:"top_browsers"`
+	TopOS       []CategoryStat `json:"top_os"`
+}

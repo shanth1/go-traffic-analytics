@@ -34,7 +34,7 @@ type LoginResponse struct {
 // Analytics Wrappers
 
 type AnalyticsSummaryResponse struct {
-	Data map[string]interface{} `json:"data"`
+	Data *domain.Summary `json:"data"`
 }
 
 type StreamGraphResponse struct {

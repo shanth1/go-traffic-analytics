@@ -19,7 +19,7 @@ func NewAnalyticsService(c ports.ClickRepository) *AnalyticsService {
 	return &AnalyticsService{clickRepo: c}
 }
 
-func (s *AnalyticsService) GetSummary(ctx context.Context, filter ports.AnalyticsFilter) (map[string]interface{}, error) {
+func (s *AnalyticsService) GetSummary(ctx context.Context, filter ports.AnalyticsFilter) (*domain.Summary, error) {
 	total, err := s.clickRepo.CountTotal(ctx, filter)
 	if err != nil {
 		return nil, err
@@ -38,10 +38,10 @@ func (s *AnalyticsService) GetSummary(ctx context.Context, filter ports.Analytic
 	}
 
 	// TODO: Unique Users, Top Country etc.
-	return map[string]interface{}{
-		"total_clicks": total,
-		"top_browsers": browsers,
-		"top_os":       osStats,
+	return &domain.Summary{
+		TotalClicks: total,
+		TopBrowsers: browsers,
+		TopOS:       osStats,
 	}, nil
 }
 

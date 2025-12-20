@@ -14,7 +14,7 @@ type AuthService interface {
 }
 
 type AnalyticsService interface {
-	GetSummary(ctx context.Context, filter AnalyticsFilter) (map[string]interface{}, error)
+	GetSummary(ctx context.Context, filter AnalyticsFilter) (*domain.Summary, error)
 	GetStreamGraphData(ctx context.Context, filter AnalyticsFilter, groupBy string) ([]domain.StackedPoint, error)
 	GetSankeyData(ctx context.Context, filter AnalyticsFilter, stages []string) (*domain.SankeyData, error)
 	GetGeoDistribution(ctx context.Context, filter AnalyticsFilter) (interface{}, error)
