@@ -1169,7 +1169,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "value": {
-                    "description": "Например, клики (опционально)",
+                    "description": "E.g., clicks (optional)",
                     "type": "integer"
                 }
             }
@@ -1204,8 +1204,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "can_export_data": {
-                    "description": "Фича: экспорт CSV",
                     "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
                 },
                 "id": {
                     "description": "e.g., \"free\", \"pro\"",
@@ -1215,11 +1217,10 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "max_clicks_month": {
-                    "description": "Лимит кликов",
                     "type": "integer"
                 },
                 "max_links": {
-                    "description": "Лимит ссылок (-1 for infinity)",
+                    "description": "-1 for infinity",
                     "type": "integer"
                 },
                 "name": {
@@ -1267,11 +1268,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
-                    "description": "Имя узла (напр. \"USA\" или \"Mobile\")",
+                    "description": "Node name (e.g., \"USA\" or \"Mobile\")",
                     "type": "string"
                 },
                 "layer": {
-                    "description": "Столбец (0 - Referer, 1 - Device...)",
+                    "description": "Column (0 - Referer, 1 - Device...)",
                     "type": "integer"
                 }
             }
@@ -1283,7 +1284,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "values": {
-                    "description": "Динамические ключи (OS, Browser...)",
+                    "description": "Dynamic keys (OS, Browser...)",
                     "type": "object",
                     "additionalProperties": {
                         "type": "integer"
@@ -1393,9 +1394,6 @@ const docTemplate = `{
             ],
             "properties": {
                 "campaign_id": {
-                    "type": "string"
-                },
-                "custom_slug": {
                     "type": "string"
                 },
                 "target_url": {
