@@ -78,7 +78,7 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 				link := s.generateLink(user.ID, camp.ID)
 				_ = s.linkRepo.Save(ctx, link)
 
-				s.seedClicks(ctx, link.ID, cfg.ClicksPerLink, cfg.DaysHistory)
+				s.seedClicks(ctx, link.ID, link.CampaignID, cfg.ClicksPerLink, cfg.DaysHistory)
 			}
 		}
 	}
@@ -169,7 +169,7 @@ func (s *DataSeeder) generateLink(userID, campID string) *domain.Link {
 	}
 }
 
-func (s *DataSeeder) seedClicks(ctx context.Context, linkID string, count int, days int) {
+func (s *DataSeeder) seedClicks(ctx context.Context, linkID, campID string, count int, days int) {
 	for i := 0; i < count; i++ {
 		hour := s.getWeightedHour()
 		dayOffset := s.rng.Intn(days)
@@ -179,16 +179,17 @@ func (s *DataSeeder) seedClicks(ctx context.Context, linkID string, count int, d
 		ua := s.getRandomUserAgent()
 
 		click := &domain.ClickEvent{
-			ID:        uuid.NewString(),
-			LinkID:    linkID,
-			Timestamp: timestamp,
-			IP:        fmt.Sprintf("%d.%d.%d.%d", s.rng.Intn(255), s.rng.Intn(255), s.rng.Intn(255), s.rng.Intn(255)),
-			Country:   geo.Country,
-			City:      geo.City,
-			OS:        ua.OS,
-			Browser:   ua.Browser,
-			Device:    ua.Device,
-			Referer:   s.getRandomReferer(),
+			ID:         uuid.NewString(),
+			LinkID:     linkID,
+			CampaignID: campID,
+			Timestamp:  timestamp,
+			IP:         fmt.Sprintf("%d.%d.%d.%d", s.rng.Intn(255), s.rng.Intn(255), s.rng.Intn(255), s.rng.Intn(255)),
+			Country:    geo.Country,
+			City:       geo.City,
+			OS:         ua.OS,
+			Browser:    ua.Browser,
+			Device:     ua.Device,
+			Referer:    s.getRandomReferer(),
 		}
 		_ = s.clickRepo.Save(ctx, click)
 	}

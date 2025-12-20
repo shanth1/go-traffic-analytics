@@ -114,16 +114,17 @@ func (s *RedirectService) processEvent(evt trackingEvent) {
 	}
 
 	click := &domain.ClickEvent{
-		ID:        uuid.New().String(),
-		LinkID:    evt.link.ID,
-		Timestamp: evt.time,
-		IP:        evt.ip,
-		Country:   country,
-		City:      city,
-		OS:        parsedUA.OS,
-		Browser:   parsedUA.Browser,
-		Device:    parsedUA.Device,
-		Referer:   s.normalizeReferer(evt.referer),
+		ID:         uuid.New().String(),
+		LinkID:     evt.link.ID,
+		CampaignID: evt.link.CampaignID,
+		Timestamp:  evt.time,
+		IP:         evt.ip,
+		Country:    country,
+		City:       city,
+		OS:         parsedUA.OS,
+		Browser:    parsedUA.Browser,
+		Device:     parsedUA.Device,
+		Referer:    s.normalizeReferer(evt.referer),
 	}
 
 	if err := s.clickRepo.Save(ctx, click); err != nil {
