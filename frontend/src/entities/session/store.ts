@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { User, AuthResponse } from '@/shared/api/types';
+import { api } from '@/shared/api/base';
+import type { User, AuthResponse, LoginReq } from '@/shared/api/types';
 
 interface AuthState {
   token: string | null;
   user: User | null;
   isAuthenticated: boolean;
-  login: (data: AuthResponse) => void;
+  login: (creds: LoginReq) => Promise<void>;
   logout: () => void;
 }
 
@@ -16,8 +17,11 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       user: null,
       isAuthenticated: false,
-      login: (data) =>
-        set({ token: data.token, user: data.user, isAuthenticated: true }),
+      login: async (creds) => {
+        // Выполняем реальный запрос к API
+        const { data } = await api.post<AuthResponse>('/auth/login', creds);
+        set({ token: data.token, user: data.user, isAuthenticated: true });
+      },
       logout: () => set({ token: null, user: null, isAuthenticated: false }),
     }),
     {

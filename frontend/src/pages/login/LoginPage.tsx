@@ -4,6 +4,7 @@ import { useAuthStore } from '@/entities/session/store';
 import { Input } from '@/shared/ui/input';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { AxiosError } from 'axios';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -16,29 +17,17 @@ export const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Mock запроса, так как бэкенда может не быть при запуске шаблона
-      // В реале: const res = await api.post('/auth/login', { email, password });
-
-      // Имитация успешного входа для шаблона
-      const mockResponse = {
-        token: 'fake-jwt-token',
-        user: {
-          id: '1',
-          email,
-          role: 'admin',
-          is_active: true,
-          clicks_current_month: 1250,
-          plan_id: 'pro',
-          created_at: new Date().toISOString(),
-        },
-      };
-
-      // @ts-expect-error: temporary workaround for API mismatch
-      login(mockResponse);
+      await login({ email, password });
       navigate('/');
     } catch (error) {
       console.error(error);
-      alert('Ошибка входа');
+      if (error instanceof AxiosError && error.response) {
+        alert(
+          `Ошибка входа: ${error.response.data?.error || 'Неверные данные'}`
+        );
+      } else {
+        alert('Ошибка сети или сервера');
+      }
     } finally {
       setLoading(false);
     }
@@ -63,9 +52,7 @@ export const LoginPage = () => {
                 type="email"
                 placeholder="admin@example.com"
                 value={email}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setEmail(e.target.value)
-                }
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -74,9 +61,7 @@ export const LoginPage = () => {
               <Input
                 type="password"
                 value={password}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPassword(e.target.value)
-                }
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>

@@ -1,65 +1,71 @@
 import { api } from '@/shared/api/base';
 import type {
-  StackedPoint,
   HierarchyNode,
-  SankeyData,
+  StreamGraphResponse,
+  GeoResponse,
+  SankeyResponse,
+  AnalyticsSummaryResponse,
+  QualityResponse,
 } from '@/shared/api/types';
 
-interface GeoData {
-  [countryCode: string]: number;
-}
-interface HeatmapData {
-  [day: string]: { [hour: string]: number };
-}
-interface RadarData {
-  [metric: string]: number;
-}
-
-// Тип для параметров запроса
 interface AnalyticsParams {
   campaign_id?: string;
   link_id?: string;
   from?: string;
   to?: string;
-  [key: string]: unknown; // Разрешаем доп поля, но не any
+  [key: string]: unknown;
 }
 
 export const analyticsApi = {
   getHierarchy: async () => {
-    return api.get<HierarchyNode>('/campaigns/tree');
+    const { data } = await api.get<HierarchyNode>('/campaigns/tree');
+    return data;
   },
 
   getGeoStats: async (params?: AnalyticsParams) => {
-    return api.get<{ data: GeoData }>('/analytics/geo', { params });
+    const { data } = await api.get<GeoResponse>('/analytics/geo', { params });
+    return data.data;
   },
 
   getStats: async (dimension: 'browser' | 'os' | 'device') => {
-    return api.get<{ [key: string]: number }>('/analytics/stats', {
+    const { data } = await api.get<Record<string, number>>('/analytics/stats', {
       params: { dimension },
     });
+    return data;
+  },
+
+  getSummary: async () => {
+    const { data } =
+      await api.get<AnalyticsSummaryResponse>('/analytics/summary');
+    return data.data;
   },
 
   getFlow: async (linkId: string) => {
-    return api.get<{ data: SankeyData }>('/analytics/flow', {
+    const { data } = await api.get<SankeyResponse>('/analytics/flow', {
       params: { link_id: linkId },
     });
+    return data.data;
   },
 
   getStream: async (linkId: string) => {
-    return api.get<{ data: StackedPoint[] }>('/analytics/stream', {
+    const { data } = await api.get<StreamGraphResponse>('/analytics/stream', {
       params: { link_id: linkId },
     });
+    return data.data;
   },
 
   getHeatmap: async (linkId: string) => {
-    return api.get<{ data: HeatmapData }>('/analytics/heatmap', {
-      params: { link_id: linkId },
-    });
+    // Для heatmap тип ответа сложнее (nested object), пока оставляем inline типизацию или Record
+    const { data } = await api.get<{
+      [day: string]: { [hour: string]: number };
+    }>('/analytics/heatmap', { params: { link_id: linkId } });
+    return data;
   },
 
   getQuality: async (linkId: string) => {
-    return api.get<{ data: RadarData }>('/analytics/quality', {
+    const { data } = await api.get<QualityResponse>('/analytics/quality', {
       params: { link_id: linkId },
     });
+    return data.data;
   },
 };

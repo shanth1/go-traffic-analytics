@@ -3,63 +3,48 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { HierarchyTree } from '@/widgets/charts/HierarchyTree';
 import { GeoMap } from '@/widgets/charts/GeoMap';
 import { DonutChart } from '@/widgets/charts/DonutChart';
-import type { HierarchyNode } from '@/shared/api/types';
-import { useAuthStore } from '@/entities/session/store';
-
-// Типы для стейта
-type BrowserStats = Record<string, number>;
-type GeoStats = Record<string, number>;
+import type { HierarchyNode, AnalyticsSummary } from '@/shared/api/types';
+import { analyticsApi } from '@/entities/analytics/api';
 
 export const ProfilePage = () => {
-  const user = useAuthStore((s) => s.user);
-
-  // Указываем конкретные типы вместо any
   const [treeData, setTreeData] = useState<HierarchyNode | null>(null);
-  const [geoData, setGeoData] = useState<GeoStats | null>(null);
-  const [browserStats, setBrowserStats] = useState<BrowserStats | null>(null);
+  const [geoData, setGeoData] = useState<Record<string, number> | null>(null);
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+  const [browserStats, setBrowserStats] = useState<Record<
+    string,
+    number
+  > | null>(null);
 
   useEffect(() => {
-    // Используем setTimeout чтобы избежать синхронного обновления внутри эффекта
-    // Это удовлетворяет линтер и имитирует сетевую задержку
-    const timer = setTimeout(() => {
-      // 1. Mock Tree Data
-      setTreeData({
-        name: user?.email || 'User',
-        type: 'root',
-        children: [
-          {
-            name: 'Summer Sale',
-            type: 'campaign',
-            children: [
-              { name: '/sale', type: 'link' },
-              { name: '/bonus', type: 'link' },
-            ],
-          },
-          {
-            name: 'Socials',
-            type: 'campaign',
-            children: [
-              { name: '/insta', type: 'link' },
-              { name: '/yt', type: 'link' },
-            ],
-          },
-        ],
-      });
+    const loadData = async () => {
+      try {
+        // 1. Дерево кампаний
+        const tree = await analyticsApi.getHierarchy();
+        setTreeData(tree);
 
-      // 2. Mock Geo Data
-      setGeoData({
-        'United States of America': 500,
-        Russia: 300,
-        Germany: 150,
-        Brazil: 80,
-      });
+        // 2. География
+        const geo = await analyticsApi.getGeoStats();
+        setGeoData(geo);
 
-      // 3. Mock Stats
-      setBrowserStats({ Chrome: 65, Safari: 20, Firefox: 10, Edge: 5 });
-    }, 100);
+        // 3. Общая сводка (клики и топы)
+        const sum = await analyticsApi.getSummary();
+        setSummary(sum);
 
-    return () => clearTimeout(timer);
-  }, [user]);
+        // Преобразуем массив Top Browsers в формат для DonutChart { name: value }
+        if (sum && sum.top_browsers) {
+          const bStats: Record<string, number> = {};
+          sum.top_browsers.forEach((b) => {
+            bStats[b.name] = b.value;
+          });
+          setBrowserStats(bStats);
+        }
+      } catch (e) {
+        console.error('Failed to load profile data', e);
+      }
+    };
+
+    loadData();
+  }, []);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
@@ -67,16 +52,15 @@ export const ProfilePage = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-slate-500">
-              Клики за месяц
+              Всего кликов
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {user?.clicks_current_month || 0}
+              {summary?.total_clicks || 0}
             </div>
           </CardContent>
         </Card>
-        {/* ... другие карточки (код тот же) ... */}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -89,7 +73,7 @@ export const ProfilePage = () => {
               <HierarchyTree data={treeData} />
             ) : (
               <div className="h-full flex items-center justify-center">
-                Loading...
+                Loading structure...
               </div>
             )}
           </CardContent>
@@ -103,7 +87,9 @@ export const ProfilePage = () => {
             {browserStats ? (
               <DonutChart data={browserStats} />
             ) : (
-              <div>Loading...</div>
+              <div className="h-full flex items-center justify-center">
+                Loading stats...
+              </div>
             )}
           </CardContent>
         </Card>
@@ -117,7 +103,9 @@ export const ProfilePage = () => {
           {geoData ? (
             <GeoMap data={geoData} />
           ) : (
-            <div className="p-4">Loading Map...</div>
+            <div className="p-4 h-full flex items-center justify-center">
+              Loading Map...
+            </div>
           )}
         </CardContent>
       </Card>
