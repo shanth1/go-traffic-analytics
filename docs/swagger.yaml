@@ -11,6 +11,16 @@ definitions:
       user_id:
         type: string
     type: object
+  domain.CategoryStat:
+    properties:
+      name:
+        type: string
+      share:
+        description: Percentage of total (optional, can be calculated on frontend)
+        type: number
+      value:
+        type: integer
+    type: object
   domain.HierarchyNode:
     properties:
       children:
@@ -105,6 +115,32 @@ definitions:
         description: Dynamic keys (OS, Browser...)
         type: object
     type: object
+  domain.Summary:
+    properties:
+      top_browsers:
+        items:
+          $ref: '#/definitions/domain.CategoryStat'
+        type: array
+      top_os:
+        items:
+          $ref: '#/definitions/domain.CategoryStat'
+        type: array
+      total_clicks:
+        type: integer
+    type: object
+  domain.TrafficQuality:
+    properties:
+      bot_score:
+        type: integer
+      geo_diversity_score:
+        type: integer
+      human_score:
+        type: integer
+      is_suspicious:
+        type: boolean
+      mobile_friendly_score:
+        type: integer
+    type: object
   domain.User:
     properties:
       clicks_current_month:
@@ -148,8 +184,7 @@ definitions:
   v1.AnalyticsSummaryResponse:
     properties:
       data:
-        additionalProperties: true
-        type: object
+        $ref: '#/definitions/domain.Summary'
     type: object
   v1.CampaignResponse:
     properties:
@@ -218,9 +253,7 @@ definitions:
   v1.QualityResponse:
     properties:
       data:
-        additionalProperties:
-          type: integer
-        type: object
+        $ref: '#/definitions/domain.TrafficQuality'
     type: object
   v1.RegisterReq:
     properties:

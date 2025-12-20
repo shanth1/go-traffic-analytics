@@ -1152,6 +1152,21 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.CategoryStat": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "share": {
+                    "description": "Percentage of total (optional, can be calculated on frontend)",
+                    "type": "number"
+                },
+                "value": {
+                    "type": "integer"
+                }
+            }
+        },
         "domain.HierarchyNode": {
             "type": "object",
             "properties": {
@@ -1292,6 +1307,46 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.Summary": {
+            "type": "object",
+            "properties": {
+                "top_browsers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CategoryStat"
+                    }
+                },
+                "top_os": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CategoryStat"
+                    }
+                },
+                "total_clicks": {
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.TrafficQuality": {
+            "type": "object",
+            "properties": {
+                "bot_score": {
+                    "type": "integer"
+                },
+                "geo_diversity_score": {
+                    "type": "integer"
+                },
+                "human_score": {
+                    "type": "integer"
+                },
+                "is_suspicious": {
+                    "type": "boolean"
+                },
+                "mobile_friendly_score": {
+                    "type": "integer"
+                }
+            }
+        },
         "domain.User": {
             "type": "object",
             "properties": {
@@ -1355,8 +1410,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "additionalProperties": true
+                    "$ref": "#/definitions/domain.Summary"
                 }
             }
         },
@@ -1464,10 +1518,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "integer"
-                    }
+                    "$ref": "#/definitions/domain.TrafficQuality"
                 }
             }
         },
