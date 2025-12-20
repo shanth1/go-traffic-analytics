@@ -3,7 +3,6 @@ package cached
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -45,9 +44,10 @@ func (r *PlanRepo) FindByID(ctx context.Context, id string) (*domain.Plan, error
 			}
 			// TODO: logging (unmarshal error)
 		}
-	} else if !errors.Is(err, ports.ErrCacheMiss) {
-		// TODO: logging (cache error)
 	}
+	// else if !errors.Is(err, ports.ErrCacheMiss) {
+	// TODO: logging (cache error)
+	// }
 
 	plan, err := r.repo.FindByID(ctx, id)
 	if err != nil {
@@ -87,9 +87,10 @@ func (r *PlanRepo) FindAll(ctx context.Context) ([]*domain.Plan, error) {
 			}
 			// TODO: logging (unmarshal error)
 		}
-	} else if !errors.Is(err, ports.ErrCacheMiss) {
-		// TODO: logging (cache error)
 	}
+	// else if !errors.Is(err, ports.ErrCacheMiss) {
+	// TODO: logging (cache error)
+	// }
 
 	plans, err := r.repo.FindAll(ctx)
 	if err != nil {

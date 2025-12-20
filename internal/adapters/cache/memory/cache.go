@@ -24,7 +24,7 @@ func NewCache() ports.Cache {
 	}
 }
 
-func (c *InMemoryCache) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+func (c *InMemoryCache) Set(_ context.Context, key string, value interface{}, ttl time.Duration) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -32,10 +32,11 @@ func (c *InMemoryCache) Set(ctx context.Context, key string, value interface{}, 
 		value:     value,
 		expiresAt: time.Now().Add(ttl),
 	}
+
 	return nil
 }
 
-func (c *InMemoryCache) Get(ctx context.Context, key string) (interface{}, error) {
+func (c *InMemoryCache) Get(_ context.Context, key string) (interface{}, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -52,9 +53,11 @@ func (c *InMemoryCache) Get(ctx context.Context, key string) (interface{}, error
 	return item.value, nil
 }
 
-func (c *InMemoryCache) Delete(ctx context.Context, key string) error {
+func (c *InMemoryCache) Delete(_ context.Context, key string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
 	delete(c.items, key)
+
 	return nil
 }

@@ -3,7 +3,6 @@ package cached
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -62,9 +61,10 @@ func (r *UserRepo) FindByID(ctx context.Context, id string) (*domain.User, error
 			}
 			// TODO: logging (unmarshal error)
 		}
-	} else if !errors.Is(err, ports.ErrCacheMiss) {
-		// TODO: logging (cache error)
 	}
+	// else if !errors.Is(err, ports.ErrCacheMiss) {
+	// TODO: logging (cache error)
+	// }
 
 	user, err := r.repo.FindByID(ctx, id)
 	if err != nil {
@@ -100,9 +100,10 @@ func (r *UserRepo) FindByEmail(ctx context.Context, email string) (*domain.User,
 			}
 			// TODO: logging (unmarshal error)
 		}
-	} else if !errors.Is(err, ports.ErrCacheMiss) {
-		// TODO: logging (cache error)
 	}
+	// else if !errors.Is(err, ports.ErrCacheMiss) {
+	// TODO: logging (cache error)
+	// }
 
 	user, err := r.repo.FindByEmail(ctx, email)
 	if err != nil {

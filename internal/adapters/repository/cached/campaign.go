@@ -3,7 +3,6 @@ package cached
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -52,7 +51,6 @@ func (r *CampaignRepo) FindByID(ctx context.Context, id string) (*domain.Campaig
 
 	val, err := r.cache.Get(ctx, key)
 	if err == nil {
-		// Cache Hit
 		if bytesVal, ok := val.([]byte); ok {
 			var camp domain.Campaign
 			if jsonErr := json.Unmarshal(bytesVal, &camp); jsonErr == nil {
@@ -60,9 +58,10 @@ func (r *CampaignRepo) FindByID(ctx context.Context, id string) (*domain.Campaig
 			}
 			// TODO: logging (unmarshal error)
 		}
-	} else if !errors.Is(err, ports.ErrCacheMiss) {
-		// TODO: logging (cache error)
 	}
+	// else if !errors.Is(err, ports.ErrCacheMiss) {
+	// TODO: logging (cache error)
+	// }
 
 	camp, err := r.repo.FindByID(ctx, id)
 	if err != nil {

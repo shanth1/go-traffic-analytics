@@ -3,7 +3,6 @@ package cached
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -50,9 +49,10 @@ func (r *ClickRepo) CountTotal(ctx context.Context, filter ports.AnalyticsFilter
 			}
 			// TODO: logging (unmarshal error)
 		}
-	} else if !errors.Is(err, ports.ErrCacheMiss) {
-		// TODO: logging (cache error)
 	}
+	// else if !errors.Is(err, ports.ErrCacheMiss) {
+	// TODO: logging (cache error)
+	// }
 
 	count, err := r.repo.CountTotal(ctx, filter)
 	if err != nil {
@@ -81,9 +81,10 @@ func (r *ClickRepo) GetTimeSeriesGrouped(ctx context.Context, filter ports.Analy
 			}
 			// TODO: logging (unmarshal error)
 		}
-	} else if !errors.Is(err, ports.ErrCacheMiss) {
-		// TODO: logging (cache error)
 	}
+	// else if !errors.Is(err, ports.ErrCacheMiss) {
+	// TODO: logging (cache error)
+	// }
 
 	result, err := r.repo.GetTimeSeriesGrouped(ctx, filter, dimension, interval)
 	if err != nil {
@@ -112,9 +113,10 @@ func (r *ClickRepo) GetFlowData(ctx context.Context, filter ports.AnalyticsFilte
 			}
 			// TODO: logging (unmarshal error)
 		}
-	} else if !errors.Is(err, ports.ErrCacheMiss) {
-		// TODO: logging (cache error)
 	}
+	// else if !errors.Is(err, ports.ErrCacheMiss) {
+	// TODO: logging (cache error)
+	// }
 
 	data, err := r.repo.GetFlowData(ctx, filter, stages)
 	if err != nil {
@@ -143,9 +145,10 @@ func (r *ClickRepo) GetHeatmapData(ctx context.Context, filter ports.AnalyticsFi
 			}
 			// TODO: logging (unmarshal error)
 		}
-	} else if !errors.Is(err, ports.ErrCacheMiss) {
-		// TODO: logging (cache error)
 	}
+	// else if !errors.Is(err, ports.ErrCacheMiss) {
+	// TODO: logging (cache error)
+	// }
 
 	points, err := r.repo.GetHeatmapData(ctx, filter)
 	if err != nil {
@@ -174,9 +177,10 @@ func (r *ClickRepo) GetTopStats(ctx context.Context, filter ports.AnalyticsFilte
 			}
 			// TODO: logging (unmarshal error)
 		}
-	} else if !errors.Is(err, ports.ErrCacheMiss) {
-		// TODO: logging (cache error)
 	}
+	// else if !errors.Is(err, ports.ErrCacheMiss) {
+	// TODO: logging (cache error)
+	// }
 
 	stats, err := r.repo.GetTopStats(ctx, filter, dimension, limit)
 	if err != nil {

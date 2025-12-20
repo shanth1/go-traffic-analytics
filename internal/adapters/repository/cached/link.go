@@ -3,7 +3,6 @@ package cached
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -64,9 +63,10 @@ func (r *LinkRepo) FindBySlug(ctx context.Context, slug string) (*domain.Link, e
 			}
 			// TODO: logging
 		}
-	} else if !errors.Is(err, ports.ErrCacheMiss) {
-		// TODO: logging
 	}
+	// else if !errors.Is(err, ports.ErrCacheMiss) {
+	// TODO: logging
+	// }
 
 	link, err := r.repo.FindBySlug(ctx, slug)
 	if err != nil {
