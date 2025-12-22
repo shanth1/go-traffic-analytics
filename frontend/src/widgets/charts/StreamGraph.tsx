@@ -1,9 +1,28 @@
-import { useMemo } from 'react';
-import { AreaStack } from '@visx/shape';
+import React, { useMemo, useCallback } from 'react';
+import { AreaStack, Line, Bar } from '@visx/shape';
 import { scaleTime, scaleLinear, scaleOrdinal } from '@visx/scale';
 import { withParentSize } from '@visx/responsive';
 import { curveMonotoneX } from '@visx/curve';
+import { GridRows, GridColumns } from '@visx/grid';
+import { AxisBottom, AxisRight } from '@visx/axis';
+import { useTooltip, useTooltipInPortal, defaultStyles } from '@visx/tooltip';
+import { localPoint } from '@visx/event';
+import { LegendOrdinal } from '@visx/legend';
+import { bisector } from 'd3-array';
+import { timeFormat } from 'd3-time-format';
+
 import type { StreamChartData } from '@/shared/api/types';
+
+const margin = { top: 20, right: 30, bottom: 50, left: 0 };
+const formatDate = timeFormat('%d %b'); // 17 Dec
+
+const colorRange = [
+  '#ef4444', // red
+  '#3b82f6', // blue
+  '#10b981', // emerald
+  '#f59e0b', // amber
+  '#8b5cf6', // violet
+];
 
 interface StreamGraphProps {
   parentWidth?: number;
@@ -12,11 +31,10 @@ interface StreamGraphProps {
   keys: string[];
 }
 
+// Аксессоры
 const getDate = (d: StreamChartData) => d.time;
-
-const colorScale = scaleOrdinal({
-  range: ['#4f46e5', '#ec4899', '#06b6d4', '#fbbf24', '#34d399'],
-});
+// Типизированный бисектор
+const bisectDate = bisector<StreamChartData, Date>((d) => d.time).left;
 
 const StreamGraphBase = ({
   parentWidth = 0,
@@ -24,70 +42,264 @@ const StreamGraphBase = ({
   data,
   keys,
 }: StreamGraphProps) => {
+  const {
+    tooltipOpen,
+    tooltipLeft,
+    tooltipTop,
+    tooltipData,
+    hideTooltip,
+    showTooltip,
+  } = useTooltip<StreamChartData>();
+
+  const { containerRef, TooltipInPortal } = useTooltipInPortal({
+    scroll: true,
+  });
+
   const width = parentWidth;
   const height = parentHeight;
 
-  const yMaxVal = useMemo(() => {
-    if (data.length === 0) return 0;
-    const maxVal = Math.max(
-      ...data.map((d) => {
-        return keys.reduce((acc, key) => {
-          const val = d[key];
-          return acc + (typeof val === 'number' ? val : 0);
-        }, 0);
-      })
-    );
-    return maxVal * 1.2;
-  }, [data, keys]);
+  // Размеры области рисования
+  const xMax = width - margin.left - margin.right;
+  const yMax = height - margin.top - margin.bottom;
 
+  // --- Шкалы ---
   const xScale = useMemo(
     () =>
       scaleTime({
-        range: [0, width],
+        range: [0, xMax],
         domain: [
-          Math.min(...data.map((d) => getDate(d).getTime())),
-          Math.max(...data.map((d) => getDate(d).getTime())),
+          Math.min(...data.map(getDate).map((d) => d.getTime())),
+          Math.max(...data.map(getDate).map((d) => d.getTime())),
         ],
       }),
-    [width, data]
+    [xMax, data]
   );
+
+  const yMaxVal = useMemo(() => {
+    if (data.length === 0) return 0;
+    return Math.max(
+      ...data.map((d) =>
+        keys.reduce((acc, k) => {
+          const val = d[k];
+          return acc + (typeof val === 'number' ? val : 0);
+        }, 0)
+      )
+    );
+  }, [data, keys]);
 
   const yScale = useMemo(
     () =>
       scaleLinear({
-        range: [height, 0],
-        domain: [0, yMaxVal],
+        range: [yMax, 0],
+        domain: [0, yMaxVal * 1.1],
+        nice: true,
       }),
-    [height, yMaxVal]
+    [yMax, yMaxVal]
   );
 
-  if (width < 10 || data.length === 0) return null;
+  const colorScale = useMemo(
+    () => scaleOrdinal({ domain: keys, range: colorRange }),
+    [keys]
+  );
+
+  // --- Обработчик событий ---
+  const handleTooltip = useCallback(
+    (
+      event: React.TouchEvent<SVGRectElement> | React.MouseEvent<SVGRectElement>
+    ) => {
+      const { x } = localPoint(event) || { x: 0 };
+      const x0 = xScale.invert(x - margin.left);
+
+      const index = bisectDate(data, x0, 1);
+      const d0 = data[index - 1];
+      const d1 = data[index];
+      let d = d0;
+      if (d1 && d0) {
+        d =
+          x0.valueOf() - d0.time.valueOf() > d1.time.valueOf() - x0.valueOf()
+            ? d1
+            : d0;
+      }
+
+      if (d) {
+        showTooltip({
+          tooltipData: d,
+          tooltipLeft: xScale(d.time) + margin.left,
+          tooltipTop: yMax + margin.top,
+        });
+      }
+    },
+    [showTooltip, xScale, data, yMax]
+  );
+
+  if (width < 10) return null;
 
   return (
-    <svg width={width} height={height}>
-      <AreaStack
-        data={data}
-        keys={keys}
-        x={(d) => xScale(getDate(d.data)) ?? 0}
-        y0={(d) => yScale(d[0])}
-        y1={(d) => yScale(d[1])}
-        value={(d, key) => (d[key] as number) || 0}
-        curve={curveMonotoneX}
-      >
-        {({ stacks, path }) =>
-          stacks.map((stack) => (
-            <path
-              key={`stack-${stack.key}`}
-              d={path(stack) || ''}
-              fill={colorScale(stack.key)}
-              stroke="white"
+    <div className="relative">
+      <svg ref={containerRef} width={width} height={height}>
+        <rect x={0} y={0} width={width} height={height} fill="transparent" />
+
+        <g transform={`translate(${margin.left},${margin.top})`}>
+          <GridRows
+            scale={yScale}
+            width={xMax}
+            strokeDasharray="3,3"
+            stroke="#e0e0e0"
+          />
+          <GridColumns
+            scale={xScale}
+            height={yMax}
+            strokeDasharray="3,3"
+            stroke="#e0e0e0"
+          />
+
+          <AreaStack
+            data={data}
+            keys={keys}
+            x={(d) => xScale(getDate(d.data)) ?? 0}
+            y0={(d) => yScale(d[0])}
+            y1={(d) => yScale(d[1])}
+            value={(d, key) => (d[key] as number) || 0}
+            curve={curveMonotoneX}
+            // offset="wiggle" // Раскомментируйте для режима "Реки"
+            // order="insideOut"
+          >
+            {({ stacks, path }) =>
+              stacks.map((stack) => (
+                <path
+                  key={`stack-${stack.key}`}
+                  d={path(stack) || ''}
+                  fill={colorScale(stack.key)}
+                  stroke="white"
+                  strokeWidth={0.5}
+                  fillOpacity={0.85}
+                />
+              ))
+            }
+          </AreaStack>
+
+          <AxisBottom
+            top={yMax}
+            scale={xScale}
+            tickFormat={(d) => formatDate(d as Date)}
+            stroke="#cbd5e1"
+            tickStroke="#cbd5e1"
+            tickLabelProps={() => ({
+              fill: '#64748b',
+              fontSize: 11,
+              textAnchor: 'middle',
+            })}
+          />
+
+          <AxisRight
+            scale={yScale}
+            left={xMax}
+            numTicks={5}
+            stroke="transparent"
+            tickStroke="transparent"
+            tickLabelProps={() => ({
+              fill: '#94a3b8',
+              fontSize: 10,
+              textAnchor: 'start',
+              dx: 4,
+            })}
+          />
+
+          {tooltipOpen && tooltipLeft !== undefined && (
+            <Line
+              from={{ x: tooltipLeft - margin.left, y: 0 }}
+              to={{ x: tooltipLeft - margin.left, y: yMax }}
+              stroke="#64748b"
               strokeWidth={1}
-              opacity={0.8}
+              pointerEvents="none"
+              strokeDasharray="5,2"
             />
-          ))
-        }
-      </AreaStack>
-    </svg>
+          )}
+
+          <Bar
+            x={0}
+            y={0}
+            width={xMax}
+            height={yMax}
+            fill="transparent"
+            rx={14}
+            onTouchStart={handleTooltip}
+            onTouchMove={handleTooltip}
+            onMouseMove={handleTooltip}
+            onMouseLeave={() => hideTooltip()}
+          />
+        </g>
+      </svg>
+
+      {tooltipOpen && tooltipData && (
+        <TooltipInPortal
+          key={tooltipData.time.toString()}
+          top={tooltipTop}
+          left={tooltipLeft}
+          style={{
+            ...defaultStyles,
+            backgroundColor: '#1e293b',
+            color: 'white',
+            minWidth: 120,
+            zIndex: 100, // Убедимся, что тултип поверх всего
+          }}
+        >
+          <div className="text-xs font-bold mb-1">
+            {formatDate(tooltipData.time)}
+          </div>
+          <div className="space-y-1">
+            {keys.map((key) => {
+              const val = tooltipData[key];
+              if (typeof val !== 'number') return null;
+              if (val === 0) return null;
+
+              return (
+                <div
+                  key={key}
+                  className="flex justify-between items-center text-xs"
+                >
+                  <span className="flex items-center gap-1">
+                    <span
+                      className="w-2 h-2 rounded-full"
+                      style={{ background: colorScale(key) }}
+                    ></span>
+                    {key}
+                  </span>
+                  <span className="font-mono">{val}</span>
+                </div>
+              );
+            })}
+          </div>
+        </TooltipInPortal>
+      )}
+
+      <div className="flex flex-wrap justify-center gap-4 mt-2">
+        <LegendOrdinal
+          scale={colorScale}
+          direction="row"
+          labelMargin="0 15px 0 0"
+        >
+          {(labels) => (
+            <div className="flex flex-wrap gap-4">
+              {labels.map((label, i) => (
+                <div
+                  key={`legend-${i}`}
+                  className="flex items-center cursor-pointer hover:opacity-70 transition-opacity"
+                >
+                  <div
+                    className="w-3 h-3 rounded-full mr-2"
+                    style={{ backgroundColor: label.value }}
+                  />
+                  <span className="text-xs text-slate-500 font-medium">
+                    {label.text}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </LegendOrdinal>
+      </div>
+    </div>
   );
 };
 

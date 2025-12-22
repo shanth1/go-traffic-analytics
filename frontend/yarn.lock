@@ -976,6 +976,17 @@
     d3-hierarchy "^1.1.4"
     prop-types "^15.6.1"
 
+"@visx/legend@^3.12.0":
+  version "3.12.0"
+  resolved "https://registry.yarnpkg.com/@visx/legend/-/legend-3.12.0.tgz#faf73fef49624dfed0cb35511664a9703d3ec1cd"
+  integrity sha512-Tr6hdauEDXRXVNeNgIQ9JtCCrxn8Fbr8UCVlO9XsSxenk2hBC/2PIY5QPzpnKFEEEuH/C8vhj8T0JfFZV+D9zQ==
+  dependencies:
+    "@types/react" "*"
+    "@visx/group" "3.12.0"
+    "@visx/scale" "3.12.0"
+    classnames "^2.3.1"
+    prop-types "^15.5.10"
+
 "@visx/point@3.12.0":
   version "3.12.0"
   resolved "https://registry.yarnpkg.com/@visx/point/-/point-3.12.0.tgz#d3eedcbb37acef5ec86550cbacb013a61e7e7eee"
@@ -1391,7 +1402,7 @@ d3-shape@^3.2.0:
   dependencies:
     d3-path "^3.1.0"
 
-"d3-time-format@2 - 4", d3-time-format@4.1.0:
+"d3-time-format@2 - 4", d3-time-format@4.1.0, d3-time-format@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/d3-time-format/-/d3-time-format-4.1.0.tgz#7ab5257a5041d11ecb4fe70a5c7d16a195bb408a"
   integrity sha512-dJxPBlzC7NugB2PDLwo9Q8JiTR3M3e4/XANkreKSUxF8vvXKqm1Yfq4Q5dl8budlunRVlUUaDUgFt7eA8D6NLg==
