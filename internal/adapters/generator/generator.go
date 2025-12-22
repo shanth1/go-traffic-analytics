@@ -65,7 +65,7 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 
 	for i := 0; i < cfg.UsersCount; i++ {
 		plan := plans[s.rng.Intn(len(plans))]
-		user := s.generateUser(plan.ID, cfg.PasswordDefault)
+		user := s.generateUser(fmt.Sprintf("%d", i), plan.ID, cfg.PasswordDefault)
 		if err := s.userRepo.Save(ctx, user); err != nil {
 			continue
 		}
@@ -92,6 +92,7 @@ func (s *DataSeeder) seedPlans(ctx context.Context) []*domain.Plan {
 		{
 			ID:             "free",
 			Name:           "Free Plan",
+			Description:    "This is Free Plan",
 			PriceCents:     0,
 			MaxLinks:       5,
 			MaxClicksMonth: 1000,
@@ -101,6 +102,7 @@ func (s *DataSeeder) seedPlans(ctx context.Context) []*domain.Plan {
 		{
 			ID:             "pro",
 			Name:           "Pro Plan",
+			Description:    "This is Pro Plan",
 			PriceCents:     1900,
 			MaxLinks:       100,
 			MaxClicksMonth: 50000,
@@ -110,6 +112,7 @@ func (s *DataSeeder) seedPlans(ctx context.Context) []*domain.Plan {
 		{
 			ID:             "enterprise",
 			Name:           "Enterprise",
+			Description:    "This is Enterprise Plan",
 			PriceCents:     9900,
 			MaxLinks:       -1,
 			MaxClicksMonth: 1000000,
@@ -123,9 +126,8 @@ func (s *DataSeeder) seedPlans(ctx context.Context) []*domain.Plan {
 	return plans
 }
 
-func (s *DataSeeder) generateUser(planID string, password string) *domain.User {
-	id := uuid.NewString()
-	email := fmt.Sprintf("user-%s@example.com", id[:8])
+func (s *DataSeeder) generateUser(id string, planID string, password string) *domain.User {
+	email := fmt.Sprintf("user%s@example.com", id)
 	hash, _ := bcrypt.GenerateFromPassword([]byte(password), 4)
 
 	var expires *time.Time
