@@ -118,6 +118,7 @@ export type LinksListResponse = ResponseWrapper<Link[]>;
 export type LinkResponse = ResponseWrapper<Link>;
 export type AnalyticsSummaryResponse = ResponseWrapper<AnalyticsSummary>;
 export type GeoResponse = ResponseWrapper<GeoPoint[]>;
+export type TreeResponse = ResponseWrapper<HierarchyNode>;
 export type StreamGraphResponse = ResponseWrapper<StackedPoint[]>;
 export type SankeyResponse = ResponseWrapper<SankeyData>;
 export type QualityResponse = ResponseWrapper<TrafficQuality>;

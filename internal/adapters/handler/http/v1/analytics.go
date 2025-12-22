@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -156,8 +155,6 @@ func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-
-	fmt.Println("DATA:", data)
 
 	response.JSON(w, http.StatusOK, GeoResponse{Data: data})
 }

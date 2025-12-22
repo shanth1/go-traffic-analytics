@@ -1,11 +1,11 @@
 import { api } from '@/shared/api/base';
 import type {
-  HierarchyNode,
   StreamGraphResponse,
   GeoResponse,
   SankeyResponse,
   AnalyticsSummaryResponse,
   QualityResponse,
+  TreeResponse,
 } from '@/shared/api/types';
 
 interface AnalyticsParams {
@@ -18,8 +18,8 @@ interface AnalyticsParams {
 
 export const analyticsApi = {
   getHierarchy: async () => {
-    const { data } = await api.get<HierarchyNode>('/campaigns/tree');
-    return data;
+    const { data } = await api.get<TreeResponse>('/campaigns/tree');
+    return data.data;
   },
 
   getGeoStats: async (params?: AnalyticsParams) => {
