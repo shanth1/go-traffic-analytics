@@ -113,10 +113,10 @@ func (mr *MockAnalyticsServiceMockRecorder) GetCategoryStats(ctx, filter, dimens
 }
 
 // GetGeoDistribution mocks base method.
-func (m *MockAnalyticsService) GetGeoDistribution(ctx context.Context, filter ports.AnalyticsFilter) (any, error) {
+func (m *MockAnalyticsService) GetGeoDistribution(ctx context.Context, filter ports.AnalyticsFilter) ([]domain.GeoStat, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGeoDistribution", ctx, filter)
-	ret0, _ := ret[0].(any)
+	ret0, _ := ret[0].([]domain.GeoStat)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

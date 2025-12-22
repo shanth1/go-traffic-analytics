@@ -64,16 +64,20 @@ func (s *AnalyticsService) GetSankeyData(ctx context.Context, filter ports.Analy
 	return s.clickRepo.GetFlowData(ctx, filter, stages)
 }
 
-func (s *AnalyticsService) GetGeoDistribution(ctx context.Context, filter ports.AnalyticsFilter) (interface{}, error) {
+func (s *AnalyticsService) GetGeoDistribution(ctx context.Context, filter ports.AnalyticsFilter) ([]domain.GeoStat, error) {
 	stats, err := s.clickRepo.GetTopStats(ctx, filter, consts.Country, 200)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make(map[string]int)
+	result := make([]domain.GeoStat, 0, len(stats))
 	for _, stat := range stats {
-		result[stat.Name] = stat.Value
+		result = append(result, domain.GeoStat{
+			Country: stat.Name,
+			Value:   stat.Value,
+		})
 	}
+
 	return result, nil
 }
 

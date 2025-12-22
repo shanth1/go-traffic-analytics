@@ -3,12 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { HierarchyTree } from '@/widgets/charts/HierarchyTree';
 import { GeoMap } from '@/widgets/charts/GeoMap';
 import { DonutChart } from '@/widgets/charts/DonutChart';
-import type { HierarchyNode, AnalyticsSummary } from '@/shared/api/types';
+import type {
+  HierarchyNode,
+  AnalyticsSummary,
+  GeoPoint,
+} from '@/shared/api/types';
 import { analyticsApi } from '@/entities/analytics/api';
 
 export const ProfilePage = () => {
   const [treeData, setTreeData] = useState<HierarchyNode | null>(null);
-  const [geoData, setGeoData] = useState<Record<string, number> | null>(null);
+  const [geoData, setGeoData] = useState<GeoPoint[] | null>(null);
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [browserStats, setBrowserStats] = useState<Record<
     string,

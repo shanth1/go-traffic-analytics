@@ -107,12 +107,17 @@ export interface ResponseWrapper<T> {
   data: T;
 }
 
+export interface GeoPoint {
+  country: string;
+  value: number;
+}
+
 export type CampaignsListResponse = ResponseWrapper<Campaign[]>;
 export type CampaignResponse = ResponseWrapper<Campaign>;
 export type LinksListResponse = ResponseWrapper<Link[]>;
 export type LinkResponse = ResponseWrapper<Link>;
 export type AnalyticsSummaryResponse = ResponseWrapper<AnalyticsSummary>;
-export type GeoResponse = ResponseWrapper<Record<string, number>>;
+export type GeoResponse = ResponseWrapper<GeoPoint[]>;
 export type StreamGraphResponse = ResponseWrapper<StackedPoint[]>;
 export type SankeyResponse = ResponseWrapper<SankeyData>;
 export type QualityResponse = ResponseWrapper<TrafficQuality>;

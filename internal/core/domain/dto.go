@@ -78,3 +78,8 @@ type Summary struct {
 	TopBrowsers []CategoryStat `json:"top_browsers"`
 	TopOS       []CategoryStat `json:"top_os"`
 }
+
+type GeoStat struct {
+	Country string `json:"country"`
+	Value   int    `json:"value"`
+}
