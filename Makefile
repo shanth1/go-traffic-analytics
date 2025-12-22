@@ -55,7 +55,7 @@ run-prod: ## Run app in prod mode
 ##@ Run (Frontend)
 
 run-frontend: ## Runs frontend application
-	cd frontend && yarn dev
+	cd frontend && yarn dev --host
 
 ##@ Builds
 
