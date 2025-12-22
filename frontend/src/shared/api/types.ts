@@ -122,3 +122,8 @@ export type TreeResponse = ResponseWrapper<HierarchyNode>;
 export type StreamGraphResponse = ResponseWrapper<StackedPoint[]>;
 export type SankeyResponse = ResponseWrapper<SankeyData>;
 export type QualityResponse = ResponseWrapper<TrafficQuality>;
+
+export interface StreamChartData {
+  time: Date;
+  [key: string]: number | Date;
+}

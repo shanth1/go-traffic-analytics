@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { StreamGraph } from '@/widgets/charts/StreamGraph';
-import type { StackedPoint } from '@/shared/api/types';
+import type { StreamChartData } from '@/shared/api/types';
 import { analyticsApi } from '@/entities/analytics/api';
 
 export const AnalyticsPage = () => {
-  const { id } = useParams(); // link ID
-  const [streamData, setStreamData] = useState<StackedPoint[]>([]);
+  const { id } = useParams();
+  const [chartData, setChartData] = useState<StreamChartData[]>([]);
+  const [keys, setKeys] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,8 +17,43 @@ export const AnalyticsPage = () => {
     const loadData = async () => {
       setLoading(true);
       try {
-        const data = await analyticsApi.getStream(id);
-        setStreamData(data);
+        const rawData = await analyticsApi.getStream(id);
+
+        // 1. Собираем все уникальные ключи
+        const allKeysSet = new Set<string>();
+        rawData.forEach((item) => {
+          if (item.values) {
+            Object.keys(item.values).forEach((k) => allKeysSet.add(k));
+          }
+        });
+        const collectedKeys = Array.from(allKeysSet);
+
+        // 2. Трансформируем данные
+        const processedData: StreamChartData[] = rawData.map((d) => {
+          // Инициализируем объект. TypeScript знает, что time - это Date.
+          const point: StreamChartData = {
+            time: new Date(d.time),
+          };
+
+          // Заполняем динамические ключи
+          collectedKeys.forEach((key) => {
+            // Используем оператор ?? (nullish coalescing), чтобы не потерять 0, если он придет явно
+            // d.values?.[key] вернет number или undefined
+            const value = d.values?.[key] ?? 0;
+
+            // Присваиваем значение.
+            // TS не ругается, так как value (number) входит в тип (number | Date)
+            point[key] = value;
+          });
+
+          return point;
+        });
+
+        // 3. Сортируем
+        processedData.sort((a, b) => a.time.getTime() - b.time.getTime());
+
+        setKeys(collectedKeys);
+        setChartData(processedData);
       } catch (e) {
         console.error('Failed to load stream data', e);
       } finally {
@@ -30,12 +66,7 @@ export const AnalyticsPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Аналитика ссылки</h1>
-          <p className="text-slate-500">Link ID: {id}</p>
-        </div>
-      </div>
+      {/* ... Ваш заголовок ... */}
 
       <Card>
         <CardHeader>
@@ -49,8 +80,8 @@ export const AnalyticsPage = () => {
             <div className="h-full flex items-center justify-center">
               Loading...
             </div>
-          ) : streamData.length > 0 ? (
-            <StreamGraph data={streamData} />
+          ) : chartData.length > 0 ? (
+            <StreamGraph data={chartData} keys={keys} />
           ) : (
             <div className="h-full flex items-center justify-center text-slate-400">
               Нет данных для отображения графика
@@ -59,14 +90,7 @@ export const AnalyticsPage = () => {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="h-[300px] flex items-center justify-center bg-slate-50 dark:bg-slate-900 border-dashed">
-          <span className="text-slate-400">Heatmap (In Development)</span>
-        </Card>
-        <Card className="h-[300px] flex items-center justify-center bg-slate-50 dark:bg-slate-900 border-dashed">
-          <span className="text-slate-400">Quality Radar (In Development)</span>
-        </Card>
-      </div>
+      {/* ... Остальные карточки ... */}
     </div>
   );
 };
