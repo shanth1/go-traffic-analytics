@@ -10,21 +10,21 @@ import (
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
 
-type ClickRepo struct {
-	repo  ports.ClickRepository
+type AnalyticRepo struct {
+	repo  ports.AnalyticsRepository
 	cache ports.Cache
 	ttl   time.Duration
 }
 
-func NewClickRepo(repo ports.ClickRepository, cache ports.Cache, ttl time.Duration) ports.ClickRepository {
-	return &ClickRepo{
+func NewClickRepo(repo ports.AnalyticsRepository, cache ports.Cache, ttl time.Duration) ports.AnalyticsRepository {
+	return &AnalyticRepo{
 		repo:  repo,
 		cache: cache,
 		ttl:   ttl,
 	}
 }
 
-func (r *ClickRepo) buildKey(prefix string, params ...interface{}) string {
+func (r *AnalyticRepo) buildKey(prefix string, params ...interface{}) string {
 	key := fmt.Sprintf("gotrace:analytics:%s", prefix)
 	for _, p := range params {
 		b, _ := json.Marshal(p)
@@ -33,11 +33,11 @@ func (r *ClickRepo) buildKey(prefix string, params ...interface{}) string {
 	return key
 }
 
-func (r *ClickRepo) Save(ctx context.Context, click *domain.ClickEvent) error {
-	return r.repo.Save(ctx, click)
+func (r *AnalyticRepo) SaveBatch(ctx context.Context, events []*domain.ClickEvent) error {
+	return r.repo.SaveBatch(ctx, events)
 }
 
-func (r *ClickRepo) CountTotal(ctx context.Context, filter ports.AnalyticsFilter) (int64, error) {
+func (r *AnalyticRepo) CountTotal(ctx context.Context, filter domain.AnalyticsFilter) (int64, error) {
 	key := r.buildKey("count", filter)
 
 	val, err := r.cache.Get(ctx, key)
@@ -69,7 +69,7 @@ func (r *ClickRepo) CountTotal(ctx context.Context, filter ports.AnalyticsFilter
 	return count, nil
 }
 
-func (r *ClickRepo) GetTimeSeriesGrouped(ctx context.Context, filter ports.AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error) {
+func (r *AnalyticRepo) GetTimeSeriesGrouped(ctx context.Context, filter domain.AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error) {
 	key := r.buildKey("timeseries", filter, dimension, interval)
 
 	val, err := r.cache.Get(ctx, key)
@@ -101,7 +101,7 @@ func (r *ClickRepo) GetTimeSeriesGrouped(ctx context.Context, filter ports.Analy
 	return result, nil
 }
 
-func (r *ClickRepo) GetFlowData(ctx context.Context, filter ports.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
+func (r *AnalyticRepo) GetFlowData(ctx context.Context, filter domain.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
 	key := r.buildKey("flow", filter, stages)
 
 	val, err := r.cache.Get(ctx, key)
@@ -133,7 +133,7 @@ func (r *ClickRepo) GetFlowData(ctx context.Context, filter ports.AnalyticsFilte
 	return data, nil
 }
 
-func (r *ClickRepo) GetHeatmapData(ctx context.Context, filter ports.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
+func (r *AnalyticRepo) GetHeatmapData(ctx context.Context, filter domain.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
 	key := r.buildKey("heatmap", filter)
 
 	val, err := r.cache.Get(ctx, key)
@@ -165,7 +165,7 @@ func (r *ClickRepo) GetHeatmapData(ctx context.Context, filter ports.AnalyticsFi
 	return points, nil
 }
 
-func (r *ClickRepo) GetTopStats(ctx context.Context, filter ports.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error) {
+func (r *AnalyticRepo) GetTopStats(ctx context.Context, filter domain.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error) {
 	key := r.buildKey("topstats", filter, dimension, limit)
 
 	val, err := r.cache.Get(ctx, key)

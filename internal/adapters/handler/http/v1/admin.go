@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
@@ -14,13 +13,11 @@ import (
 
 type AdminHandler struct {
 	userService ports.UserService
-	logger      log.Logger
 }
 
-func NewAdminHandler(u ports.UserService, l log.Logger) *AdminHandler {
+func NewAdminHandler(u ports.UserService) *AdminHandler {
 	return &AdminHandler{
 		userService: u,
-		logger:      l,
 	}
 }
 

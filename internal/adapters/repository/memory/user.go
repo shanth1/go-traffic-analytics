@@ -71,7 +71,7 @@ func (r *InMemoryUserRepo) FindAll(_ context.Context, limit, offset int) ([]*dom
 	return result, nil
 }
 
-func (r *InMemoryUserRepo) IncrementClickCount(_ context.Context, userID domain.UserID) error {
+func (r *InMemoryUserRepo) IncrementUsage(_ context.Context, userID domain.UserID, delta int) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -80,6 +80,6 @@ func (r *InMemoryUserRepo) IncrementClickCount(_ context.Context, userID domain.
 		return errors.New("user not found")
 	}
 
-	user.ClicksCurrentMonth++
+	user.ClicksCurrentMonth += delta
 	return nil
 }

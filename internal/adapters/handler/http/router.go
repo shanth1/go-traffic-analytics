@@ -23,6 +23,7 @@ func NewRouter(
 	cfg *config.Config,
 	authService ports.AuthService,
 	analyticsService ports.AnalyticsService,
+	campaignService ports.CampaignService,
 	linkService ports.LinkService,
 	redirectService ports.RedirectService,
 	userService ports.UserService,
@@ -53,8 +54,10 @@ func NewRouter(
 
 	// Handlers
 	authHandlerV1 := v1.NewAuthHandler(authService)
-	adminHandlerV1 := v1.NewAdminHandler(userService, logger)
-	linkHandlerV1 := v1.NewLinkHandler(linkService)
+	adminHandlerV1 := v1.NewAdminHandler(userService)
+	userHandlerV1 := v1.NewUserHandler(userService)
+	campaignHandlerV1 := v1.NewCampaignHandler(campaignService)
+	linkHandlerV1 := v1.NewLinkHandler(linkService, campaignService)
 	analyticsHandlerV1 := v1.NewAnalyticsHandler(analyticsService)
 	billingHandlerV1 := v1.NewBillingHandler(billingService)
 
@@ -91,11 +94,13 @@ func NewRouter(
 			// r.Post("/refresh", authHandlerV1.RefreshToken)
 		})
 
-		// TODO:
-		// r.Route("/users", func(r chi.Router) {
-		// 	r.Get("/me", handlers.User.GetMe)
-		// 	r.Patch("/me", handlers.User.UpdateMe)
-		// })
+		r.Route("/users", func(r chi.Router) {
+			r.Get("/tree", userHandlerV1.GetProfileTree)
+
+			// TODO:
+			// r.Get("/me", handlers.User.GetMe)
+			// r.Patch("/me", handlers.User.UpdateMe)
+		})
 
 		// --- Service Routes  ---
 		r.Route("/billing", func(r chi.Router) {
@@ -109,19 +114,21 @@ func NewRouter(
 			r.Use(jwtAuthMiddleware)
 
 			r.Route("/campaigns", func(r chi.Router) {
-				r.Get("/", linkHandlerV1.GetCampaigns)
-				r.Post("/", linkHandlerV1.CreateCampaign)
-				r.Get("/tree", linkHandlerV1.GetProfileTree)
-				r.Get("/{id}/links", linkHandlerV1.GetLinksByCampaign)
+				r.Get("/", campaignHandlerV1.GetCampaigns)
+				r.Post("/", campaignHandlerV1.CreateCampaign)
 			})
 
 			r.Route("/links", func(r chi.Router) {
 				r.Post("/", linkHandlerV1.CreateLink)
+				r.Get("/", linkHandlerV1.GetLinks)
 				r.Delete("/{id}", linkHandlerV1.DeleteLink)
 
 				// TODO:
-				// r.Get("/{id}", handlers.linkHandlerV1.GetLink)
-				// r.Patch("/{id}", handlers.Link.UpdateLink)
+				// r.Route("/{id}", func(r chi.Router) {
+				// 	r.Get("/", linkHandlerV1.GetLink)
+				// 	r.Delete("/", linkHandlerV1.DeleteLink)
+				// 	r.Patch("/", linkHandlerV1.UpdateLink)
+				// })
 			})
 
 			// Analytics (Visx Ready)
@@ -141,9 +148,11 @@ func NewRouter(
 			r.Use(jwtAuthMiddleware, httpMw.AdminOnly)
 
 			r.Route("/admin", func(r chi.Router) {
-				r.Get("/users", adminHandlerV1.GetUsers)
-				r.Patch("/users/{id}/status", adminHandlerV1.UpdateUserStatus)
-				r.Patch("/users/{id}/plan", adminHandlerV1.UpdateUserPlan)
+				r.Route("/users", func(r chi.Router) {
+					r.Get("/", adminHandlerV1.GetUsers)
+					r.Patch("/{id}/status", adminHandlerV1.UpdateUserStatus)
+					r.Patch("/{id}/plan", adminHandlerV1.UpdateUserPlan)
+				})
 
 				// TODO: plan CRUD
 				// r.Get("/plans", handlers.adminHandlerV1.GetAllPlansIncludingHidden)

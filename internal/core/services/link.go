@@ -28,8 +28,8 @@ func NewLinkService(lr ports.LinkRepository, ur ports.UserRepository, pr ports.P
 
 // --- Links ---
 
-func (s *LinkService) CreateLink(ctx context.Context, userID domain.UserID, campaignID, targetURL, customSlug string) (*domain.Link, error) {
-	user, err := s.userRepo.FindByID(ctx, userID)
+func (s *LinkService) CreateLink(ctx context.Context, cmd domain.CreateLinkCmd) (*domain.Link, error) {
+	user, err := s.userRepo.FindByID(ctx, cmd.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (s *LinkService) CreateLink(ctx context.Context, userID domain.UserID, camp
 	}
 
 	if plan.MaxLinks != -1 {
-		currentCount, err := s.linkRepo.CountByUserID(ctx, userID)
+		currentCount, err := s.linkRepo.CountByUserID(ctx, cmd.UserID)
 		if err != nil {
 			return nil, err
 		}
@@ -50,16 +50,16 @@ func (s *LinkService) CreateLink(ctx context.Context, userID domain.UserID, camp
 	}
 
 	// Slug Generation
-	finalSlug := customSlug
+	finalSlug := cmd.CustomSlug
 	if finalSlug == "" {
 		finalSlug = uuid.New().String()[:8] // Simple random slug
 	}
 
 	link := &domain.Link{
 		ID:         domain.LinkID(uuid.NewString()),
-		UserID:     userID,
-		CampaignID: campaignID,
-		TargetURL:  targetURL,
+		UserID:     cmd.UserID,
+		CampaignID: cmd.CampaignID,
+		TargetURL:  cmd.TargetURL,
 		Slug:       finalSlug,
 		IsActive:   true,
 		CreatedAt:  time.Now(),

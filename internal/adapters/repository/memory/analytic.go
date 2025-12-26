@@ -12,30 +12,30 @@ import (
 	"github.com/shanth1/gotrace/internal/pkg/consts"
 )
 
-type InMemoryClickRepo struct {
+type InMemoryAnalyticRepo struct {
 	mu     sync.RWMutex
-	clicks []*domain.ClickEvent
+	events []*domain.ClickEvent
 }
 
-func NewClickRepo() ports.ClickRepository {
-	return &InMemoryClickRepo{
-		clicks: make([]*domain.ClickEvent, 0),
+func NewAnalyticRepo() ports.AnalyticsRepository {
+	return &InMemoryAnalyticRepo{
+		events: make([]*domain.ClickEvent, 0),
 	}
 }
 
-func (r *InMemoryClickRepo) Save(_ context.Context, click *domain.ClickEvent) error {
+func (r *InMemoryAnalyticRepo) SaveBatch(_ context.Context, events []*domain.ClickEvent) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.clicks = append(r.clicks, click)
+	r.events = append(r.events, events...)
 	return nil
 }
 
-func (r *InMemoryClickRepo) filterClicks(filter ports.AnalyticsFilter) []*domain.ClickEvent {
+func (r *InMemoryAnalyticRepo) filterClicks(filter domain.AnalyticsFilter) []*domain.ClickEvent {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	filtered := make([]*domain.ClickEvent, 0, len(r.clicks))
-	for _, c := range r.clicks {
+	filtered := make([]*domain.ClickEvent, 0, len(r.events))
+	for _, c := range r.events {
 		if filter.LinkID != "" && c.LinkID != filter.LinkID {
 			continue
 		}
@@ -53,19 +53,19 @@ func (r *InMemoryClickRepo) filterClicks(filter ports.AnalyticsFilter) []*domain
 	return filtered
 }
 
-func (r *InMemoryClickRepo) CountTotal(_ context.Context, filter ports.AnalyticsFilter) (int64, error) {
+func (r *InMemoryAnalyticRepo) CountTotal(_ context.Context, filter domain.AnalyticsFilter) (int64, error) {
 	res := r.filterClicks(filter)
 	return int64(len(res)), nil
 }
 
 // GetTimeSeriesGrouped needed for Streamgraph (Bucket by Time + Group by Dimension)
-func (r *InMemoryClickRepo) GetTimeSeriesGrouped(_ context.Context, filter ports.AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error) {
-	clicks := r.filterClicks(filter)
+func (r *InMemoryAnalyticRepo) GetTimeSeriesGrouped(_ context.Context, filter domain.AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error) {
+	events := r.filterClicks(filter)
 
 	// Map: TimeBucket -> Category -> Count
 	buckets := make(map[time.Time]map[string]int)
 
-	for _, c := range clicks {
+	for _, c := range events {
 		bucketTime := c.Timestamp.Truncate(interval)
 
 		if buckets[bucketTime] == nil {
@@ -112,13 +112,13 @@ type linkKey struct {
 // Transitions between stages:
 // Referer -> OS (Layer 0 -> Layer 1)
 // OS -> Country (Layer 1 -> Layer 2)
-func (r *InMemoryClickRepo) GetFlowData(_ context.Context, filter ports.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
-	clicks := r.filterClicks(filter)
+func (r *InMemoryAnalyticRepo) GetFlowData(_ context.Context, filter domain.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
+	events := r.filterClicks(filter)
 
 	nodesMap := make(map[string]domain.SankeyNode) // Key: "LayerIndex:Value"
 	linksMap := make(map[linkKey]int)              // Key: "linkKey", Value: Count
 
-	for _, c := range clicks {
+	for _, c := range events {
 		// Passable in stages in pairs
 		for i := 0; i < len(stages)-1; i++ {
 			sourceDim := stages[i]
@@ -161,13 +161,13 @@ func (r *InMemoryClickRepo) GetFlowData(_ context.Context, filter ports.Analytic
 	return data, nil
 }
 
-func (r *InMemoryClickRepo) GetHeatmapData(_ context.Context, filter ports.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
-	clicks := r.filterClicks(filter)
+func (r *InMemoryAnalyticRepo) GetHeatmapData(_ context.Context, filter domain.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
+	events := r.filterClicks(filter)
 
 	// Matrix [DayOfWeek][Hour]
 	matrix := make(map[int]map[int]int)
 
-	for _, c := range clicks {
+	for _, c := range events {
 		// time.Weekday: Sunday=0
 		day := int(c.Timestamp.Weekday())
 		hour := c.Timestamp.Hour()
@@ -198,9 +198,9 @@ func (r *InMemoryClickRepo) GetHeatmapData(_ context.Context, filter ports.Analy
 	return result, nil
 }
 
-func (r *InMemoryClickRepo) GetTopStats(_ context.Context, filter ports.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error) {
-	clicks := r.filterClicks(filter)
-	if len(clicks) == 0 {
+func (r *InMemoryAnalyticRepo) GetTopStats(_ context.Context, filter domain.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error) {
+	events := r.filterClicks(filter)
+	if len(events) == 0 {
 		return []domain.CategoryStat{}, nil
 	}
 
@@ -211,7 +211,7 @@ func (r *InMemoryClickRepo) GetTopStats(_ context.Context, filter ports.Analytic
 		ValueUnknown = "Unknown"
 	)
 
-	for _, c := range clicks {
+	for _, c := range events {
 		var key string
 
 		switch dimension {
