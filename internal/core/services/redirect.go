@@ -25,10 +25,9 @@ type trackingEvent struct {
 }
 
 type RedirectService struct {
-	linkRepo  ports.LinkRepository
-	clickRepo ports.ClickRepository
-	userRepo  ports.UserRepository
-	geoIPRepo ports.GeoIPRepository
+	linkRepo    ports.LinkRepository
+	ingestor    ports.EventIngestor
+	geoProvider ports.GeoProvider
 
 	fallbackLogger log.Logger
 	eventChan      chan trackingEvent
@@ -36,17 +35,15 @@ type RedirectService struct {
 
 func NewRedirectService(
 	ctx context.Context,
-	l ports.LinkRepository,
-	c ports.ClickRepository,
-	u ports.UserRepository,
-	g ports.GeoIPRepository,
+	i ports.EventIngestor,
+	lr ports.LinkRepository,
+	gp ports.GeoProvider,
 ) *RedirectService {
 	fallbackLogger := log.FromContext(ctx)
 	s := &RedirectService{
-		linkRepo:  l,
-		clickRepo: c,
-		userRepo:  u,
-		geoIPRepo: g,
+		ingestor:    i,
+		linkRepo:    lr,
+		geoProvider: gp,
 
 		fallbackLogger: fallbackLogger,
 		eventChan:      make(chan trackingEvent, 1000),
@@ -57,7 +54,7 @@ func NewRedirectService(
 	return s
 }
 
-func (s *RedirectService) ProcessRedirect(ctx context.Context, slug, ip, userAgentString, referer string) (string, error) {
+func (s *RedirectService) Process(ctx context.Context, slug string, meta domain.RequestMetadata) (string, error) {
 	logger := log.FromContextOr(ctx, s.fallbackLogger)
 
 	link, err := s.linkRepo.FindBySlug(ctx, slug)
@@ -73,9 +70,9 @@ func (s *RedirectService) ProcessRedirect(ctx context.Context, slug, ip, userAge
 	case s.eventChan <- trackingEvent{
 		ctx:     ctx,
 		link:    link,
-		ip:      ip,
-		ua:      userAgentString,
-		referer: referer,
+		ip:      meta.IP,
+		ua:      meta.UserAgent,
+		referer: meta.Referer,
 		time:    time.Now().UTC(),
 	}:
 	default:
@@ -106,35 +103,29 @@ func (s *RedirectService) processEvent(evt trackingEvent) {
 
 	parsedUA := s.parseUserAgent(evt.ua)
 
-	country, city, err := s.geoIPRepo.GetInfo(ctx, evt.ip)
+	location, err := s.geoProvider.Lookup(ctx, evt.ip)
 	if err != nil {
-		country = consts.Unknown
-		city = consts.Unknown
+		location.Country = consts.Unknown
+		location.City = consts.Unknown
 		logger.Warn().Err(err).Msg("get geo ip info")
 	}
 
-	click := &domain.ClickEvent{
+	event := &domain.ClickEvent{
 		ID:         uuid.New().String(),
 		LinkID:     evt.link.ID,
 		CampaignID: evt.link.CampaignID,
 		Timestamp:  evt.time,
 		IP:         evt.ip,
-		Country:    country,
-		City:       city,
+		Country:    location.Country,
+		City:       location.City,
 		OS:         parsedUA.OS,
 		Browser:    parsedUA.Browser,
 		Device:     parsedUA.Device,
 		Referer:    s.normalizeReferer(evt.referer),
 	}
 
-	if err := s.clickRepo.Save(ctx, click); err != nil {
-		logger.Error().Err(err).Msg("save click analytics")
-	}
-
-	if evt.link.CampaignID != "" && evt.link.UserID != "" {
-		if err := s.userRepo.IncrementClickCount(ctx, evt.link.UserID); err != nil {
-			logger.Error().Err(err).Msg("increment user quota")
-		}
+	if err := s.ingestor.TrackClick(ctx, event); err != nil {
+		logger.Error().Err(err).Msg("track click")
 	}
 }
 

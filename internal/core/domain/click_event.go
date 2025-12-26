@@ -4,6 +4,7 @@ import "time"
 
 type ClickEvent struct {
 	ID         string    `json:"id"`
+	UserID     UserID    `json:"user_id"`
 	LinkID     LinkID    `json:"link_id"`
 	CampaignID string    `json:"campaign_id"`
 	Timestamp  time.Time `json:"timestamp"`

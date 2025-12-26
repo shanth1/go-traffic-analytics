@@ -13,11 +13,15 @@ import (
 )
 
 type LinkHandler struct {
-	service ports.LinkService
+	linkSvc ports.LinkService
+	campSvc ports.CampaignService
 }
 
-func NewLinkHandler(s ports.LinkService) *LinkHandler {
-	return &LinkHandler{service: s}
+func NewLinkHandler(ls ports.LinkService, cs ports.CampaignService) *LinkHandler {
+	return &LinkHandler{
+		linkSvc: ls,
+		campSvc: cs,
+	}
 }
 
 // --- Campaigns ---
@@ -36,7 +40,7 @@ func NewLinkHandler(s ports.LinkService) *LinkHandler {
 func (h *LinkHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
 
-	campaigns, err := h.service.GetUserCampaigns(r.Context(), userID)
+	campaigns, err := h.campSvc.GetCampaigns(r.Context(), userID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
@@ -76,7 +80,7 @@ func (h *LinkHandler) CreateCampaign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	camp, err := h.service.CreateCampaign(r.Context(), userID, req.Name)
+	camp, err := h.campSvc.CreateCampaign(r.Context(), userID, req.Name)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
@@ -102,7 +106,9 @@ func (h *LinkHandler) CreateCampaign(w http.ResponseWriter, r *http.Request) {
 func (h *LinkHandler) GetLinksByCampaign(w http.ResponseWriter, r *http.Request) {
 	campaignID := chi.URLParam(r, "id")
 
-	links, err := h.service.GetLinks(r.Context(), campaignID)
+	links, err := h.linkSvc.GetLinkList(r.Context(), domain.LinkFilter{
+		CampaignID: campaignID,
+	})
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
@@ -145,7 +151,13 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: custom slug
-	link, err := h.service.CreateLink(r.Context(), userID, req.CampaignID, req.TargetURL, "")
+	link, err := h.linkSvc.CreateLink(r.Context(), domain.CreateLinkCmd{
+		UserID:     userID,
+		CampaignID: req.CampaignID,
+		TargetURL:  req.TargetURL,
+		CustomSlug: "",
+	},
+	)
 	if err != nil {
 		if err == services.ErrLimitReached {
 			response.Error(w, http.StatusForbidden, err.Error())
@@ -172,7 +184,7 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 	id := domain.LinkID(chi.URLParam(r, "id"))
 
-	if err := h.service.DeleteLink(r.Context(), id); err != nil {
+	if err := h.linkSvc.DeleteLink(r.Context(), id); err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}

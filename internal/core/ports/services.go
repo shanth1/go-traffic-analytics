@@ -14,32 +14,35 @@ type AuthService interface {
 }
 
 type AnalyticsService interface {
-	GetSummary(ctx context.Context, filter AnalyticsFilter) (*domain.Summary, error)
-	GetStreamGraphData(ctx context.Context, filter AnalyticsFilter, groupBy string) ([]domain.StackedPoint, error)
-	GetSankeyData(ctx context.Context, filter AnalyticsFilter, stages []string) (*domain.SankeyData, error)
-	GetGeoDistribution(ctx context.Context, filter AnalyticsFilter) ([]domain.GeoStat, error)
-	GetTrafficQuality(ctx context.Context, filter AnalyticsFilter) (*domain.TrafficQuality, error)
-	GetHeatmapData(ctx context.Context, filter AnalyticsFilter) ([]domain.HeatmapPoint, error)
-	GetCategoryStats(ctx context.Context, filter AnalyticsFilter, dimension string) ([]domain.CategoryStat, error)
+	GetSummary(ctx context.Context, filter domain.AnalyticsFilter) (*domain.Summary, error)
+	GetStreamGraphData(ctx context.Context, filter domain.AnalyticsFilter, groupBy string) ([]domain.StackedPoint, error)
+	GetSankeyData(ctx context.Context, filter domain.AnalyticsFilter, stages []string) (*domain.SankeyData, error)
+	GetGeoDistribution(ctx context.Context, filter domain.AnalyticsFilter) ([]domain.GeoStat, error)
+	GetTrafficQuality(ctx context.Context, filter domain.AnalyticsFilter) (*domain.TrafficQuality, error)
+	GetHeatmapData(ctx context.Context, filter domain.AnalyticsFilter) ([]domain.HeatmapPoint, error)
+	GetCategoryStats(ctx context.Context, filter domain.AnalyticsFilter, dimension string) ([]domain.CategoryStat, error)
 }
 
 type LinkService interface {
-	CreateLink(ctx context.Context, userID domain.UserID, campaignID, targetURL, customSlug string) (*domain.Link, error)
-	GetLinks(ctx context.Context, campaignID string) ([]*domain.Link, error)
-	GetUserCampaigns(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error)
-	CreateCampaign(ctx context.Context, userID domain.UserID, name string) (*domain.Campaign, error)
+	CreateLink(ctx context.Context, cmd domain.CreateLinkCmd) (*domain.Link, error)
+	GetLinkList(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error)
 	DeleteLink(ctx context.Context, id domain.LinkID) error
-	GetUserHierarchy(ctx context.Context, userID domain.UserID) (*domain.HierarchyNode, error)
+}
+
+type CampaignService interface {
+	CreateCampaign(ctx context.Context, userID domain.UserID, name string) (*domain.Campaign, error)
+	GetCampaigns(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error)
 }
 
 type RedirectService interface {
-	ProcessRedirect(ctx context.Context, slug, ip, userAgentString, referer string) (string, error)
+	Process(ctx context.Context, slug string, meta domain.RequestMetadata) (string, error)
 }
 
 type UserService interface {
-	GetAllUsers(ctx context.Context, page, limit int) ([]*domain.User, error)
-	SetUserStatus(ctx context.Context, userID domain.UserID, isActive bool) error
-	ChangeUserPlan(ctx context.Context, userID domain.UserID, planID string) error
+	GetAll(ctx context.Context, page, limit int) ([]*domain.User, error)
+	SetStatus(ctx context.Context, userID domain.UserID, isActive bool) error
+	ChangePlan(ctx context.Context, userID domain.UserID, planID string) error
+	GetHierarchy(ctx context.Context, id domain.UserID) (*domain.HierarchyNode, error)
 }
 
 type BillingService interface {

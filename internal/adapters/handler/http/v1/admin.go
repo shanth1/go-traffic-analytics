@@ -46,7 +46,7 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	limit := 20
 
-	users, err := h.userService.GetAllUsers(r.Context(), page, limit)
+	users, err := h.userService.GetAll(r.Context(), page, limit)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
@@ -86,7 +86,7 @@ func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := h.userService.SetUserStatus(r.Context(), id, req.IsActive); err != nil {
+	if err := h.userService.SetStatus(r.Context(), id, req.IsActive); err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -121,7 +121,7 @@ func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.userService.ChangeUserPlan(r.Context(), id, req.PlanID); err != nil {
+	if err := h.userService.ChangePlan(r.Context(), id, req.PlanID); err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}

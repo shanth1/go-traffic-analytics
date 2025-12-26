@@ -18,7 +18,7 @@ func NewAnalyticsHandler(s ports.AnalyticsService) *AnalyticsHandler {
 	return &AnalyticsHandler{service: s}
 }
 
-func (h *AnalyticsHandler) parseFilter(r *http.Request) ports.AnalyticsFilter {
+func (h *AnalyticsHandler) parseFilter(r *http.Request) domain.AnalyticsFilter {
 	query := r.URL.Query()
 
 	// Defaults
@@ -36,7 +36,7 @@ func (h *AnalyticsHandler) parseFilter(r *http.Request) ports.AnalyticsFilter {
 		}
 	}
 
-	return ports.AnalyticsFilter{
+	return domain.AnalyticsFilter{
 		CampaignID: query.Get("campaign_id"),
 		LinkID:     domain.LinkID(query.Get("link_id")),
 		From:       from,
