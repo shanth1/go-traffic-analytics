@@ -53,8 +53,6 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.service.Register(r.Context(), req.Email, req.Password)
 	if err != nil {
-		// Для ошибок валидации или конфликтов (email занят) используем Error,
-		// так как это не "падение" сервера.
 		response.Error(w, http.StatusConflict, err.Error())
 		return
 	}
