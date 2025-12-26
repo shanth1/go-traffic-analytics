@@ -2,8 +2,10 @@ package domain
 
 import "time"
 
+type LinkID string
+
 type Link struct {
-	ID         string    `json:"id"`
+	ID         LinkID    `json:"id"`
 	UserID     UserID    `json:"user_id"`
 	CampaignID string    `json:"campaign_id"`
 	Slug       string    `json:"slug"`

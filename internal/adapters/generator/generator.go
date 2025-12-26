@@ -161,7 +161,7 @@ func (s *DataSeeder) generateCampaign(userID domain.UserID) *domain.Campaign {
 func (s *DataSeeder) generateLink(userID domain.UserID, campID string) *domain.Link {
 	slugs := []string{"promo", "deal", "secret", "update", "buy-now", "discount"}
 	return &domain.Link{
-		ID:         uuid.NewString(),
+		ID:         domain.LinkID(uuid.NewString()),
 		UserID:     userID,
 		CampaignID: campID,
 		Slug:       fmt.Sprintf("%s-%d", slugs[s.rng.Intn(len(slugs))], s.rng.Int63()),
@@ -171,7 +171,7 @@ func (s *DataSeeder) generateLink(userID domain.UserID, campID string) *domain.L
 	}
 }
 
-func (s *DataSeeder) seedClicks(ctx context.Context, linkID, campID string, count int, days int) {
+func (s *DataSeeder) seedClicks(ctx context.Context, linkID domain.LinkID, campID string, count int, days int) {
 	for i := 0; i < count; i++ {
 		hour := s.getWeightedHour()
 		dayOffset := s.rng.Intn(days)

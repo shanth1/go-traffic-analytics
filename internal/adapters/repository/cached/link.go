@@ -24,7 +24,7 @@ func NewLinkRepo(repo ports.LinkRepository, cache ports.Cache, ttl time.Duration
 	}
 }
 
-func (r *LinkRepo) buildKey(criteria, value string) string {
+func (r *LinkRepo) buildKey(criteria string, value string) string {
 	return fmt.Sprintf("gotrace:link:%s:%s", criteria, value)
 }
 
@@ -38,7 +38,7 @@ func (r *LinkRepo) Save(ctx context.Context, link *domain.Link) error {
 		defer cancel()
 
 		keys := []string{
-			r.buildKey("id", link.ID),
+			r.buildKey("id", string(link.ID)),
 			r.buildKey("slug", link.Slug),
 		}
 

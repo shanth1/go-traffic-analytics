@@ -41,7 +41,7 @@ type LinkRepository interface {
 
 type AnalyticsFilter struct {
 	UserID     domain.UserID
-	LinkID     string
+	LinkID     domain.LinkID
 	CampaignID string
 	From       time.Time
 	To         time.Time

@@ -76,7 +76,7 @@ func (s *LinkService) CreateLink(ctx context.Context, userID domain.UserID, camp
 	}
 
 	link := &domain.Link{
-		ID:         uuid.New().String(),
+		ID:         domain.LinkID(uuid.NewString()),
 		UserID:     userID,
 		CampaignID: campaignID,
 		TargetURL:  targetURL,
@@ -94,7 +94,7 @@ func (s *LinkService) CreateLink(ctx context.Context, userID domain.UserID, camp
 
 // TODO:
 // soft delete? isActive = true
-func (s *LinkService) DeleteLink(_ context.Context, _ string) error {
+func (s *LinkService) DeleteLink(_ context.Context, _ domain.LinkID) error {
 	return nil
 }
 

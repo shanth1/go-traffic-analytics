@@ -11,14 +11,14 @@ import (
 
 type InMemoryLinkRepo struct {
 	mu    sync.RWMutex
-	links map[string]*domain.Link
-	slugs map[string]string // slug -> id mapping
+	links map[domain.LinkID]*domain.Link
+	slugs map[string]domain.LinkID // slug -> id (index)
 }
 
 func NewLinkRepo() ports.LinkRepository {
 	return &InMemoryLinkRepo{
-		links: make(map[string]*domain.Link),
-		slugs: make(map[string]string),
+		links: make(map[domain.LinkID]*domain.Link),
+		slugs: make(map[string]domain.LinkID),
 	}
 }
 

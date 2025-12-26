@@ -28,7 +28,7 @@ type LinkService interface {
 	GetLinks(ctx context.Context, campaignID string) ([]*domain.Link, error)
 	GetUserCampaigns(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error)
 	CreateCampaign(ctx context.Context, userID domain.UserID, name string) (*domain.Campaign, error)
-	DeleteLink(ctx context.Context, id string) error
+	DeleteLink(ctx context.Context, id domain.LinkID) error
 	GetUserHierarchy(ctx context.Context, userID domain.UserID) (*domain.HierarchyNode, error)
 }
 

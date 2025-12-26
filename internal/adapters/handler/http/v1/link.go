@@ -163,14 +163,14 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 // @Description  Remove a link
 // @Tags         Links
 // @Security     BearerAuth
-// @Param        id   path      string  true  "Link ID"
+// @Param        id   path      domain.LinkID  true  "Link ID"
 // @Success      204  {string}  string  "No Content"
 // @Failure      401  {object}  response.ErrorResponse "Unauthorized"
 // @Failure      403  {object}  response.ErrorResponse "Forbidden"
 // @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/links/{id} [delete]
 func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := domain.LinkID(chi.URLParam(r, "id"))
 
 	if err := h.service.DeleteLink(r.Context(), id); err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
