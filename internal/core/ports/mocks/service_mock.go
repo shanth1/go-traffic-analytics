@@ -348,7 +348,7 @@ func (m *MockRedirectService) EXPECT() *MockRedirectServiceMockRecorder {
 }
 
 // Process mocks base method.
-func (m *MockRedirectService) Process(ctx context.Context, slug, meta domain.RequestMetadata) (string, error) {
+func (m *MockRedirectService) Process(ctx context.Context, slug string, meta domain.RequestMetadata) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Process", ctx, slug, meta)
 	ret0, _ := ret[0].(string)
@@ -400,19 +400,19 @@ func (mr *MockUserServiceMockRecorder) ChangePlan(ctx, userID, planID any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePlan", reflect.TypeOf((*MockUserService)(nil).ChangePlan), ctx, userID, planID)
 }
 
-// GetAllUsers mocks base method.
-func (m *MockUserService) GetAllUsers(ctx context.Context, page, limit int) ([]*domain.User, error) {
+// GetAll mocks base method.
+func (m *MockUserService) GetAll(ctx context.Context, page, limit int) ([]*domain.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllUsers", ctx, page, limit)
+	ret := m.ctrl.Call(m, "GetAll", ctx, page, limit)
 	ret0, _ := ret[0].([]*domain.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAllUsers indicates an expected call of GetAllUsers.
-func (mr *MockUserServiceMockRecorder) GetAllUsers(ctx, page, limit any) *gomock.Call {
+// GetAll indicates an expected call of GetAll.
+func (mr *MockUserServiceMockRecorder) GetAll(ctx, page, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllUsers", reflect.TypeOf((*MockUserService)(nil).GetAllUsers), ctx, page, limit)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockUserService)(nil).GetAll), ctx, page, limit)
 }
 
 // GetHierarchy mocks base method.
@@ -430,18 +430,18 @@ func (mr *MockUserServiceMockRecorder) GetHierarchy(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHierarchy", reflect.TypeOf((*MockUserService)(nil).GetHierarchy), ctx, id)
 }
 
-// SetUserStatus mocks base method.
-func (m *MockUserService) SetUserStatus(ctx context.Context, userID domain.UserID, isActive bool) error {
+// SetStatus mocks base method.
+func (m *MockUserService) SetStatus(ctx context.Context, userID domain.UserID, isActive bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetUserStatus", ctx, userID, isActive)
+	ret := m.ctrl.Call(m, "SetStatus", ctx, userID, isActive)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SetUserStatus indicates an expected call of SetUserStatus.
-func (mr *MockUserServiceMockRecorder) SetUserStatus(ctx, userID, isActive any) *gomock.Call {
+// SetStatus indicates an expected call of SetStatus.
+func (mr *MockUserServiceMockRecorder) SetStatus(ctx, userID, isActive any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUserStatus", reflect.TypeOf((*MockUserService)(nil).SetUserStatus), ctx, userID, isActive)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetStatus", reflect.TypeOf((*MockUserService)(nil).SetStatus), ctx, userID, isActive)
 }
 
 // MockBillingService is a mock of BillingService interface.

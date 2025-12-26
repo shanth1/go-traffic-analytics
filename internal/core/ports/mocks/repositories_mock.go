@@ -87,6 +87,20 @@ func (mr *MockUserRepositoryMockRecorder) FindByID(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockUserRepository)(nil).FindByID), ctx, id)
 }
 
+// IncrementUsage mocks base method.
+func (m *MockUserRepository) IncrementUsage(ctx context.Context, userID domain.UserID, delta int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IncrementUsage", ctx, userID, delta)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// IncrementUsage indicates an expected call of IncrementUsage.
+func (mr *MockUserRepositoryMockRecorder) IncrementUsage(ctx, userID, delta any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrementUsage", reflect.TypeOf((*MockUserRepository)(nil).IncrementUsage), ctx, userID, delta)
+}
+
 // Save mocks base method.
 func (m *MockUserRepository) Save(ctx context.Context, user *domain.User) error {
 	m.ctrl.T.Helper()
@@ -290,6 +304,21 @@ func (m *MockLinkRepository) EXPECT() *MockLinkRepositoryMockRecorder {
 	return m.recorder
 }
 
+// CountByUserID mocks base method.
+func (m *MockLinkRepository) CountByUserID(ctx context.Context, userID domain.UserID) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountByUserID", ctx, userID)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountByUserID indicates an expected call of CountByUserID.
+func (mr *MockLinkRepositoryMockRecorder) CountByUserID(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByUserID", reflect.TypeOf((*MockLinkRepository)(nil).CountByUserID), ctx, userID)
+}
+
 // FindAll mocks base method.
 func (m *MockLinkRepository) FindAll(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
 	m.ctrl.T.Helper()
@@ -395,6 +424,20 @@ func NewMockEventIngestor(ctrl *gomock.Controller) *MockEventIngestor {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockEventIngestor) EXPECT() *MockEventIngestorMockRecorder {
 	return m.recorder
+}
+
+// Close mocks base method.
+func (m *MockEventIngestor) Close() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Close")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Close indicates an expected call of Close.
+func (mr *MockEventIngestorMockRecorder) Close() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockEventIngestor)(nil).Close))
 }
 
 // TrackClick mocks base method.
@@ -508,4 +551,18 @@ func (m *MockAnalyticsRepository) GetTopStats(ctx context.Context, filter domain
 func (mr *MockAnalyticsRepositoryMockRecorder) GetTopStats(ctx, filter, dimension, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTopStats", reflect.TypeOf((*MockAnalyticsRepository)(nil).GetTopStats), ctx, filter, dimension, limit)
+}
+
+// SaveBatch mocks base method.
+func (m *MockAnalyticsRepository) SaveBatch(ctx context.Context, events []*domain.ClickEvent) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveBatch", ctx, events)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveBatch indicates an expected call of SaveBatch.
+func (mr *MockAnalyticsRepositoryMockRecorder) SaveBatch(ctx, events any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveBatch", reflect.TypeOf((*MockAnalyticsRepository)(nil).SaveBatch), ctx, events)
 }
