@@ -94,14 +94,6 @@ func NewRouter(
 			// r.Post("/refresh", authHandlerV1.RefreshToken)
 		})
 
-		r.Route("/users", func(r chi.Router) {
-			r.Get("/tree", userHandlerV1.GetProfileTree)
-
-			// TODO:
-			// r.Get("/me", handlers.User.GetMe)
-			// r.Patch("/me", handlers.User.UpdateMe)
-		})
-
 		// --- Service Routes  ---
 		r.Route("/billing", func(r chi.Router) {
 			r.Get("/plans", billingHandlerV1.GetPlans)
@@ -112,6 +104,14 @@ func NewRouter(
 		// --- Client Routes (Protected) ---
 		r.Group(func(r chi.Router) {
 			r.Use(jwtAuthMiddleware)
+
+			r.Route("/users", func(r chi.Router) {
+				r.Get("/tree", userHandlerV1.GetProfileTree)
+
+				// TODO:
+				// r.Get("/me", handlers.User.GetMe)
+				// r.Patch("/me", handlers.User.UpdateMe)
+			})
 
 			r.Route("/campaigns", func(r chi.Router) {
 				r.Get("/", campaignHandlerV1.GetCampaigns)
