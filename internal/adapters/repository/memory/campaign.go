@@ -37,7 +37,7 @@ func (r *InMemoryCampaignRepo) FindByID(_ context.Context, id string) (*domain.C
 	return c, nil
 }
 
-func (r *InMemoryCampaignRepo) FindAllByUserID(_ context.Context, userID string) ([]*domain.Campaign, error) {
+func (r *InMemoryCampaignRepo) FindAllByUserID(_ context.Context, userID domain.UserID) ([]*domain.Campaign, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var result []*domain.Campaign

@@ -70,15 +70,15 @@ type UpdateUserStatusReq struct {
 // @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        id      path string              true "User ID"
-// @Param        request body UpdateUserStatusReq true "Status"
-// @Success      200  {object}  map[string]string      "Status: updated"
-// @Failure      400  {object}  response.ErrorResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
+// @Param        id       path domain.UserID                true "User ID"
+// @Param        request  body UpdateUserStatusReq true     "Status"
+// @Success      200      {object}  map[string]string       "Status: updated"
+// @Failure      400      {object}  response.ErrorResponse
+// @Failure      401      {object}  response.ErrorResponse  "Unauthorized"
+// @Failure      403      {object}  response.ErrorResponse  "Forbidden"
 // @Router       /api/v1/admin/users/{id}/status [patch]
 func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := domain.UserID(chi.URLParam(r, "id"))
 
 	var req UpdateUserStatusReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -105,15 +105,15 @@ type UpdateUserPlanReq struct {
 // @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        id      path string            true "User ID"
-// @Param        request body UpdateUserPlanReq true "New Plan ID"
-// @Success      200  {object}  map[string]string      "Status: updated"
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
+// @Param        id      path   domain.UserID            true "User ID"
+// @Param        request body   UpdateUserPlanReq true  "New Plan ID"
+// @Success      200  {object}  map[string]string       "Status: updated"
+// @Failure      401  {object}  response.ErrorResponse  "Unauthorized"
+// @Failure      403  {object}  response.ErrorResponse  "Forbidden"
 // @Failure      400  {object}  response.ErrorResponse
 // @Router       /api/v1/admin/users/{id}/plan [patch]
 func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := domain.UserID(chi.URLParam(r, "id"))
 
 	var req UpdateUserPlanReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

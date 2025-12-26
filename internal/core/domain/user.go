@@ -2,6 +2,7 @@ package domain
 
 import "time"
 
+type UserID string
 type UserRole string
 
 const (
@@ -10,7 +11,7 @@ const (
 )
 
 type User struct {
-	ID                 string     `json:"id"`
+	ID                 UserID     `json:"id"`
 	Email              string     `json:"email"`
 	PasswordHash       string     `json:"-"`
 	Role               UserRole   `json:"role"`

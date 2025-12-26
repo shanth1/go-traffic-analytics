@@ -14,7 +14,7 @@ func GetUserClaims(r *http.Request) *domain.JwtCustomClaims {
 	return claims
 }
 
-func GetUserID(r *http.Request) string {
+func GetUserID(r *http.Request) domain.UserID {
 	claims := GetUserClaims(r)
 	if claims == nil {
 		return ""

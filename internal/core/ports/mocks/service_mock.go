@@ -227,7 +227,7 @@ func (m *MockLinkService) EXPECT() *MockLinkServiceMockRecorder {
 }
 
 // CreateCampaign mocks base method.
-func (m *MockLinkService) CreateCampaign(ctx context.Context, userID, name string) (*domain.Campaign, error) {
+func (m *MockLinkService) CreateCampaign(ctx context.Context, userID domain.UserID, name string) (*domain.Campaign, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateCampaign", ctx, userID, name)
 	ret0, _ := ret[0].(*domain.Campaign)
@@ -242,7 +242,7 @@ func (mr *MockLinkServiceMockRecorder) CreateCampaign(ctx, userID, name any) *go
 }
 
 // CreateLink mocks base method.
-func (m *MockLinkService) CreateLink(ctx context.Context, userID, campaignID, targetURL, customSlug string) (*domain.Link, error) {
+func (m *MockLinkService) CreateLink(ctx context.Context, userID domain.UserID, campaignID, targetURL, customSlug string) (*domain.Link, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateLink", ctx, userID, campaignID, targetURL, customSlug)
 	ret0, _ := ret[0].(*domain.Link)
@@ -286,7 +286,7 @@ func (mr *MockLinkServiceMockRecorder) GetLinks(ctx, campaignID any) *gomock.Cal
 }
 
 // GetUserCampaigns mocks base method.
-func (m *MockLinkService) GetUserCampaigns(ctx context.Context, userID string) ([]*domain.Campaign, error) {
+func (m *MockLinkService) GetUserCampaigns(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserCampaigns", ctx, userID)
 	ret0, _ := ret[0].([]*domain.Campaign)
@@ -301,7 +301,7 @@ func (mr *MockLinkServiceMockRecorder) GetUserCampaigns(ctx, userID any) *gomock
 }
 
 // GetUserHierarchy mocks base method.
-func (m *MockLinkService) GetUserHierarchy(ctx context.Context, userID string) (*domain.HierarchyNode, error) {
+func (m *MockLinkService) GetUserHierarchy(ctx context.Context, userID domain.UserID) (*domain.HierarchyNode, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserHierarchy", ctx, userID)
 	ret0, _ := ret[0].(*domain.HierarchyNode)
@@ -379,7 +379,7 @@ func (m *MockUserService) EXPECT() *MockUserServiceMockRecorder {
 }
 
 // ChangeUserPlan mocks base method.
-func (m *MockUserService) ChangeUserPlan(ctx context.Context, userID, planID string) error {
+func (m *MockUserService) ChangeUserPlan(ctx context.Context, userID domain.UserID, planID string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChangeUserPlan", ctx, userID, planID)
 	ret0, _ := ret[0].(error)
@@ -408,7 +408,7 @@ func (mr *MockUserServiceMockRecorder) GetAllUsers(ctx, page, limit any) *gomock
 }
 
 // SetUserStatus mocks base method.
-func (m *MockUserService) SetUserStatus(ctx context.Context, userID string, isActive bool) error {
+func (m *MockUserService) SetUserStatus(ctx context.Context, userID domain.UserID, isActive bool) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetUserStatus", ctx, userID, isActive)
 	ret0, _ := ret[0].(error)

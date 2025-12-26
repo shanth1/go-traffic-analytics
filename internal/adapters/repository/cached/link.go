@@ -108,7 +108,7 @@ func (r *LinkRepo) FindAllByCampaignID(ctx context.Context, campaignID string) (
 	return links, nil
 }
 
-func (r *LinkRepo) CountByUserID(ctx context.Context, userID string) (int64, error) {
+func (r *LinkRepo) CountByUserID(ctx context.Context, userID domain.UserID) (int64, error) {
 	count, err := r.repo.CountByUserID(ctx, userID)
 	if err != nil {
 		return 0, err

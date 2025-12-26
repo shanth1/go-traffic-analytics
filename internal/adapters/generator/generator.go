@@ -53,7 +53,7 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 
 	hash, _ := bcrypt.GenerateFromPassword([]byte(cfg.PasswordDefault), 10)
 	admin := &domain.User{
-		ID:           uuid.NewString(),
+		ID:           domain.UserID(uuid.NewString()),
 		Email:        "admin@gotrace.com",
 		PasswordHash: string(hash),
 		Role:         domain.RoleAdmin,
@@ -137,7 +137,7 @@ func (s *DataSeeder) generateUser(id string, planID string, password string) *do
 	}
 
 	return &domain.User{
-		ID:           id,
+		ID:           domain.UserID(id),
 		Email:        email,
 		PasswordHash: string(hash),
 		Role:         domain.RoleClient,
@@ -148,7 +148,7 @@ func (s *DataSeeder) generateUser(id string, planID string, password string) *do
 	}
 }
 
-func (s *DataSeeder) generateCampaign(userID string) *domain.Campaign {
+func (s *DataSeeder) generateCampaign(userID domain.UserID) *domain.Campaign {
 	names := []string{"Google Ads", "TikTok Promo", "Email Newsletter", "Winter Sale", "Product Hunt Launch"}
 	return &domain.Campaign{
 		ID:        uuid.NewString(),
@@ -158,7 +158,7 @@ func (s *DataSeeder) generateCampaign(userID string) *domain.Campaign {
 	}
 }
 
-func (s *DataSeeder) generateLink(userID, campID string) *domain.Link {
+func (s *DataSeeder) generateLink(userID domain.UserID, campID string) *domain.Link {
 	slugs := []string{"promo", "deal", "secret", "update", "buy-now", "discount"}
 	return &domain.Link{
 		ID:         uuid.NewString(),

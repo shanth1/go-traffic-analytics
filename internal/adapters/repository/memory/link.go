@@ -65,7 +65,7 @@ func (r *InMemoryLinkRepo) FindAllByCampaignID(_ context.Context, campaignID str
 	return result, nil
 }
 
-func (r *InMemoryLinkRepo) CountByUserID(_ context.Context, userID string) (int64, error) {
+func (r *InMemoryLinkRepo) CountByUserID(_ context.Context, userID domain.UserID) (int64, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var count int64

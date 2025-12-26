@@ -24,7 +24,7 @@ func NewUserRepo(repo ports.UserRepository, cache ports.Cache, ttl time.Duration
 	}
 }
 
-func (r *UserRepo) buildIDKey(id string) string {
+func (r *UserRepo) buildIDKey(id domain.UserID) string {
 	return fmt.Sprintf("gotrace:user:id:%s", id)
 }
 
@@ -49,7 +49,7 @@ func (r *UserRepo) Save(ctx context.Context, user *domain.User) error {
 	return nil
 }
 
-func (r *UserRepo) FindByID(ctx context.Context, id string) (*domain.User, error) {
+func (r *UserRepo) FindByID(ctx context.Context, id domain.UserID) (*domain.User, error) {
 	key := r.buildIDKey(id)
 
 	val, err := r.cache.Get(ctx, key)
@@ -131,7 +131,7 @@ func (r *UserRepo) FindAll(ctx context.Context, limit, offset int) ([]*domain.Us
 	return r.repo.FindAll(ctx, limit, offset)
 }
 
-func (r *UserRepo) IncrementClickCount(ctx context.Context, userID string) error {
+func (r *UserRepo) IncrementClickCount(ctx context.Context, userID domain.UserID) error {
 	if err := r.repo.IncrementClickCount(ctx, userID); err != nil {
 		return err
 	}

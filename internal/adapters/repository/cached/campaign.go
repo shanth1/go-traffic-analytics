@@ -85,7 +85,7 @@ func (r *CampaignRepo) FindByID(ctx context.Context, id string) (*domain.Campaig
 	return camp, nil
 }
 
-func (r *CampaignRepo) FindAllByUserID(ctx context.Context, userID string) ([]*domain.Campaign, error) {
+func (r *CampaignRepo) FindAllByUserID(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error) {
 	return r.repo.FindAllByUserID(ctx, userID)
 }
 

@@ -42,8 +42,9 @@ func (s *AuthService) Register(ctx context.Context, email, password string) (*do
 		return nil, errors.New("default plan not configured")
 	}
 
+	id := uuid.New().String()
 	user := &domain.User{
-		ID:           uuid.New().String(),
+		ID:           domain.UserID(id),
 		Email:        email,
 		PasswordHash: string(hashedBytes),
 		Role:         domain.RoleClient,

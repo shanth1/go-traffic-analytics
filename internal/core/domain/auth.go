@@ -9,7 +9,7 @@ const (
 )
 
 type JwtCustomClaims struct {
-	UserID string   `json:"id"`
+	UserID UserID   `json:"id"`
 	Email  string   `json:"email"`
 	Role   UserRole `json:"role"`
 	jwt.RegisteredClaims

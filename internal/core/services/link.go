@@ -25,11 +25,11 @@ func NewLinkService(l ports.LinkRepository, c ports.CampaignRepository, u ports.
 
 // --- Campaigns ---
 
-func (s *LinkService) GetUserCampaigns(ctx context.Context, userID string) ([]*domain.Campaign, error) {
+func (s *LinkService) GetUserCampaigns(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error) {
 	return s.campRepo.FindAllByUserID(ctx, userID)
 }
 
-func (s *LinkService) CreateCampaign(ctx context.Context, userID, name string) (*domain.Campaign, error) {
+func (s *LinkService) CreateCampaign(ctx context.Context, userID domain.UserID, name string) (*domain.Campaign, error) {
 	camp := &domain.Campaign{
 		ID:        uuid.New().String(),
 		UserID:    userID,
@@ -48,7 +48,7 @@ func (s *LinkService) GetLinks(ctx context.Context, campaignID string) ([]*domai
 	return s.linkRepo.FindAllByCampaignID(ctx, campaignID)
 }
 
-func (s *LinkService) CreateLink(ctx context.Context, userID, campaignID, targetURL, customSlug string) (*domain.Link, error) {
+func (s *LinkService) CreateLink(ctx context.Context, userID domain.UserID, campaignID, targetURL, customSlug string) (*domain.Link, error) {
 	user, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (s *LinkService) DeleteLink(_ context.Context, _ string) error {
 	return nil
 }
 
-func (s *LinkService) GetUserHierarchy(ctx context.Context, userID string) (*domain.HierarchyNode, error) {
+func (s *LinkService) GetUserHierarchy(ctx context.Context, userID domain.UserID) (*domain.HierarchyNode, error) {
 	user, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return nil, err

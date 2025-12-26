@@ -11,16 +11,16 @@ import (
 
 type UserRepository interface {
 	Save(ctx context.Context, user *domain.User) error
-	FindByID(ctx context.Context, id string) (*domain.User, error)
+	FindByID(ctx context.Context, id domain.UserID) (*domain.User, error)
 	FindByEmail(ctx context.Context, email string) (*domain.User, error)
 	FindAll(ctx context.Context, limit, offset int) ([]*domain.User, error)
-	IncrementClickCount(ctx context.Context, userID string) error
+	IncrementClickCount(ctx context.Context, userID domain.UserID) error
 }
 
 type CampaignRepository interface {
 	Save(ctx context.Context, campaign *domain.Campaign) error
 	FindByID(ctx context.Context, id string) (*domain.Campaign, error)
-	FindAllByUserID(ctx context.Context, userID string) ([]*domain.Campaign, error)
+	FindAllByUserID(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -36,10 +36,11 @@ type LinkRepository interface {
 	FindBySlug(ctx context.Context, slug string) (*domain.Link, error)
 	FindAll(ctx context.Context) ([]*domain.Link, error)
 	FindAllByCampaignID(ctx context.Context, campaignID string) ([]*domain.Link, error)
-	CountByUserID(ctx context.Context, userID string) (int64, error)
+	CountByUserID(ctx context.Context, userID domain.UserID) (int64, error)
 }
 
 type AnalyticsFilter struct {
+	UserID     domain.UserID
 	LinkID     string
 	CampaignID string
 	From       time.Time

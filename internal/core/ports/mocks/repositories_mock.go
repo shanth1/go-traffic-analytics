@@ -74,7 +74,7 @@ func (mr *MockUserRepositoryMockRecorder) FindByEmail(ctx, email any) *gomock.Ca
 }
 
 // FindByID mocks base method.
-func (m *MockUserRepository) FindByID(ctx context.Context, id string) (*domain.User, error) {
+func (m *MockUserRepository) FindByID(ctx context.Context, id domain.UserID) (*domain.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByID", ctx, id)
 	ret0, _ := ret[0].(*domain.User)
@@ -89,7 +89,7 @@ func (mr *MockUserRepositoryMockRecorder) FindByID(ctx, id any) *gomock.Call {
 }
 
 // IncrementClickCount mocks base method.
-func (m *MockUserRepository) IncrementClickCount(ctx context.Context, userID string) error {
+func (m *MockUserRepository) IncrementClickCount(ctx context.Context, userID domain.UserID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IncrementClickCount", ctx, userID)
 	ret0, _ := ret[0].(error)
@@ -155,7 +155,7 @@ func (mr *MockCampaignRepositoryMockRecorder) Delete(ctx, id any) *gomock.Call {
 }
 
 // FindAllByUserID mocks base method.
-func (m *MockCampaignRepository) FindAllByUserID(ctx context.Context, userID string) ([]*domain.Campaign, error) {
+func (m *MockCampaignRepository) FindAllByUserID(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindAllByUserID", ctx, userID)
 	ret0, _ := ret[0].([]*domain.Campaign)
@@ -306,7 +306,7 @@ func (m *MockLinkRepository) EXPECT() *MockLinkRepositoryMockRecorder {
 }
 
 // CountByUserID mocks base method.
-func (m *MockLinkRepository) CountByUserID(ctx context.Context, userID string) (int64, error) {
+func (m *MockLinkRepository) CountByUserID(ctx context.Context, userID domain.UserID) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CountByUserID", ctx, userID)
 	ret0, _ := ret[0].(int64)

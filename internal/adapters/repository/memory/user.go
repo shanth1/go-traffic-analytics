@@ -11,14 +11,14 @@ import (
 
 type InMemoryUserRepo struct {
 	mu     sync.RWMutex
-	users  map[string]*domain.User // ID -> User
-	emails map[string]string       // Email -> ID (индекс)
+	users  map[domain.UserID]*domain.User
+	emails map[string]domain.UserID // Email -> ID (index)
 }
 
 func NewUserRepo() ports.UserRepository {
 	return &InMemoryUserRepo{
-		users:  make(map[string]*domain.User),
-		emails: make(map[string]string),
+		users:  make(map[domain.UserID]*domain.User),
+		emails: make(map[string]domain.UserID),
 	}
 }
 
@@ -37,7 +37,7 @@ func (r *InMemoryUserRepo) Save(_ context.Context, user *domain.User) error {
 	return nil
 }
 
-func (r *InMemoryUserRepo) FindByID(_ context.Context, id string) (*domain.User, error) {
+func (r *InMemoryUserRepo) FindByID(_ context.Context, id domain.UserID) (*domain.User, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	u, ok := r.users[id]
@@ -71,7 +71,7 @@ func (r *InMemoryUserRepo) FindAll(_ context.Context, limit, offset int) ([]*dom
 	return result, nil
 }
 
-func (r *InMemoryUserRepo) IncrementClickCount(_ context.Context, userID string) error {
+func (r *InMemoryUserRepo) IncrementClickCount(_ context.Context, userID domain.UserID) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

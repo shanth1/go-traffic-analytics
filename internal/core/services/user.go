@@ -21,7 +21,7 @@ func (s *UserService) GetAllUsers(ctx context.Context, page, limit int) ([]*doma
 	return s.userRepo.FindAll(ctx, limit, offset)
 }
 
-func (s *UserService) SetUserStatus(ctx context.Context, userID string, isActive bool) error {
+func (s *UserService) SetUserStatus(ctx context.Context, userID domain.UserID, isActive bool) error {
 	user, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return err
@@ -30,7 +30,7 @@ func (s *UserService) SetUserStatus(ctx context.Context, userID string, isActive
 	return s.userRepo.Save(ctx, user)
 }
 
-func (s *UserService) ChangeUserPlan(ctx context.Context, userID, planID string) error {
+func (s *UserService) ChangeUserPlan(ctx context.Context, userID domain.UserID, planID string) error {
 	user, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return err

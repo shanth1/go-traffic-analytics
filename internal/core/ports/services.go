@@ -24,12 +24,12 @@ type AnalyticsService interface {
 }
 
 type LinkService interface {
-	CreateLink(ctx context.Context, userID, campaignID, targetURL, customSlug string) (*domain.Link, error)
+	CreateLink(ctx context.Context, userID domain.UserID, campaignID, targetURL, customSlug string) (*domain.Link, error)
 	GetLinks(ctx context.Context, campaignID string) ([]*domain.Link, error)
-	GetUserCampaigns(ctx context.Context, userID string) ([]*domain.Campaign, error)
-	CreateCampaign(ctx context.Context, userID, name string) (*domain.Campaign, error)
+	GetUserCampaigns(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error)
+	CreateCampaign(ctx context.Context, userID domain.UserID, name string) (*domain.Campaign, error)
 	DeleteLink(ctx context.Context, id string) error
-	GetUserHierarchy(ctx context.Context, userID string) (*domain.HierarchyNode, error)
+	GetUserHierarchy(ctx context.Context, userID domain.UserID) (*domain.HierarchyNode, error)
 }
 
 type RedirectService interface {
@@ -38,8 +38,8 @@ type RedirectService interface {
 
 type UserService interface {
 	GetAllUsers(ctx context.Context, page, limit int) ([]*domain.User, error)
-	SetUserStatus(ctx context.Context, userID string, isActive bool) error
-	ChangeUserPlan(ctx context.Context, userID, planID string) error
+	SetUserStatus(ctx context.Context, userID domain.UserID, isActive bool) error
+	ChangeUserPlan(ctx context.Context, userID domain.UserID, planID string) error
 }
 
 type BillingService interface {
