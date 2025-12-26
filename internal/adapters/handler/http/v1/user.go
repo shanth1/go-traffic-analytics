@@ -24,7 +24,7 @@ func NewUserHandler(us ports.UserService) *UserHandler {
 // @Tags         Campaigns
 // @Security     BearerAuth
 // @Produce      json
-// @Success      200  {object}  domain.HierarchyNode
+// @Success      200  {object}  ProfileTreeResponse
 // @Failure      401  {object}  response.ErrorResponse "Unauthorized"
 // @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/campaigns/tree [get]
@@ -33,9 +33,9 @@ func (h *UserHandler) GetProfileTree(w http.ResponseWriter, r *http.Request) {
 
 	tree, err := h.userSvc.GetHierarchy(r.Context(), userID)
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
 
-	response.JSON(w, http.StatusOK, ProfileTreeResponse{Data: tree})
+	response.JSON(w, http.StatusOK, response.Envelope{"data": tree})
 }

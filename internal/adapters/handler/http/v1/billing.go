@@ -27,7 +27,7 @@ func NewBillingHandler(s ports.BillingService) *BillingHandler {
 func (h *BillingHandler) GetPlans(w http.ResponseWriter, r *http.Request) {
 	plans, err := h.service.GetAllPlans(r.Context())
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
 
@@ -35,5 +35,5 @@ func (h *BillingHandler) GetPlans(w http.ResponseWriter, r *http.Request) {
 		plans = []*domain.Plan{}
 	}
 
-	response.JSON(w, http.StatusOK, map[string]interface{}{"data": plans})
+	response.JSON(w, http.StatusOK, response.Envelope{"data": plans})
 }

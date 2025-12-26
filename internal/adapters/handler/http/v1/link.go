@@ -11,7 +11,6 @@ import (
 	"github.com/shanth1/gotrace/internal/core/services"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 	"github.com/shanth1/gotrace/internal/pkg/request"
-	"github.com/shanth1/gotrace/internal/pkg/utils"
 )
 
 type LinkHandler struct {
@@ -42,13 +41,8 @@ func NewLinkHandler(ls ports.LinkService, cs ports.CampaignService) *LinkHandler
 // @Failure      500         {object}  response.ErrorResponse
 // @Router       /api/v1/links [get]
 func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
-	claims, err := utils.GetUserFromContext(r.Context())
-	if err != nil {
-		response.Error(w, http.StatusUnauthorized, err.Error())
-		return
-	}
+	userID := request.GetUserID(r)
 
-	userID := claims.UserID
 	q := r.URL.Query()
 
 	limit, err := strconv.Atoi(q.Get("limit"))
@@ -80,7 +74,7 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 
 	links, err := h.linkSvc.GetLinkList(r.Context(), filter)
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
 
@@ -88,7 +82,7 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 		links = []*domain.Link{}
 	}
 
-	response.JSON(w, http.StatusOK, LinksListResponse{Data: links})
+	response.JSON(w, http.StatusOK, response.Envelope{"data": links})
 }
 
 // CreateLink godoc
@@ -102,42 +96,39 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 // @Success      201  {object}  LinkResponse
 // @Failure      400  {object}  response.ErrorResponse
 // @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
-// @Failure      403  {object}  response.ErrorResponse "Limit reached"
+// @Failure      403  {object}  response.ErrorResponse "Limit reached or Forbidden"
+// @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/links [post]
 func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
 
 	var req CreateLinkRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error(w, http.StatusBadRequest, "bad request")
+		response.Error(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	// TODO: validation
 	if req.TargetURL == "" {
 		response.Error(w, http.StatusBadRequest, "target_url is required")
 		return
 	}
 
-	// TODO: custom slug
 	link, err := h.linkSvc.CreateLink(r.Context(), domain.CreateLinkCmd{
 		UserID:     userID,
 		CampaignID: req.CampaignID,
 		TargetURL:  req.TargetURL,
 		CustomSlug: "",
-	},
-	)
+	})
 	if err != nil {
 		if err == services.ErrLimitReached {
 			response.Error(w, http.StatusForbidden, err.Error())
 			return
 		}
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
 
-	response.JSON(w, http.StatusCreated, LinkResponse{Data: link})
+	response.JSON(w, http.StatusCreated, response.Envelope{"data": link})
 }
 
 // DeleteLink godoc
@@ -148,17 +139,15 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 // @Param        id   path      domain.LinkID  true  "Link ID"
 // @Success      204  {string}  string  "No Content"
 // @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
 // @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/links/{id} [delete]
 func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 	id := domain.LinkID(chi.URLParam(r, "id"))
 
 	if err := h.linkSvc.DeleteLink(r.Context(), id); err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
 
-	w.Header().Del("Content-Type")
 	w.WriteHeader(http.StatusNoContent)
 }

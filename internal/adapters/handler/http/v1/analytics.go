@@ -21,7 +21,6 @@ func NewAnalyticsHandler(s ports.AnalyticsService) *AnalyticsHandler {
 func (h *AnalyticsHandler) parseFilter(r *http.Request) domain.AnalyticsFilter {
 	query := r.URL.Query()
 
-	// Defaults
 	to := time.Now()
 	from := to.AddDate(0, 0, -7) // Last 7 days
 
@@ -64,11 +63,11 @@ func (h *AnalyticsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 
 	summary, err := h.service.GetSummary(r.Context(), filter)
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
 
-	response.JSON(w, http.StatusOK, AnalyticsSummaryResponse{Data: summary})
+	response.JSON(w, http.StatusOK, response.Envelope{"data": summary})
 }
 
 // GetStreamGraph godoc
@@ -90,18 +89,18 @@ func (h *AnalyticsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 
-	groupBy := r.URL.Query().Get("group_by") // os, browser, country
+	groupBy := r.URL.Query().Get("group_by")
 	if groupBy == "" {
 		groupBy = consts.OS
 	}
 
 	data, err := h.service.GetStreamGraphData(r.Context(), filter, groupBy)
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
 
-	response.JSON(w, http.StatusOK, StreamGraphResponse{Data: data})
+	response.JSON(w, http.StatusOK, response.Envelope{"data": data})
 }
 
 // GetSankeyFlow godoc
@@ -121,16 +120,15 @@ func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request
 // @Router       /api/v1/analytics/flow [get]
 func (h *AnalyticsHandler) GetSankeyFlow(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
-	// stages=referer,device,country
 	stages := []string{consts.Referer, consts.Device, consts.Country}
 
 	data, err := h.service.GetSankeyData(r.Context(), filter, stages)
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
 
-	response.JSON(w, http.StatusOK, SankeyResponse{Data: data})
+	response.JSON(w, http.StatusOK, response.Envelope{"data": data})
 }
 
 // GetGeoMap godoc
@@ -153,11 +151,11 @@ func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
 
 	data, err := h.service.GetGeoDistribution(r.Context(), filter)
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
 
-	response.JSON(w, http.StatusOK, GeoResponse{Data: data})
+	response.JSON(w, http.StatusOK, response.Envelope{"data": data})
 }
 
 // GetQualityRadar godoc
@@ -180,11 +178,11 @@ func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Reques
 
 	data, err := h.service.GetTrafficQuality(r.Context(), filter)
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
 
-	response.JSON(w, http.StatusOK, QualityResponse{Data: data})
+	response.JSON(w, http.StatusOK, response.Envelope{"data": data})
 }
 
 // GetHeatmap godoc
@@ -195,7 +193,7 @@ func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Reques
 // @Produce      json
 // @Param        campaign_id query string false "Filter"
 // @Param        link_id     query string false "Filter"
-// @Success      200  {object}  map[string]interface{}
+// @Success      200  {object}  HeatmapResponse
 // @Failure      401  {object}  response.ErrorResponse "Unauthorized"
 // @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/analytics/heatmap [get]
@@ -203,10 +201,10 @@ func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 	data, err := h.service.GetHeatmapData(r.Context(), filter)
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
-	response.JSON(w, http.StatusOK, HeatmapResponse{Data: data})
+	response.JSON(w, http.StatusOK, response.Envelope{"data": data})
 }
 
 // GetStats godoc
@@ -216,7 +214,7 @@ func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Produce      json
 // @Param        dimension   query string true  "browser, os, device"
-// @Success      200  {object}  map[string]interface{}
+// @Success      200  {object}  StatsResponse
 // @Failure      401  {object}  response.ErrorResponse "Unauthorized"
 // @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/analytics/stats [get]
@@ -229,8 +227,8 @@ func (h *AnalyticsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 
 	data, err := h.service.GetCategoryStats(r.Context(), filter, dim)
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
-	response.JSON(w, http.StatusOK, StatsResponse{Data: data})
+	response.JSON(w, http.StatusOK, response.Envelope{"data": data})
 }

@@ -21,8 +21,6 @@ func NewAdminHandler(u ports.UserService) *AdminHandler {
 	}
 }
 
-// --- Handlers ---
-
 // GetUsers godoc
 // @Summary      List users
 // @Description  Get paginated users list (Admin)
@@ -33,7 +31,7 @@ func NewAdminHandler(u ports.UserService) *AdminHandler {
 // @Success      200  {object}  UsersListResponse
 // @Failure      401  {object}  response.ErrorResponse "Unauthorized"
 // @Failure      403  {object}  response.ErrorResponse "Forbidden"
-// @Failure      500  {object}  response.ErrorResponse
+// @Failure      500  {object}  response.ErrorResponse "Internal Server Error"
 // @Router       /api/v1/admin/users [get]
 func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	pageStr := r.URL.Query().Get("page")
@@ -45,7 +43,7 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	users, err := h.userService.GetAll(r.Context(), page, limit)
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
 
@@ -53,7 +51,7 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		users = []*domain.User{}
 	}
 
-	response.JSON(w, http.StatusOK, UsersListResponse{Data: users})
+	response.JSON(w, http.StatusOK, response.Envelope{"data": users})
 }
 
 type UpdateUserStatusReq struct {
@@ -73,22 +71,23 @@ type UpdateUserStatusReq struct {
 // @Failure      400      {object}  response.ErrorResponse
 // @Failure      401      {object}  response.ErrorResponse  "Unauthorized"
 // @Failure      403      {object}  response.ErrorResponse  "Forbidden"
+// @Failure      500      {object}  response.ErrorResponse
 // @Router       /api/v1/admin/users/{id}/status [patch]
 func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) {
 	id := domain.UserID(chi.URLParam(r, "id"))
 
 	var req UpdateUserStatusReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error(w, http.StatusBadRequest, "bad request")
+		response.Error(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	if err := h.userService.SetStatus(r.Context(), id, req.IsActive); err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
 
-	response.JSON(w, http.StatusOK, map[string]string{"status": "updated"})
+	response.JSON(w, http.StatusOK, response.Envelope{"status": "updated"})
 }
 
 type UpdateUserPlanReq struct {
@@ -105,23 +104,24 @@ type UpdateUserPlanReq struct {
 // @Param        id      path   domain.UserID            true "User ID"
 // @Param        request body   UpdateUserPlanReq true  "New Plan ID"
 // @Success      200  {object}  map[string]string       "Status: updated"
+// @Failure      400  {object}  response.ErrorResponse
 // @Failure      401  {object}  response.ErrorResponse  "Unauthorized"
 // @Failure      403  {object}  response.ErrorResponse  "Forbidden"
-// @Failure      400  {object}  response.ErrorResponse
+// @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/admin/users/{id}/plan [patch]
 func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
 	id := domain.UserID(chi.URLParam(r, "id"))
 
 	var req UpdateUserPlanReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error(w, http.StatusBadRequest, "bad request")
+		response.Error(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	if err := h.userService.ChangePlan(r.Context(), id, req.PlanID); err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
 
-	response.JSON(w, http.StatusOK, map[string]string{"status": "updated"})
+	response.JSON(w, http.StatusOK, response.Envelope{"status": "updated"})
 }

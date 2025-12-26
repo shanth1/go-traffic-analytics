@@ -30,20 +30,19 @@ type LoginReq struct {
 // @Summary      Register new user
 // @Description  Register a new user account
 // @Tags         Auth
-// @Security     APIKeyAuth
 // @Accept       json
 // @Produce      json
 // @Param        request body RegisterReq true "Registration info"
 // @Success      201  {object}  domain.User "Created user"
 // @Failure      400  {object}  response.ErrorResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
 // @Failure      409  {object}  response.ErrorResponse "Email already taken"
+// @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/auth/register [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterReq
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error(w, http.StatusBadRequest, "invalid request")
+		response.Error(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
@@ -54,7 +53,8 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.service.Register(r.Context(), req.Email, req.Password)
 	if err != nil {
-		// Conflict обычно используется если email уже занят
+		// Для ошибок валидации или конфликтов (email занят) используем Error,
+		// так как это не "падение" сервера.
 		response.Error(w, http.StatusConflict, err.Error())
 		return
 	}
@@ -71,12 +71,13 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 // @Param        request body LoginReq true "Credentials"
 // @Success      200  {object}  LoginResponse "Token and User info"
 // @Failure      400  {object}  response.ErrorResponse
-// @Failure      401  {object}  response.ErrorResponse
+// @Failure      401  {object}  response.ErrorResponse "Invalid credentials"
+// @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error(w, http.StatusBadRequest, "invalid request")
+		response.Error(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
@@ -86,7 +87,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusOK, map[string]interface{}{
+	response.JSON(w, http.StatusOK, response.Envelope{
 		"token": token,
 		"user":  user,
 	})

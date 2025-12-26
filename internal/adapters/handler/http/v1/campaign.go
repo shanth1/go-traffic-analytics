@@ -28,7 +28,6 @@ func NewCampaignHandler(cs ports.CampaignService) *CampaignHandler {
 // @Produce      json
 // @Success      200  {object}  CampaignsListResponse
 // @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
 // @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/campaigns [get]
 func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +35,7 @@ func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 
 	campaigns, err := h.campSvc.GetCampaigns(r.Context(), userID)
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
 
@@ -44,7 +43,7 @@ func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 		campaigns = []*domain.Campaign{}
 	}
 
-	response.JSON(w, http.StatusOK, CampaignsListResponse{Data: campaigns})
+	response.JSON(w, http.StatusOK, response.Envelope{"data": campaigns})
 }
 
 // CreateCampaign godoc
@@ -56,16 +55,16 @@ func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        request body CreateCampaignRequest true "Campaign Name"
 // @Success      201  {object}  CampaignResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
 // @Failure      400  {object}  response.ErrorResponse
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/campaigns [post]
 func (h *CampaignHandler) CreateCampaign(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
 
 	var req CreateCampaignRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error(w, http.StatusBadRequest, "bad request")
+		response.Error(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
@@ -76,9 +75,9 @@ func (h *CampaignHandler) CreateCampaign(w http.ResponseWriter, r *http.Request)
 
 	camp, err := h.campSvc.CreateCampaign(r.Context(), userID, req.Name)
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
+		response.ServerError(w, r, err)
 		return
 	}
 
-	response.JSON(w, http.StatusCreated, CampaignResponse{Data: camp})
+	response.JSON(w, http.StatusCreated, response.Envelope{"data": camp})
 }
