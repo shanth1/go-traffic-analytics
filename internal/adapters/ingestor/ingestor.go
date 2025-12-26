@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/shanth1/gotools/log"
+	"github.com/shanth1/gotools/logkeys"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
@@ -22,18 +24,20 @@ type BatchEventIngestor struct {
 
 	eventChan chan *domain.ClickEvent
 
-	mu           sync.Mutex
 	eventsBatch  []*domain.ClickEvent
 	userCounters map[domain.UserID]int
 
 	done chan struct{}
 	wg   sync.WaitGroup
+
+	logger log.Logger
 }
 
 func NewBatchEventIngestor(
 	ar ports.AnalyticsRepository,
 	ur ports.UserRepository,
 	gp ports.GeoProvider,
+	logger log.Logger,
 ) *BatchEventIngestor {
 	s := &BatchEventIngestor{
 		analyticsRepo: ar,
@@ -43,6 +47,7 @@ func NewBatchEventIngestor(
 		eventsBatch:   make([]*domain.ClickEvent, 0, batchSize),
 		userCounters:  make(map[domain.UserID]int),
 		done:          make(chan struct{}),
+		logger:        logger,
 	}
 
 	s.wg.Add(1)
@@ -51,12 +56,12 @@ func NewBatchEventIngestor(
 	return s
 }
 
-func (s *BatchEventIngestor) TrackClick(ctx context.Context, event *domain.ClickEvent) error {
+func (s *BatchEventIngestor) TrackClick(_ context.Context, event *domain.ClickEvent) error {
 	select {
 	case s.eventChan <- event:
 		return nil
 	default:
-		// TODO: logging: Msg("EventIngestor buffer overflow, dropping event")
+		s.logger.Warn().Msg("EventIngestor buffer overflow, dropping event")
 		return nil
 	}
 }
@@ -111,7 +116,7 @@ func (s *BatchEventIngestor) flush() {
 
 	if len(s.eventsBatch) > 0 {
 		if err := s.analyticsRepo.SaveBatch(ctx, s.eventsBatch); err != nil {
-			// TODO: logging: Msg("Failed to flush analytics batch")
+			s.logger.Error().Err(err).Msg("Failed to flush analytics batch")
 			// TODO: retry logic
 		}
 		s.eventsBatch = s.eventsBatch[:0]
@@ -120,7 +125,7 @@ func (s *BatchEventIngestor) flush() {
 	if len(s.userCounters) > 0 {
 		for userID, count := range s.userCounters {
 			if err := s.userRepo.IncrementUsage(ctx, userID, count); err != nil {
-				// TODO: log.Error().Str("user_id", string(userID)).Err(err).Msg("Failed to update user usage")
+				s.logger.Error().Err(err).Any(logkeys.UserID, userID).Msg("Failed to update user usage")
 			}
 		}
 		s.userCounters = make(map[domain.UserID]int)

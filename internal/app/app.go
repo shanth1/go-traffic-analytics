@@ -56,7 +56,7 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 		_ = seeder.Seed(context.Background(), cfg)
 	}
 
-	ingestor := ingestor.NewBatchEventIngestor(analyticRepo, userRepo, geoProvider)
+	ingestor := ingestor.NewBatchEventIngestor(analyticRepo, userRepo, geoProvider, logger)
 
 	// Services
 	authService := services.NewAuthService(userRepo, planRepo, cfg)

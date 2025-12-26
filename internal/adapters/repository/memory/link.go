@@ -45,11 +45,11 @@ func (r *InMemoryLinkRepo) FindBySlug(_ context.Context, slug string) (*domain.L
 	return r.links[id], nil
 }
 
-func (r *InMemoryLinkRepo) FindAll(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
+func (r *InMemoryLinkRepo) FindAll(_ context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	var matches []*domain.Link
+	matches := make([]*domain.Link, 0, len(r.links))
 
 	for _, link := range r.links {
 		if filter.UserID != "" && link.UserID != filter.UserID {
