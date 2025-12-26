@@ -12,26 +12,28 @@ import (
 )
 
 type AnalyticsService struct {
-	clickRepo ports.ClickRepository
+	repo ports.AnalyticsRepository
 }
 
-func NewAnalyticsService(c ports.ClickRepository) *AnalyticsService {
-	return &AnalyticsService{clickRepo: c}
+func NewAnalyticsService(analyticsRepo ports.AnalyticsRepository) *AnalyticsService {
+	return &AnalyticsService{
+		repo: analyticsRepo,
+	}
 }
 
-func (s *AnalyticsService) GetSummary(ctx context.Context, filter ports.AnalyticsFilter) (*domain.Summary, error) {
-	total, err := s.clickRepo.CountTotal(ctx, filter)
+func (s *AnalyticsService) GetSummary(ctx context.Context, filter domain.AnalyticsFilter) (*domain.Summary, error) {
+	total, err := s.repo.CountTotal(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
 
-	browsers, err := s.clickRepo.GetTopStats(ctx, filter, consts.Browser, 5)
+	browsers, err := s.repo.GetTopStats(ctx, filter, consts.Browser, 5)
 	if err != nil {
 		// TODO: logging
 		browsers = []domain.CategoryStat{}
 	}
 
-	osStats, err := s.clickRepo.GetTopStats(ctx, filter, consts.OS, 5)
+	osStats, err := s.repo.GetTopStats(ctx, filter, consts.OS, 5)
 	if err != nil {
 		// TODO: logging
 		osStats = []domain.CategoryStat{}
@@ -45,7 +47,7 @@ func (s *AnalyticsService) GetSummary(ctx context.Context, filter ports.Analytic
 	}, nil
 }
 
-func (s *AnalyticsService) GetStreamGraphData(ctx context.Context, filter ports.AnalyticsFilter, groupBy string) ([]domain.StackedPoint, error) {
+func (s *AnalyticsService) GetStreamGraphData(ctx context.Context, filter domain.AnalyticsFilter, groupBy string) ([]domain.StackedPoint, error) {
 	duration := filter.To.Sub(filter.From)
 	interval := time.Hour * 24 // Day by default
 
@@ -53,19 +55,19 @@ func (s *AnalyticsService) GetStreamGraphData(ctx context.Context, filter ports.
 		interval = time.Hour
 	}
 
-	return s.clickRepo.GetTimeSeriesGrouped(ctx, filter, groupBy, interval)
+	return s.repo.GetTimeSeriesGrouped(ctx, filter, groupBy, interval)
 }
 
-func (s *AnalyticsService) GetSankeyData(ctx context.Context, filter ports.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
+func (s *AnalyticsService) GetSankeyData(ctx context.Context, filter domain.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
 	if len(stages) == 0 {
 		stages = []string{consts.Referer, consts.Device, consts.Country}
 	}
 
-	return s.clickRepo.GetFlowData(ctx, filter, stages)
+	return s.repo.GetFlowData(ctx, filter, stages)
 }
 
-func (s *AnalyticsService) GetGeoDistribution(ctx context.Context, filter ports.AnalyticsFilter) ([]domain.GeoStat, error) {
-	stats, err := s.clickRepo.GetTopStats(ctx, filter, consts.Country, 200)
+func (s *AnalyticsService) GetGeoDistribution(ctx context.Context, filter domain.AnalyticsFilter) ([]domain.GeoStat, error) {
+	stats, err := s.repo.GetTopStats(ctx, filter, consts.Country, 200)
 	if err != nil {
 		return nil, err
 	}
@@ -81,16 +83,16 @@ func (s *AnalyticsService) GetGeoDistribution(ctx context.Context, filter ports.
 	return result, nil
 }
 
-func (s *AnalyticsService) GetHeatmapData(ctx context.Context, filter ports.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
-	return s.clickRepo.GetHeatmapData(ctx, filter)
+func (s *AnalyticsService) GetHeatmapData(ctx context.Context, filter domain.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
+	return s.repo.GetHeatmapData(ctx, filter)
 }
 
-func (s *AnalyticsService) GetCategoryStats(ctx context.Context, filter ports.AnalyticsFilter, dimension string) ([]domain.CategoryStat, error) {
-	return s.clickRepo.GetTopStats(ctx, filter, dimension, 10)
+func (s *AnalyticsService) GetCategoryStats(ctx context.Context, filter domain.AnalyticsFilter, dimension string) ([]domain.CategoryStat, error) {
+	return s.repo.GetTopStats(ctx, filter, dimension, 10)
 }
 
-func (s *AnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.AnalyticsFilter) (*domain.TrafficQuality, error) {
-	total, err := s.clickRepo.CountTotal(ctx, filter)
+func (s *AnalyticsService) GetTrafficQuality(ctx context.Context, filter domain.AnalyticsFilter) (*domain.TrafficQuality, error) {
+	total, err := s.repo.CountTotal(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("counting total clicks: %w", err)
 	}
@@ -102,7 +104,7 @@ func (s *AnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.A
 	}
 
 	// 1. Mobile Friendly
-	devices, err := s.clickRepo.GetTopStats(ctx, filter, consts.Device, 100)
+	devices, err := s.repo.GetTopStats(ctx, filter, consts.Device, 100)
 	if err != nil {
 		return nil, fmt.Errorf("get top device stats: %w", err)
 	}
@@ -116,7 +118,7 @@ func (s *AnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.A
 
 	// 2. Bot score
 	// А. OS check
-	osStats, err := s.clickRepo.GetTopStats(ctx, filter, consts.OS, 100)
+	osStats, err := s.repo.GetTopStats(ctx, filter, consts.OS, 100)
 	if err != nil {
 		return nil, fmt.Errorf("get top os stats: %w", err)
 	}
@@ -135,7 +137,7 @@ func (s *AnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.A
 	}
 
 	// B. Browser check
-	browserStats, err := s.clickRepo.GetTopStats(ctx, filter, consts.Browser, 100)
+	browserStats, err := s.repo.GetTopStats(ctx, filter, consts.Browser, 100)
 	if err != nil {
 		return nil, fmt.Errorf("get top browser stats: %w", err)
 	}
@@ -165,7 +167,7 @@ func (s *AnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.A
 	}
 
 	// 3. Geo Diversity
-	countries, err := s.clickRepo.GetTopStats(ctx, filter, consts.Country, 100)
+	countries, err := s.repo.GetTopStats(ctx, filter, consts.Country, 100)
 	if err != nil {
 		return nil, fmt.Errorf("get top county stats: %w", err)
 	}

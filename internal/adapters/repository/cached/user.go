@@ -131,8 +131,8 @@ func (r *UserRepo) FindAll(ctx context.Context, limit, offset int) ([]*domain.Us
 	return r.repo.FindAll(ctx, limit, offset)
 }
 
-func (r *UserRepo) IncrementClickCount(ctx context.Context, userID domain.UserID) error {
-	if err := r.repo.IncrementClickCount(ctx, userID); err != nil {
+func (r *UserRepo) IncrementUsage(ctx context.Context, userID domain.UserID, delta int) error {
+	if err := r.repo.IncrementUsage(ctx, userID, delta); err != nil {
 		return err
 	}
 
@@ -146,3 +146,14 @@ func (r *UserRepo) IncrementClickCount(ctx context.Context, userID domain.UserID
 
 	return nil
 }
+
+// TODO:
+// func (r *UserRepo) invalidate(ctx context.Context, id domain.UserID, email string) {
+// 	go func() {
+// 		bg := context.Background()
+// 		_ = r.cache.Delete(bg, r.keyID(id))
+// 		if email != "" {
+// 			_ = r.cache.Delete(bg, r.keyEmail(email))
+// 		}
+// 	}()
+// }

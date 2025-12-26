@@ -15,7 +15,6 @@ import (
 	time "time"
 
 	domain "github.com/shanth1/gotrace/internal/core/domain"
-	ports "github.com/shanth1/gotrace/internal/core/ports"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -86,20 +85,6 @@ func (m *MockUserRepository) FindByID(ctx context.Context, id domain.UserID) (*d
 func (mr *MockUserRepositoryMockRecorder) FindByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockUserRepository)(nil).FindByID), ctx, id)
-}
-
-// IncrementClickCount mocks base method.
-func (m *MockUserRepository) IncrementClickCount(ctx context.Context, userID domain.UserID) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IncrementClickCount", ctx, userID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// IncrementClickCount indicates an expected call of IncrementClickCount.
-func (mr *MockUserRepositoryMockRecorder) IncrementClickCount(ctx, userID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrementClickCount", reflect.TypeOf((*MockUserRepository)(nil).IncrementClickCount), ctx, userID)
 }
 
 // Save mocks base method.
@@ -305,49 +290,19 @@ func (m *MockLinkRepository) EXPECT() *MockLinkRepositoryMockRecorder {
 	return m.recorder
 }
 
-// CountByUserID mocks base method.
-func (m *MockLinkRepository) CountByUserID(ctx context.Context, userID domain.UserID) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountByUserID", ctx, userID)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CountByUserID indicates an expected call of CountByUserID.
-func (mr *MockLinkRepositoryMockRecorder) CountByUserID(ctx, userID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByUserID", reflect.TypeOf((*MockLinkRepository)(nil).CountByUserID), ctx, userID)
-}
-
 // FindAll mocks base method.
-func (m *MockLinkRepository) FindAll(ctx context.Context) ([]*domain.Link, error) {
+func (m *MockLinkRepository) FindAll(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAll", ctx)
+	ret := m.ctrl.Call(m, "FindAll", ctx, filter)
 	ret0, _ := ret[0].([]*domain.Link)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindAll indicates an expected call of FindAll.
-func (mr *MockLinkRepositoryMockRecorder) FindAll(ctx any) *gomock.Call {
+func (mr *MockLinkRepositoryMockRecorder) FindAll(ctx, filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockLinkRepository)(nil).FindAll), ctx)
-}
-
-// FindAllByCampaignID mocks base method.
-func (m *MockLinkRepository) FindAllByCampaignID(ctx context.Context, campaignID string) ([]*domain.Link, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAllByCampaignID", ctx, campaignID)
-	ret0, _ := ret[0].([]*domain.Link)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindAllByCampaignID indicates an expected call of FindAllByCampaignID.
-func (mr *MockLinkRepositoryMockRecorder) FindAllByCampaignID(ctx, campaignID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByCampaignID", reflect.TypeOf((*MockLinkRepository)(nil).FindAllByCampaignID), ctx, campaignID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockLinkRepository)(nil).FindAll), ctx, filter)
 }
 
 // FindBySlug mocks base method.
@@ -379,32 +334,109 @@ func (mr *MockLinkRepositoryMockRecorder) Save(ctx, link any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockLinkRepository)(nil).Save), ctx, link)
 }
 
-// MockClickRepository is a mock of ClickRepository interface.
-type MockClickRepository struct {
+// MockGeoProvider is a mock of GeoProvider interface.
+type MockGeoProvider struct {
 	ctrl     *gomock.Controller
-	recorder *MockClickRepositoryMockRecorder
+	recorder *MockGeoProviderMockRecorder
 	isgomock struct{}
 }
 
-// MockClickRepositoryMockRecorder is the mock recorder for MockClickRepository.
-type MockClickRepositoryMockRecorder struct {
-	mock *MockClickRepository
+// MockGeoProviderMockRecorder is the mock recorder for MockGeoProvider.
+type MockGeoProviderMockRecorder struct {
+	mock *MockGeoProvider
 }
 
-// NewMockClickRepository creates a new mock instance.
-func NewMockClickRepository(ctrl *gomock.Controller) *MockClickRepository {
-	mock := &MockClickRepository{ctrl: ctrl}
-	mock.recorder = &MockClickRepositoryMockRecorder{mock}
+// NewMockGeoProvider creates a new mock instance.
+func NewMockGeoProvider(ctrl *gomock.Controller) *MockGeoProvider {
+	mock := &MockGeoProvider{ctrl: ctrl}
+	mock.recorder = &MockGeoProviderMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockClickRepository) EXPECT() *MockClickRepositoryMockRecorder {
+func (m *MockGeoProvider) EXPECT() *MockGeoProviderMockRecorder {
+	return m.recorder
+}
+
+// Lookup mocks base method.
+func (m *MockGeoProvider) Lookup(ctx context.Context, ip string) (*domain.GeoLocation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Lookup", ctx, ip)
+	ret0, _ := ret[0].(*domain.GeoLocation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Lookup indicates an expected call of Lookup.
+func (mr *MockGeoProviderMockRecorder) Lookup(ctx, ip any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Lookup", reflect.TypeOf((*MockGeoProvider)(nil).Lookup), ctx, ip)
+}
+
+// MockEventIngestor is a mock of EventIngestor interface.
+type MockEventIngestor struct {
+	ctrl     *gomock.Controller
+	recorder *MockEventIngestorMockRecorder
+	isgomock struct{}
+}
+
+// MockEventIngestorMockRecorder is the mock recorder for MockEventIngestor.
+type MockEventIngestorMockRecorder struct {
+	mock *MockEventIngestor
+}
+
+// NewMockEventIngestor creates a new mock instance.
+func NewMockEventIngestor(ctrl *gomock.Controller) *MockEventIngestor {
+	mock := &MockEventIngestor{ctrl: ctrl}
+	mock.recorder = &MockEventIngestorMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockEventIngestor) EXPECT() *MockEventIngestorMockRecorder {
+	return m.recorder
+}
+
+// TrackClick mocks base method.
+func (m *MockEventIngestor) TrackClick(ctx context.Context, event *domain.ClickEvent) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TrackClick", ctx, event)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// TrackClick indicates an expected call of TrackClick.
+func (mr *MockEventIngestorMockRecorder) TrackClick(ctx, event any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackClick", reflect.TypeOf((*MockEventIngestor)(nil).TrackClick), ctx, event)
+}
+
+// MockAnalyticsRepository is a mock of AnalyticsRepository interface.
+type MockAnalyticsRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockAnalyticsRepositoryMockRecorder
+	isgomock struct{}
+}
+
+// MockAnalyticsRepositoryMockRecorder is the mock recorder for MockAnalyticsRepository.
+type MockAnalyticsRepositoryMockRecorder struct {
+	mock *MockAnalyticsRepository
+}
+
+// NewMockAnalyticsRepository creates a new mock instance.
+func NewMockAnalyticsRepository(ctrl *gomock.Controller) *MockAnalyticsRepository {
+	mock := &MockAnalyticsRepository{ctrl: ctrl}
+	mock.recorder = &MockAnalyticsRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAnalyticsRepository) EXPECT() *MockAnalyticsRepositoryMockRecorder {
 	return m.recorder
 }
 
 // CountTotal mocks base method.
-func (m *MockClickRepository) CountTotal(ctx context.Context, filter ports.AnalyticsFilter) (int64, error) {
+func (m *MockAnalyticsRepository) CountTotal(ctx context.Context, filter domain.AnalyticsFilter) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CountTotal", ctx, filter)
 	ret0, _ := ret[0].(int64)
@@ -413,13 +445,13 @@ func (m *MockClickRepository) CountTotal(ctx context.Context, filter ports.Analy
 }
 
 // CountTotal indicates an expected call of CountTotal.
-func (mr *MockClickRepositoryMockRecorder) CountTotal(ctx, filter any) *gomock.Call {
+func (mr *MockAnalyticsRepositoryMockRecorder) CountTotal(ctx, filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountTotal", reflect.TypeOf((*MockClickRepository)(nil).CountTotal), ctx, filter)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountTotal", reflect.TypeOf((*MockAnalyticsRepository)(nil).CountTotal), ctx, filter)
 }
 
 // GetFlowData mocks base method.
-func (m *MockClickRepository) GetFlowData(ctx context.Context, filter ports.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
+func (m *MockAnalyticsRepository) GetFlowData(ctx context.Context, filter domain.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFlowData", ctx, filter, stages)
 	ret0, _ := ret[0].(*domain.SankeyData)
@@ -428,13 +460,13 @@ func (m *MockClickRepository) GetFlowData(ctx context.Context, filter ports.Anal
 }
 
 // GetFlowData indicates an expected call of GetFlowData.
-func (mr *MockClickRepositoryMockRecorder) GetFlowData(ctx, filter, stages any) *gomock.Call {
+func (mr *MockAnalyticsRepositoryMockRecorder) GetFlowData(ctx, filter, stages any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFlowData", reflect.TypeOf((*MockClickRepository)(nil).GetFlowData), ctx, filter, stages)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFlowData", reflect.TypeOf((*MockAnalyticsRepository)(nil).GetFlowData), ctx, filter, stages)
 }
 
 // GetHeatmapData mocks base method.
-func (m *MockClickRepository) GetHeatmapData(ctx context.Context, filter ports.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
+func (m *MockAnalyticsRepository) GetHeatmapData(ctx context.Context, filter domain.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetHeatmapData", ctx, filter)
 	ret0, _ := ret[0].([]domain.HeatmapPoint)
@@ -443,13 +475,13 @@ func (m *MockClickRepository) GetHeatmapData(ctx context.Context, filter ports.A
 }
 
 // GetHeatmapData indicates an expected call of GetHeatmapData.
-func (mr *MockClickRepositoryMockRecorder) GetHeatmapData(ctx, filter any) *gomock.Call {
+func (mr *MockAnalyticsRepositoryMockRecorder) GetHeatmapData(ctx, filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHeatmapData", reflect.TypeOf((*MockClickRepository)(nil).GetHeatmapData), ctx, filter)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHeatmapData", reflect.TypeOf((*MockAnalyticsRepository)(nil).GetHeatmapData), ctx, filter)
 }
 
 // GetTimeSeriesGrouped mocks base method.
-func (m *MockClickRepository) GetTimeSeriesGrouped(ctx context.Context, filter ports.AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error) {
+func (m *MockAnalyticsRepository) GetTimeSeriesGrouped(ctx context.Context, filter domain.AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTimeSeriesGrouped", ctx, filter, dimension, interval)
 	ret0, _ := ret[0].([]domain.StackedPoint)
@@ -458,13 +490,13 @@ func (m *MockClickRepository) GetTimeSeriesGrouped(ctx context.Context, filter p
 }
 
 // GetTimeSeriesGrouped indicates an expected call of GetTimeSeriesGrouped.
-func (mr *MockClickRepositoryMockRecorder) GetTimeSeriesGrouped(ctx, filter, dimension, interval any) *gomock.Call {
+func (mr *MockAnalyticsRepositoryMockRecorder) GetTimeSeriesGrouped(ctx, filter, dimension, interval any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTimeSeriesGrouped", reflect.TypeOf((*MockClickRepository)(nil).GetTimeSeriesGrouped), ctx, filter, dimension, interval)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTimeSeriesGrouped", reflect.TypeOf((*MockAnalyticsRepository)(nil).GetTimeSeriesGrouped), ctx, filter, dimension, interval)
 }
 
 // GetTopStats mocks base method.
-func (m *MockClickRepository) GetTopStats(ctx context.Context, filter ports.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error) {
+func (m *MockAnalyticsRepository) GetTopStats(ctx context.Context, filter domain.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTopStats", ctx, filter, dimension, limit)
 	ret0, _ := ret[0].([]domain.CategoryStat)
@@ -473,61 +505,7 @@ func (m *MockClickRepository) GetTopStats(ctx context.Context, filter ports.Anal
 }
 
 // GetTopStats indicates an expected call of GetTopStats.
-func (mr *MockClickRepositoryMockRecorder) GetTopStats(ctx, filter, dimension, limit any) *gomock.Call {
+func (mr *MockAnalyticsRepositoryMockRecorder) GetTopStats(ctx, filter, dimension, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTopStats", reflect.TypeOf((*MockClickRepository)(nil).GetTopStats), ctx, filter, dimension, limit)
-}
-
-// Save mocks base method.
-func (m *MockClickRepository) Save(ctx context.Context, click *domain.ClickEvent) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", ctx, click)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Save indicates an expected call of Save.
-func (mr *MockClickRepositoryMockRecorder) Save(ctx, click any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockClickRepository)(nil).Save), ctx, click)
-}
-
-// MockGeoIPRepository is a mock of GeoIPRepository interface.
-type MockGeoIPRepository struct {
-	ctrl     *gomock.Controller
-	recorder *MockGeoIPRepositoryMockRecorder
-	isgomock struct{}
-}
-
-// MockGeoIPRepositoryMockRecorder is the mock recorder for MockGeoIPRepository.
-type MockGeoIPRepositoryMockRecorder struct {
-	mock *MockGeoIPRepository
-}
-
-// NewMockGeoIPRepository creates a new mock instance.
-func NewMockGeoIPRepository(ctrl *gomock.Controller) *MockGeoIPRepository {
-	mock := &MockGeoIPRepository{ctrl: ctrl}
-	mock.recorder = &MockGeoIPRepositoryMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockGeoIPRepository) EXPECT() *MockGeoIPRepositoryMockRecorder {
-	return m.recorder
-}
-
-// GetInfo mocks base method.
-func (m *MockGeoIPRepository) GetInfo(ctx context.Context, ipStr string) (string, string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetInfo", ctx, ipStr)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(string)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// GetInfo indicates an expected call of GetInfo.
-func (mr *MockGeoIPRepositoryMockRecorder) GetInfo(ctx, ipStr any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInfo", reflect.TypeOf((*MockGeoIPRepository)(nil).GetInfo), ctx, ipStr)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTopStats", reflect.TypeOf((*MockAnalyticsRepository)(nil).GetTopStats), ctx, filter, dimension, limit)
 }

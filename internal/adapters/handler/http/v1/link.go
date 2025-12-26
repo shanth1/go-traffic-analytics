@@ -3,6 +3,7 @@ package v1
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shanth1/gotrace/internal/core/domain"
@@ -10,99 +11,74 @@ import (
 	"github.com/shanth1/gotrace/internal/core/services"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 	"github.com/shanth1/gotrace/internal/pkg/request"
+	"github.com/shanth1/gotrace/internal/pkg/utils"
 )
 
 type LinkHandler struct {
-	service ports.LinkService
+	linkSvc ports.LinkService
+	campSvc ports.CampaignService
 }
 
-func NewLinkHandler(s ports.LinkService) *LinkHandler {
-	return &LinkHandler{service: s}
+func NewLinkHandler(ls ports.LinkService, cs ports.CampaignService) *LinkHandler {
+	return &LinkHandler{
+		linkSvc: ls,
+		campSvc: cs,
+	}
 }
 
-// --- Campaigns ---
-
-// GetCampaigns godoc
-// @Summary      Get campaigns
-// @Description  Get list of user campaigns
-// @Tags         Campaigns
-// @Security     BearerAuth
-// @Produce      json
-// @Success      200  {object}  CampaignsListResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/campaigns [get]
-func (h *LinkHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
-	userID := request.GetUserID(r)
-
-	campaigns, err := h.service.GetUserCampaigns(r.Context(), userID)
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	if campaigns == nil {
-		campaigns = []*domain.Campaign{}
-	}
-
-	response.JSON(w, http.StatusOK, CampaignsListResponse{Data: campaigns})
-}
-
-// CreateCampaign godoc
-// @Summary      Create campaign
-// @Description  Create a new campaign
-// @Tags         Campaigns
-// @Security     BearerAuth
-// @Accept       json
-// @Produce      json
-// @Param        request body CreateCampaignRequest true "Campaign Name"
-// @Success      201  {object}  CampaignResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
-// @Failure      400  {object}  response.ErrorResponse
-// @Router       /api/v1/campaigns [post]
-func (h *LinkHandler) CreateCampaign(w http.ResponseWriter, r *http.Request) {
-	userID := request.GetUserID(r)
-
-	var req CreateCampaignRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error(w, http.StatusBadRequest, "bad request")
-		return
-	}
-
-	if req.Name == "" {
-		response.Error(w, http.StatusBadRequest, "name is required")
-		return
-	}
-
-	camp, err := h.service.CreateCampaign(r.Context(), userID, req.Name)
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	response.JSON(w, http.StatusCreated, CampaignResponse{Data: camp})
-}
-
-// --- Links ---
-
-// GetLinksByCampaign godoc
-// @Summary      Get links
-// @Description  Get all links for a specific campaign
+// GetLinks godoc
+// @Summary      Get links list
+// @Description  Get links with filtering, search and pagination
 // @Tags         Links
 // @Security     BearerAuth
 // @Produce      json
-// @Param        id   path      string  true  "Campaign ID"
-// @Success      200  {object}  LinksListResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/campaigns/{id}/links [get]
-func (h *LinkHandler) GetLinksByCampaign(w http.ResponseWriter, r *http.Request) {
-	campaignID := chi.URLParam(r, "id")
+// @Param        campaign_id query     string  false  "Filter by Campaign ID"
+// @Param        search      query     string  false  "Search by slug or target URL"
+// @Param        is_active   query     boolean false  "Filter by active status"
+// @Param        limit       query     int     false  "Limit (default 10)"
+// @Param        offset      query     int     false  "Offset (default 0)"
+// @Success      200         {object}  LinksListResponse
+// @Failure      401         {object}  response.ErrorResponse "Unauthorized"
+// @Failure      500         {object}  response.ErrorResponse
+// @Router       /api/v1/links [get]
+func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
+	claims, err := utils.GetUserFromContext(r.Context())
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, err.Error())
+		return
+	}
 
-	links, err := h.service.GetLinks(r.Context(), campaignID)
+	userID := claims.UserID
+	q := r.URL.Query()
+
+	limit, err := strconv.Atoi(q.Get("limit"))
+	if err != nil || limit <= 0 {
+		limit = 10
+	}
+
+	offset, err := strconv.Atoi(q.Get("offset"))
+	if err != nil || offset < 0 {
+		offset = 0
+	}
+
+	var isActivePtr *bool
+	if val := q.Get("is_active"); val != "" {
+		active, err := strconv.ParseBool(val)
+		if err == nil {
+			isActivePtr = &active
+		}
+	}
+
+	filter := domain.LinkFilter{
+		UserID:     userID,
+		CampaignID: q.Get("campaign_id"),
+		Search:     q.Get("search"),
+		IsActive:   isActivePtr,
+		Limit:      limit,
+		Offset:     offset,
+	}
+
+	links, err := h.linkSvc.GetLinkList(r.Context(), filter)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
@@ -145,7 +121,13 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: custom slug
-	link, err := h.service.CreateLink(r.Context(), userID, req.CampaignID, req.TargetURL, "")
+	link, err := h.linkSvc.CreateLink(r.Context(), domain.CreateLinkCmd{
+		UserID:     userID,
+		CampaignID: req.CampaignID,
+		TargetURL:  req.TargetURL,
+		CustomSlug: "",
+	},
+	)
 	if err != nil {
 		if err == services.ErrLimitReached {
 			response.Error(w, http.StatusForbidden, err.Error())
@@ -172,33 +154,11 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 	id := domain.LinkID(chi.URLParam(r, "id"))
 
-	if err := h.service.DeleteLink(r.Context(), id); err != nil {
+	if err := h.linkSvc.DeleteLink(r.Context(), id); err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	w.Header().Del("Content-Type")
 	w.WriteHeader(http.StatusNoContent)
-}
-
-// GetProfileTree godoc
-// @Summary      Profile Hierarchy
-// @Description  Get hierarchical structure of User -> Campaigns -> Links for Tree visualization
-// @Tags         Campaigns
-// @Security     BearerAuth
-// @Produce      json
-// @Success      200  {object}  domain.HierarchyNode
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/campaigns/tree [get]
-func (h *LinkHandler) GetProfileTree(w http.ResponseWriter, r *http.Request) {
-	userID := request.GetUserID(r)
-
-	tree, err := h.service.GetUserHierarchy(r.Context(), userID)
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	response.JSON(w, http.StatusOK, ProfileTreeResponse{Data: tree})
 }

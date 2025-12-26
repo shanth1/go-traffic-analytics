@@ -14,7 +14,8 @@ type UserRepository interface {
 	FindByID(ctx context.Context, id domain.UserID) (*domain.User, error)
 	FindByEmail(ctx context.Context, email string) (*domain.User, error)
 	FindAll(ctx context.Context, limit, offset int) ([]*domain.User, error)
-	IncrementClickCount(ctx context.Context, userID domain.UserID) error
+
+	IncrementUsage(ctx context.Context, userID domain.UserID, delta int) error
 }
 
 type CampaignRepository interface {
@@ -26,49 +27,46 @@ type CampaignRepository interface {
 
 type PlanRepository interface {
 	FindByID(ctx context.Context, id string) (*domain.Plan, error)
-	FindDefault(ctx context.Context) (*domain.Plan, error) // Обычно "free"
+	FindDefault(ctx context.Context) (*domain.Plan, error)
 	FindAll(ctx context.Context) ([]*domain.Plan, error)
-	Save(ctx context.Context, plan *domain.Plan) error // Для админа/сидера
+	Save(ctx context.Context, plan *domain.Plan) error
 }
 
 type LinkRepository interface {
 	Save(ctx context.Context, link *domain.Link) error
 	FindBySlug(ctx context.Context, slug string) (*domain.Link, error)
-	FindAll(ctx context.Context) ([]*domain.Link, error)
-	FindAllByCampaignID(ctx context.Context, campaignID string) ([]*domain.Link, error)
+	FindAll(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error)
 	CountByUserID(ctx context.Context, userID domain.UserID) (int64, error)
 }
 
-type AnalyticsFilter struct {
-	UserID     domain.UserID
-	LinkID     domain.LinkID
-	CampaignID string
-	From       time.Time
-	To         time.Time
+type GeoProvider interface {
+	Lookup(ctx context.Context, ip string) (*domain.GeoLocation, error)
 }
 
-type ClickRepository interface {
-	Save(ctx context.Context, click *domain.ClickEvent) error
+// --- ANALYTICS / CLICK PROCESSING ---
 
-	CountTotal(ctx context.Context, filter AnalyticsFilter) (int64, error)
+type EventIngestor interface {
+	TrackClick(ctx context.Context, event *domain.ClickEvent) error
+	Close() error
+}
 
-	// Для Streamgraph / Stacked Area Chart
+type AnalyticsRepository interface {
+	SaveBatch(ctx context.Context, events []*domain.ClickEvent) error
+	CountTotal(ctx context.Context, filter domain.AnalyticsFilter) (int64, error)
+
+	// Streamgraph / Stacked Area Chart
 	// dimension: "os", "browser", "country"
 	// interval: 1h, 24h
-	GetTimeSeriesGrouped(ctx context.Context, filter AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error)
+	GetTimeSeriesGrouped(ctx context.Context, filter domain.AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error)
 
-	// Для Sankey Diagram
+	// Sankey Diagram
 	// stages: []string{"referer", "device", "country"}
-	GetFlowData(ctx context.Context, filter AnalyticsFilter, stages []string) (*domain.SankeyData, error)
+	GetFlowData(ctx context.Context, filter domain.AnalyticsFilter, stages []string) (*domain.SankeyData, error)
 
-	GetHeatmapData(ctx context.Context, filter AnalyticsFilter) ([]domain.HeatmapPoint, error)
+	GetHeatmapData(ctx context.Context, filter domain.AnalyticsFilter) ([]domain.HeatmapPoint, error)
 
 	// Для Pie/Bar/Donut/Geo
 	// dimension: "browser", "os", "country", "referer"
 	// limit: например, топ 10 + "Others"
-	GetTopStats(ctx context.Context, filter AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error)
-}
-
-type GeoIPRepository interface {
-	GetInfo(ctx context.Context, ipStr string) (country, city string, err error)
+	GetTopStats(ctx context.Context, filter domain.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error)
 }

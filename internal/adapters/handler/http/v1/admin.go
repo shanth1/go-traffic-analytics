@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
@@ -14,13 +13,11 @@ import (
 
 type AdminHandler struct {
 	userService ports.UserService
-	logger      log.Logger
 }
 
-func NewAdminHandler(u ports.UserService, l log.Logger) *AdminHandler {
+func NewAdminHandler(u ports.UserService) *AdminHandler {
 	return &AdminHandler{
 		userService: u,
-		logger:      l,
 	}
 }
 
@@ -46,7 +43,7 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	limit := 20
 
-	users, err := h.userService.GetAllUsers(r.Context(), page, limit)
+	users, err := h.userService.GetAll(r.Context(), page, limit)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
@@ -86,7 +83,7 @@ func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := h.userService.SetUserStatus(r.Context(), id, req.IsActive); err != nil {
+	if err := h.userService.SetStatus(r.Context(), id, req.IsActive); err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -121,7 +118,7 @@ func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.userService.ChangeUserPlan(r.Context(), id, req.PlanID); err != nil {
+	if err := h.userService.ChangePlan(r.Context(), id, req.PlanID); err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}

@@ -14,42 +14,22 @@ var ErrLimitReached = errors.New("plan limit reached: upgrade your plan to creat
 
 type LinkService struct {
 	linkRepo ports.LinkRepository
-	campRepo ports.CampaignRepository
 	userRepo ports.UserRepository
 	planRepo ports.PlanRepository
 }
 
-func NewLinkService(l ports.LinkRepository, c ports.CampaignRepository, u ports.UserRepository, p ports.PlanRepository) *LinkService {
-	return &LinkService{linkRepo: l, campRepo: c, userRepo: u, planRepo: p}
-}
-
-// --- Campaigns ---
-
-func (s *LinkService) GetUserCampaigns(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error) {
-	return s.campRepo.FindAllByUserID(ctx, userID)
-}
-
-func (s *LinkService) CreateCampaign(ctx context.Context, userID domain.UserID, name string) (*domain.Campaign, error) {
-	camp := &domain.Campaign{
-		ID:        uuid.New().String(),
-		UserID:    userID,
-		Name:      name,
-		CreatedAt: time.Now(),
+func NewLinkService(lr ports.LinkRepository, ur ports.UserRepository, pr ports.PlanRepository) *LinkService {
+	return &LinkService{
+		linkRepo: lr,
+		userRepo: ur,
+		planRepo: pr,
 	}
-	if err := s.campRepo.Save(ctx, camp); err != nil {
-		return nil, err
-	}
-	return camp, nil
 }
 
 // --- Links ---
 
-func (s *LinkService) GetLinks(ctx context.Context, campaignID string) ([]*domain.Link, error) {
-	return s.linkRepo.FindAllByCampaignID(ctx, campaignID)
-}
-
-func (s *LinkService) CreateLink(ctx context.Context, userID domain.UserID, campaignID, targetURL, customSlug string) (*domain.Link, error) {
-	user, err := s.userRepo.FindByID(ctx, userID)
+func (s *LinkService) CreateLink(ctx context.Context, cmd domain.CreateLinkCmd) (*domain.Link, error) {
+	user, err := s.userRepo.FindByID(ctx, cmd.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +40,7 @@ func (s *LinkService) CreateLink(ctx context.Context, userID domain.UserID, camp
 	}
 
 	if plan.MaxLinks != -1 {
-		currentCount, err := s.linkRepo.CountByUserID(ctx, userID)
+		currentCount, err := s.linkRepo.CountByUserID(ctx, cmd.UserID)
 		if err != nil {
 			return nil, err
 		}
@@ -70,16 +50,16 @@ func (s *LinkService) CreateLink(ctx context.Context, userID domain.UserID, camp
 	}
 
 	// Slug Generation
-	finalSlug := customSlug
+	finalSlug := cmd.CustomSlug
 	if finalSlug == "" {
 		finalSlug = uuid.New().String()[:8] // Simple random slug
 	}
 
 	link := &domain.Link{
 		ID:         domain.LinkID(uuid.NewString()),
-		UserID:     userID,
-		CampaignID: campaignID,
-		TargetURL:  targetURL,
+		UserID:     cmd.UserID,
+		CampaignID: cmd.CampaignID,
+		TargetURL:  cmd.TargetURL,
 		Slug:       finalSlug,
 		IsActive:   true,
 		CreatedAt:  time.Now(),
@@ -92,50 +72,12 @@ func (s *LinkService) CreateLink(ctx context.Context, userID domain.UserID, camp
 	return link, nil
 }
 
+func (s *LinkService) GetLinkList(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
+	return s.linkRepo.FindAll(ctx, filter)
+}
+
 // TODO:
 // soft delete? isActive = true
 func (s *LinkService) DeleteLink(_ context.Context, _ domain.LinkID) error {
 	return nil
-}
-
-func (s *LinkService) GetUserHierarchy(ctx context.Context, userID domain.UserID) (*domain.HierarchyNode, error) {
-	user, err := s.userRepo.FindByID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	campaigns, err := s.campRepo.FindAllByUserID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: FindAllByUserID
-
-	root := &domain.HierarchyNode{
-		Name:     user.Email,
-		Type:     "root",
-		Children: []*domain.HierarchyNode{},
-	}
-
-	for _, camp := range campaigns {
-		campNode := &domain.HierarchyNode{
-			Name:     camp.Name,
-			Type:     "campaign",
-			Children: []*domain.HierarchyNode{},
-		}
-
-		links, _ := s.linkRepo.FindAllByCampaignID(ctx, camp.ID)
-		for _, l := range links {
-			linkNode := &domain.HierarchyNode{
-				Name:  l.Slug, // or l.TargetURL
-				Type:  "link",
-				Value: 1, // for Visx Hierarchy
-			}
-			campNode.Children = append(campNode.Children, linkNode)
-		}
-
-		root.Children = append(root.Children, campNode)
-	}
-
-	return root, nil
 }

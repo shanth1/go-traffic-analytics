@@ -14,7 +14,6 @@ import (
 	reflect "reflect"
 
 	domain "github.com/shanth1/gotrace/internal/core/domain"
-	ports "github.com/shanth1/gotrace/internal/core/ports"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -98,7 +97,7 @@ func (m *MockAnalyticsService) EXPECT() *MockAnalyticsServiceMockRecorder {
 }
 
 // GetCategoryStats mocks base method.
-func (m *MockAnalyticsService) GetCategoryStats(ctx context.Context, filter ports.AnalyticsFilter, dimension string) ([]domain.CategoryStat, error) {
+func (m *MockAnalyticsService) GetCategoryStats(ctx context.Context, filter domain.AnalyticsFilter, dimension string) ([]domain.CategoryStat, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCategoryStats", ctx, filter, dimension)
 	ret0, _ := ret[0].([]domain.CategoryStat)
@@ -113,7 +112,7 @@ func (mr *MockAnalyticsServiceMockRecorder) GetCategoryStats(ctx, filter, dimens
 }
 
 // GetGeoDistribution mocks base method.
-func (m *MockAnalyticsService) GetGeoDistribution(ctx context.Context, filter ports.AnalyticsFilter) ([]domain.GeoStat, error) {
+func (m *MockAnalyticsService) GetGeoDistribution(ctx context.Context, filter domain.AnalyticsFilter) ([]domain.GeoStat, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGeoDistribution", ctx, filter)
 	ret0, _ := ret[0].([]domain.GeoStat)
@@ -128,7 +127,7 @@ func (mr *MockAnalyticsServiceMockRecorder) GetGeoDistribution(ctx, filter any) 
 }
 
 // GetHeatmapData mocks base method.
-func (m *MockAnalyticsService) GetHeatmapData(ctx context.Context, filter ports.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
+func (m *MockAnalyticsService) GetHeatmapData(ctx context.Context, filter domain.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetHeatmapData", ctx, filter)
 	ret0, _ := ret[0].([]domain.HeatmapPoint)
@@ -143,7 +142,7 @@ func (mr *MockAnalyticsServiceMockRecorder) GetHeatmapData(ctx, filter any) *gom
 }
 
 // GetSankeyData mocks base method.
-func (m *MockAnalyticsService) GetSankeyData(ctx context.Context, filter ports.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
+func (m *MockAnalyticsService) GetSankeyData(ctx context.Context, filter domain.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSankeyData", ctx, filter, stages)
 	ret0, _ := ret[0].(*domain.SankeyData)
@@ -158,7 +157,7 @@ func (mr *MockAnalyticsServiceMockRecorder) GetSankeyData(ctx, filter, stages an
 }
 
 // GetStreamGraphData mocks base method.
-func (m *MockAnalyticsService) GetStreamGraphData(ctx context.Context, filter ports.AnalyticsFilter, groupBy string) ([]domain.StackedPoint, error) {
+func (m *MockAnalyticsService) GetStreamGraphData(ctx context.Context, filter domain.AnalyticsFilter, groupBy string) ([]domain.StackedPoint, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetStreamGraphData", ctx, filter, groupBy)
 	ret0, _ := ret[0].([]domain.StackedPoint)
@@ -173,7 +172,7 @@ func (mr *MockAnalyticsServiceMockRecorder) GetStreamGraphData(ctx, filter, grou
 }
 
 // GetSummary mocks base method.
-func (m *MockAnalyticsService) GetSummary(ctx context.Context, filter ports.AnalyticsFilter) (*domain.Summary, error) {
+func (m *MockAnalyticsService) GetSummary(ctx context.Context, filter domain.AnalyticsFilter) (*domain.Summary, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSummary", ctx, filter)
 	ret0, _ := ret[0].(*domain.Summary)
@@ -188,7 +187,7 @@ func (mr *MockAnalyticsServiceMockRecorder) GetSummary(ctx, filter any) *gomock.
 }
 
 // GetTrafficQuality mocks base method.
-func (m *MockAnalyticsService) GetTrafficQuality(ctx context.Context, filter ports.AnalyticsFilter) (*domain.TrafficQuality, error) {
+func (m *MockAnalyticsService) GetTrafficQuality(ctx context.Context, filter domain.AnalyticsFilter) (*domain.TrafficQuality, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTrafficQuality", ctx, filter)
 	ret0, _ := ret[0].(*domain.TrafficQuality)
@@ -226,38 +225,23 @@ func (m *MockLinkService) EXPECT() *MockLinkServiceMockRecorder {
 	return m.recorder
 }
 
-// CreateCampaign mocks base method.
-func (m *MockLinkService) CreateCampaign(ctx context.Context, userID domain.UserID, name string) (*domain.Campaign, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateCampaign", ctx, userID, name)
-	ret0, _ := ret[0].(*domain.Campaign)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateCampaign indicates an expected call of CreateCampaign.
-func (mr *MockLinkServiceMockRecorder) CreateCampaign(ctx, userID, name any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCampaign", reflect.TypeOf((*MockLinkService)(nil).CreateCampaign), ctx, userID, name)
-}
-
 // CreateLink mocks base method.
-func (m *MockLinkService) CreateLink(ctx context.Context, userID domain.UserID, campaignID, targetURL, customSlug string) (*domain.Link, error) {
+func (m *MockLinkService) CreateLink(ctx context.Context, cmd domain.CreateLinkCmd) (*domain.Link, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateLink", ctx, userID, campaignID, targetURL, customSlug)
+	ret := m.ctrl.Call(m, "CreateLink", ctx, cmd)
 	ret0, _ := ret[0].(*domain.Link)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateLink indicates an expected call of CreateLink.
-func (mr *MockLinkServiceMockRecorder) CreateLink(ctx, userID, campaignID, targetURL, customSlug any) *gomock.Call {
+func (mr *MockLinkServiceMockRecorder) CreateLink(ctx, cmd any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLink", reflect.TypeOf((*MockLinkService)(nil).CreateLink), ctx, userID, campaignID, targetURL, customSlug)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLink", reflect.TypeOf((*MockLinkService)(nil).CreateLink), ctx, cmd)
 }
 
 // DeleteLink mocks base method.
-func (m *MockLinkService) DeleteLink(ctx context.Context, id string) error {
+func (m *MockLinkService) DeleteLink(ctx context.Context, id domain.LinkID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteLink", ctx, id)
 	ret0, _ := ret[0].(error)
@@ -270,49 +254,73 @@ func (mr *MockLinkServiceMockRecorder) DeleteLink(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteLink", reflect.TypeOf((*MockLinkService)(nil).DeleteLink), ctx, id)
 }
 
-// GetLinks mocks base method.
-func (m *MockLinkService) GetLinks(ctx context.Context, campaignID string) ([]*domain.Link, error) {
+// GetLinkList mocks base method.
+func (m *MockLinkService) GetLinkList(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLinks", ctx, campaignID)
+	ret := m.ctrl.Call(m, "GetLinkList", ctx, filter)
 	ret0, _ := ret[0].([]*domain.Link)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetLinks indicates an expected call of GetLinks.
-func (mr *MockLinkServiceMockRecorder) GetLinks(ctx, campaignID any) *gomock.Call {
+// GetLinkList indicates an expected call of GetLinkList.
+func (mr *MockLinkServiceMockRecorder) GetLinkList(ctx, filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLinks", reflect.TypeOf((*MockLinkService)(nil).GetLinks), ctx, campaignID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLinkList", reflect.TypeOf((*MockLinkService)(nil).GetLinkList), ctx, filter)
 }
 
-// GetUserCampaigns mocks base method.
-func (m *MockLinkService) GetUserCampaigns(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error) {
+// MockCampaignService is a mock of CampaignService interface.
+type MockCampaignService struct {
+	ctrl     *gomock.Controller
+	recorder *MockCampaignServiceMockRecorder
+	isgomock struct{}
+}
+
+// MockCampaignServiceMockRecorder is the mock recorder for MockCampaignService.
+type MockCampaignServiceMockRecorder struct {
+	mock *MockCampaignService
+}
+
+// NewMockCampaignService creates a new mock instance.
+func NewMockCampaignService(ctrl *gomock.Controller) *MockCampaignService {
+	mock := &MockCampaignService{ctrl: ctrl}
+	mock.recorder = &MockCampaignServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockCampaignService) EXPECT() *MockCampaignServiceMockRecorder {
+	return m.recorder
+}
+
+// CreateCampaign mocks base method.
+func (m *MockCampaignService) CreateCampaign(ctx context.Context, userID domain.UserID, name string) (*domain.Campaign, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserCampaigns", ctx, userID)
+	ret := m.ctrl.Call(m, "CreateCampaign", ctx, userID, name)
+	ret0, _ := ret[0].(*domain.Campaign)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateCampaign indicates an expected call of CreateCampaign.
+func (mr *MockCampaignServiceMockRecorder) CreateCampaign(ctx, userID, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCampaign", reflect.TypeOf((*MockCampaignService)(nil).CreateCampaign), ctx, userID, name)
+}
+
+// GetCampaigns mocks base method.
+func (m *MockCampaignService) GetCampaigns(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCampaigns", ctx, userID)
 	ret0, _ := ret[0].([]*domain.Campaign)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUserCampaigns indicates an expected call of GetUserCampaigns.
-func (mr *MockLinkServiceMockRecorder) GetUserCampaigns(ctx, userID any) *gomock.Call {
+// GetCampaigns indicates an expected call of GetCampaigns.
+func (mr *MockCampaignServiceMockRecorder) GetCampaigns(ctx, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserCampaigns", reflect.TypeOf((*MockLinkService)(nil).GetUserCampaigns), ctx, userID)
-}
-
-// GetUserHierarchy mocks base method.
-func (m *MockLinkService) GetUserHierarchy(ctx context.Context, userID domain.UserID) (*domain.HierarchyNode, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserHierarchy", ctx, userID)
-	ret0, _ := ret[0].(*domain.HierarchyNode)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetUserHierarchy indicates an expected call of GetUserHierarchy.
-func (mr *MockLinkServiceMockRecorder) GetUserHierarchy(ctx, userID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserHierarchy", reflect.TypeOf((*MockLinkService)(nil).GetUserHierarchy), ctx, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCampaigns", reflect.TypeOf((*MockCampaignService)(nil).GetCampaigns), ctx, userID)
 }
 
 // MockRedirectService is a mock of RedirectService interface.
@@ -339,19 +347,19 @@ func (m *MockRedirectService) EXPECT() *MockRedirectServiceMockRecorder {
 	return m.recorder
 }
 
-// ProcessRedirect mocks base method.
-func (m *MockRedirectService) ProcessRedirect(ctx context.Context, slug, ip, userAgentString, referer string) (string, error) {
+// Process mocks base method.
+func (m *MockRedirectService) Process(ctx context.Context, slug, meta domain.RequestMetadata) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ProcessRedirect", ctx, slug, ip, userAgentString, referer)
+	ret := m.ctrl.Call(m, "Process", ctx, slug, meta)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ProcessRedirect indicates an expected call of ProcessRedirect.
-func (mr *MockRedirectServiceMockRecorder) ProcessRedirect(ctx, slug, ip, userAgentString, referer any) *gomock.Call {
+// Process indicates an expected call of Process.
+func (mr *MockRedirectServiceMockRecorder) Process(ctx, slug, meta any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessRedirect", reflect.TypeOf((*MockRedirectService)(nil).ProcessRedirect), ctx, slug, ip, userAgentString, referer)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Process", reflect.TypeOf((*MockRedirectService)(nil).Process), ctx, slug, meta)
 }
 
 // MockUserService is a mock of UserService interface.
@@ -378,18 +386,18 @@ func (m *MockUserService) EXPECT() *MockUserServiceMockRecorder {
 	return m.recorder
 }
 
-// ChangeUserPlan mocks base method.
-func (m *MockUserService) ChangeUserPlan(ctx context.Context, userID domain.UserID, planID string) error {
+// ChangePlan mocks base method.
+func (m *MockUserService) ChangePlan(ctx context.Context, userID domain.UserID, planID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ChangeUserPlan", ctx, userID, planID)
+	ret := m.ctrl.Call(m, "ChangePlan", ctx, userID, planID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// ChangeUserPlan indicates an expected call of ChangeUserPlan.
-func (mr *MockUserServiceMockRecorder) ChangeUserPlan(ctx, userID, planID any) *gomock.Call {
+// ChangePlan indicates an expected call of ChangePlan.
+func (mr *MockUserServiceMockRecorder) ChangePlan(ctx, userID, planID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeUserPlan", reflect.TypeOf((*MockUserService)(nil).ChangeUserPlan), ctx, userID, planID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePlan", reflect.TypeOf((*MockUserService)(nil).ChangePlan), ctx, userID, planID)
 }
 
 // GetAllUsers mocks base method.
@@ -405,6 +413,21 @@ func (m *MockUserService) GetAllUsers(ctx context.Context, page, limit int) ([]*
 func (mr *MockUserServiceMockRecorder) GetAllUsers(ctx, page, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllUsers", reflect.TypeOf((*MockUserService)(nil).GetAllUsers), ctx, page, limit)
+}
+
+// GetHierarchy mocks base method.
+func (m *MockUserService) GetHierarchy(ctx context.Context, id domain.UserID) (*domain.HierarchyNode, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHierarchy", ctx, id)
+	ret0, _ := ret[0].(*domain.HierarchyNode)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetHierarchy indicates an expected call of GetHierarchy.
+func (mr *MockUserServiceMockRecorder) GetHierarchy(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHierarchy", reflect.TypeOf((*MockUserService)(nil).GetHierarchy), ctx, id)
 }
 
 // SetUserStatus mocks base method.

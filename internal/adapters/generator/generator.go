@@ -21,28 +21,28 @@ type Config struct {
 }
 
 type DataSeeder struct {
-	userRepo     ports.UserRepository
-	campaignRepo ports.CampaignRepository
-	linkRepo     ports.LinkRepository
-	clickRepo    ports.ClickRepository
-	planRepo     ports.PlanRepository
-	rng          *rand.Rand
+	userRepo      ports.UserRepository
+	campaignRepo  ports.CampaignRepository
+	linkRepo      ports.LinkRepository
+	analyticsRepo ports.AnalyticsRepository
+	planRepo      ports.PlanRepository
+	rng           *rand.Rand
 }
 
 func New(
 	ur ports.UserRepository,
 	cr ports.CampaignRepository,
 	lr ports.LinkRepository,
-	clr ports.ClickRepository,
+	ar ports.AnalyticsRepository,
 	pr ports.PlanRepository,
 ) *DataSeeder {
 	return &DataSeeder{
-		userRepo:     ur,
-		campaignRepo: cr,
-		linkRepo:     lr,
-		clickRepo:    clr,
-		planRepo:     pr,
-		rng:          rand.New(rand.NewSource(time.Now().UnixNano())),
+		userRepo:      ur,
+		campaignRepo:  cr,
+		linkRepo:      lr,
+		analyticsRepo: ar,
+		planRepo:      pr,
+		rng:           rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 
@@ -172,6 +172,7 @@ func (s *DataSeeder) generateLink(userID domain.UserID, campID string) *domain.L
 }
 
 func (s *DataSeeder) seedClicks(ctx context.Context, linkID domain.LinkID, campID string, count int, days int) {
+	clickEvents := make([]*domain.ClickEvent, 0)
 	for i := 0; i < count; i++ {
 		hour := s.getWeightedHour()
 		dayOffset := s.rng.Intn(days)
@@ -193,8 +194,9 @@ func (s *DataSeeder) seedClicks(ctx context.Context, linkID domain.LinkID, campI
 			Device:     ua.Device,
 			Referer:    s.getRandomReferer(),
 		}
-		_ = s.clickRepo.Save(ctx, click)
+		clickEvents = append(clickEvents, click)
 	}
+	_ = s.analyticsRepo.SaveBatch(ctx, clickEvents)
 }
 
 type geoPair struct{ Country, City string }

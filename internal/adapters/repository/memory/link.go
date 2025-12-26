@@ -3,6 +3,8 @@ package memoryrepo
 import (
 	"context"
 	"errors"
+	"sort"
+	"strings"
 	"sync"
 
 	"github.com/shanth1/gotrace/internal/core/domain"
@@ -43,26 +45,53 @@ func (r *InMemoryLinkRepo) FindBySlug(_ context.Context, slug string) (*domain.L
 	return r.links[id], nil
 }
 
-func (r *InMemoryLinkRepo) FindAll(_ context.Context) ([]*domain.Link, error) {
+func (r *InMemoryLinkRepo) FindAll(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	result := make([]*domain.Link, 0, len(r.links))
-	for _, v := range r.links {
-		result = append(result, v)
-	}
-	return result, nil
-}
 
-func (r *InMemoryLinkRepo) FindAllByCampaignID(_ context.Context, campaignID string) ([]*domain.Link, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	result := make([]*domain.Link, 0, len(r.links))
-	for _, v := range r.links {
-		if v.CampaignID == campaignID {
-			result = append(result, v)
+	var matches []*domain.Link
+
+	for _, link := range r.links {
+		if filter.UserID != "" && link.UserID != filter.UserID {
+			continue
 		}
+
+		if filter.CampaignID != "" && link.CampaignID != filter.CampaignID {
+			continue
+		}
+
+		if filter.IsActive != nil && link.IsActive != *filter.IsActive {
+			continue
+		}
+
+		if filter.Search != "" {
+			term := strings.ToLower(filter.Search)
+			slug := strings.ToLower(link.Slug)
+			target := strings.ToLower(link.TargetURL)
+
+			if !strings.Contains(slug, term) && !strings.Contains(target, term) {
+				continue
+			}
+		}
+
+		matches = append(matches, link)
 	}
-	return result, nil
+
+	sort.Slice(matches, func(i, j int) bool {
+		return matches[i].CreatedAt.After(matches[j].CreatedAt)
+	})
+
+	if filter.Offset >= len(matches) {
+		return []*domain.Link{}, nil
+	}
+
+	res := matches[filter.Offset:]
+
+	if filter.Limit > 0 && filter.Limit < len(res) {
+		res = res[:filter.Limit]
+	}
+
+	return res, nil
 }
 
 func (r *InMemoryLinkRepo) CountByUserID(_ context.Context, userID domain.UserID) (int64, error) {

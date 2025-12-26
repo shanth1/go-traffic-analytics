@@ -90,17 +90,8 @@ func (r *LinkRepo) FindBySlug(ctx context.Context, slug string) (*domain.Link, e
 	return link, nil
 }
 
-func (r *LinkRepo) FindAll(ctx context.Context) ([]*domain.Link, error) {
-	links, err := r.repo.FindAll(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return links, nil
-}
-
-func (r *LinkRepo) FindAllByCampaignID(ctx context.Context, campaignID string) ([]*domain.Link, error) {
-	links, err := r.repo.FindAllByCampaignID(ctx, campaignID)
+func (r *LinkRepo) FindAll(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
+	links, err := r.repo.FindAll(ctx, filter)
 	if err != nil {
 		return nil, err
 	}

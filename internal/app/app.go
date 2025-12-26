@@ -11,6 +11,7 @@ import (
 	cachememory "github.com/shanth1/gotrace/internal/adapters/cache/memory"
 	"github.com/shanth1/gotrace/internal/adapters/generator"
 	transport "github.com/shanth1/gotrace/internal/adapters/handler/http"
+	"github.com/shanth1/gotrace/internal/adapters/ingestor"
 	"github.com/shanth1/gotrace/internal/adapters/repository/cached"
 	"github.com/shanth1/gotrace/internal/adapters/repository/geography"
 	memoryrepo "github.com/shanth1/gotrace/internal/adapters/repository/memory"
@@ -21,7 +22,7 @@ import (
 func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	logger := log.FromContext(ctx)
 
-	geoIPRepo, err := geography.NewGeoIPRepo(cfg)
+	geoProvider, err := geography.NewGeoProvider(cfg)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("new geo ip repo")
 	}
@@ -33,14 +34,14 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	baseUserRepo := memoryrepo.NewUserRepo()
 	baseCampRepo := memoryrepo.NewCampaignRepo()
 	baseLinkRepo := memoryrepo.NewLinkRepo()
-	baseClickRepo := memoryrepo.NewClickRepo()
+	baseClickRepo := memoryrepo.NewAnalyticRepo()
 	basePlanRepo := memoryrepo.NewPlanRepo()
 
 	// Cached Repositories
 	userRepo := cached.NewUserRepo(baseUserRepo, cache, 5*time.Minute)
 	campRepo := cached.NewCampaignRepo(baseCampRepo, cache, 10*time.Minute)
 	linkRepo := cached.NewLinkRepo(baseLinkRepo, cache, 10*time.Minute)
-	clickRepo := cached.NewClickRepo(baseClickRepo, cache, 30*time.Second)
+	analyticRepo := cached.NewClickRepo(baseClickRepo, cache, 30*time.Second)
 	planRepo := cached.NewPlanRepo(basePlanRepo, cache, 24*time.Hour)
 
 	if cfg.Env != consts.EnvProd {
@@ -51,22 +52,26 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 			DaysHistory:     30,
 			PasswordDefault: "password",
 		}
-		seeder := generator.New(userRepo, campRepo, linkRepo, clickRepo, planRepo)
+		seeder := generator.New(userRepo, campRepo, linkRepo, analyticRepo, planRepo)
 		_ = seeder.Seed(context.Background(), cfg)
 	}
 
+	ingestor := ingestor.NewBatchEventIngestor(analyticRepo, userRepo, geoProvider)
+
 	// Services
 	authService := services.NewAuthService(userRepo, planRepo, cfg)
-	analyticsService := services.NewAnalyticsService(clickRepo)
-	linkService := services.NewLinkService(linkRepo, campRepo, userRepo, planRepo)
-	redirectService := services.NewRedirectService(ctx, linkRepo, clickRepo, userRepo, geoIPRepo)
-	userService := services.NewUserService(userRepo, planRepo)
+	analyticsService := services.NewAnalyticsService(analyticRepo)
+	campaignService := services.NewCampaignService(campRepo)
+	linkService := services.NewLinkService(linkRepo, userRepo, planRepo)
+	redirectService := services.NewRedirectService(ctx, ingestor, linkRepo, geoProvider)
+	userService := services.NewUserService(userRepo, planRepo, campRepo, linkRepo)
 	billingService := services.NewBillingService(planRepo)
 
 	httpHandler := transport.NewRouter(
 		cfg,
 		authService,
 		analyticsService,
+		campaignService,
 		linkService,
 		redirectService,
 		userService,
