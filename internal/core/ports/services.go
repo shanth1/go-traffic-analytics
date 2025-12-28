@@ -26,12 +26,13 @@ type AnalyticsService interface {
 type LinkService interface {
 	CreateLink(ctx context.Context, cmd domain.CreateLinkCmd) (*domain.Link, error)
 	GetLinkList(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error)
-	DeleteLink(ctx context.Context, id domain.LinkID) error
+	DeleteLink(ctx context.Context, userID domain.UserID, id domain.LinkID) error
 }
 
 type CampaignService interface {
 	CreateCampaign(ctx context.Context, userID domain.UserID, name string) (*domain.Campaign, error)
 	GetCampaigns(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error)
+	DeleteCampaign(ctx context.Context, userID domain.UserID, id string) error
 }
 
 type RedirectService interface {

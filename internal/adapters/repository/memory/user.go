@@ -83,3 +83,16 @@ func (r *InMemoryUserRepo) IncrementUsage(_ context.Context, userID domain.UserI
 	user.ClicksCurrentMonth += delta
 	return nil
 }
+
+func (r *InMemoryUserRepo) ResetUsage(ctx context.Context, userID domain.UserID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	user, ok := r.users[userID]
+	if !ok {
+		return errors.New("user not found")
+	}
+
+	user.ClicksCurrentMonth = 0
+	return nil
+}

@@ -143,8 +143,9 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 // @Router       /api/v1/links/{id} [delete]
 func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 	id := domain.LinkID(chi.URLParam(r, "id"))
+	userID := request.GetUserID(r)
 
-	if err := h.linkSvc.DeleteLink(r.Context(), id); err != nil {
+	if err := h.linkSvc.DeleteLink(r.Context(), userID, id); err != nil {
 		response.ServerError(w, r, err)
 		return
 	}

@@ -147,6 +147,22 @@ func (r *UserRepo) IncrementUsage(ctx context.Context, userID domain.UserID, del
 	return nil
 }
 
+func (r *UserRepo) ResetUsage(ctx context.Context, userID domain.UserID) error {
+	if err := r.repo.ResetUsage(ctx, userID); err != nil {
+		return err
+	}
+
+	go func() {
+		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		// TODO: logging
+		_ = r.cache.Delete(bgCtx, r.buildIDKey(userID))
+	}()
+
+	return nil
+}
+
 // TODO:
 // func (r *UserRepo) invalidate(ctx context.Context, id domain.UserID, email string) {
 // 	go func() {

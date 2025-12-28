@@ -5,6 +5,7 @@ import (
 	"errors"
 	"sync"
 
+	"github.com/shanth1/gotools/errs"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
@@ -49,9 +50,20 @@ func (r *InMemoryCampaignRepo) FindAllByUserID(_ context.Context, userID domain.
 	return result, nil
 }
 
-func (r *InMemoryCampaignRepo) Delete(_ context.Context, id string) error {
+func (r *InMemoryCampaignRepo) Delete(_ context.Context, userID domain.UserID, id string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
+	c, ok := r.campaigns[id]
+	if !ok {
+		return errs.ErrNotFound
+	}
+
+	if c.UserID != userID {
+		return errs.ErrUnauthorized
+	}
+
 	delete(r.campaigns, id)
+
 	return nil
 }

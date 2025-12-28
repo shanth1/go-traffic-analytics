@@ -16,13 +16,14 @@ type UserRepository interface {
 	FindAll(ctx context.Context, limit, offset int) ([]*domain.User, error)
 
 	IncrementUsage(ctx context.Context, userID domain.UserID, delta int) error
+	ResetUsage(ctx context.Context, userID domain.UserID) error
 }
 
 type CampaignRepository interface {
 	Save(ctx context.Context, campaign *domain.Campaign) error
 	FindByID(ctx context.Context, id string) (*domain.Campaign, error)
 	FindAllByUserID(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error)
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, userID domain.UserID, id string) error
 }
 
 type PlanRepository interface {
@@ -35,8 +36,10 @@ type PlanRepository interface {
 type LinkRepository interface {
 	Save(ctx context.Context, link *domain.Link) error
 	FindBySlug(ctx context.Context, slug string) (*domain.Link, error)
+	FindByID(ctx context.Context, id domain.LinkID) (*domain.Link, error)
 	FindAll(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error)
 	CountByUserID(ctx context.Context, userID domain.UserID) (int64, error)
+	Delete(ctx context.Context, userID domain.UserID, id domain.LinkID) error
 }
 
 type GeoProvider interface {

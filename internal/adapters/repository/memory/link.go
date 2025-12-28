@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/shanth1/gotools/errs"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
@@ -35,12 +36,23 @@ func (r *InMemoryLinkRepo) Save(_ context.Context, link *domain.Link) error {
 	return nil
 }
 
+func (r *InMemoryLinkRepo) FindByID(_ context.Context, id domain.LinkID) (*domain.Link, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	link, ok := r.links[id]
+	if !ok {
+		return nil, errs.ErrNotFound
+	}
+	return link, nil
+}
+
 func (r *InMemoryLinkRepo) FindBySlug(_ context.Context, slug string) (*domain.Link, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	id, ok := r.slugs[slug]
 	if !ok {
-		return nil, errors.New("not found")
+		return nil, errs.ErrNotFound
 	}
 	return r.links[id], nil
 }
@@ -104,4 +116,23 @@ func (r *InMemoryLinkRepo) CountByUserID(_ context.Context, userID domain.UserID
 		}
 	}
 	return count, nil
+}
+
+func (r *InMemoryLinkRepo) Delete(ctx context.Context, userID domain.UserID, id domain.LinkID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	link, ok := r.links[id]
+	if !ok {
+		return errs.ErrNotFound
+	}
+
+	if link.UserID != userID {
+		return errs.ErrUnauthorized
+	}
+
+	delete(r.slugs, link.Slug)
+	delete(r.links, id)
+
+	return nil
 }

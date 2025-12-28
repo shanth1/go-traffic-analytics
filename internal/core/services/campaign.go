@@ -35,3 +35,7 @@ func (s *CampaignService) CreateCampaign(ctx context.Context, userID domain.User
 func (s *CampaignService) GetCampaigns(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error) {
 	return s.repo.FindAllByUserID(ctx, userID)
 }
+
+func (s *CampaignService) DeleteCampaign(ctx context.Context, userID domain.UserID, id string) error {
+	return s.repo.Delete(ctx, userID, id)
+}

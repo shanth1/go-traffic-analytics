@@ -78,6 +78,6 @@ func (s *LinkService) GetLinkList(ctx context.Context, filter domain.LinkFilter)
 
 // TODO:
 // soft delete? isActive = true
-func (s *LinkService) DeleteLink(_ context.Context, _ domain.LinkID) error {
-	return nil
+func (s *LinkService) DeleteLink(ctx context.Context, userID domain.UserID, id domain.LinkID) error {
+	return s.linkRepo.Delete(ctx, userID, id)
 }

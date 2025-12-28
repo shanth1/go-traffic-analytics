@@ -51,6 +51,23 @@ func (r *LinkRepo) Save(ctx context.Context, link *domain.Link) error {
 	return nil
 }
 
+func (r *LinkRepo) FindByID(ctx context.Context, id domain.LinkID) (*domain.Link, error) {
+	key := r.buildKey("id", string(id))
+
+	if link, err := r.getFromCache(ctx, key); err == nil && link != nil {
+		return link, nil
+	}
+
+	link, err := r.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	r.setCache(key, link)
+
+	return link, nil
+}
+
 func (r *LinkRepo) FindBySlug(ctx context.Context, slug string) (*domain.Link, error) {
 	key := r.buildKey("slug", slug)
 
@@ -106,4 +123,67 @@ func (r *LinkRepo) CountByUserID(ctx context.Context, userID domain.UserID) (int
 	}
 
 	return count, nil
+}
+
+func (r *LinkRepo) Delete(ctx context.Context, userID domain.UserID, id domain.LinkID) error {
+	link, err := r.repo.FindByID(ctx, id)
+
+	var slugToDelete string
+	if err == nil && link != nil {
+		slugToDelete = link.Slug
+	}
+
+	if err := r.repo.Delete(ctx, userID, id); err != nil {
+		return err
+	}
+
+	go func() {
+		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		keys := []string{
+			r.buildKey("id", string(id)),
+		}
+
+		if slugToDelete != "" {
+			keys = append(keys, r.buildKey("slug", slugToDelete))
+		}
+
+		for _, key := range keys {
+			// TODO: logging
+			_ = r.cache.Delete(bgCtx, key)
+		}
+	}()
+
+	return nil
+}
+
+func (r *LinkRepo) getFromCache(ctx context.Context, key string) (*domain.Link, error) {
+	val, err := r.cache.Get(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+
+	bytesVal, ok := val.([]byte)
+	if !ok {
+		return nil, nil
+	}
+
+	var link domain.Link
+	if err := json.Unmarshal(bytesVal, &link); err != nil {
+		return nil, err
+	}
+	return &link, nil
+}
+
+func (r *LinkRepo) setCache(key string, link *domain.Link) {
+	go func() {
+		bytes, err := json.Marshal(link)
+		if err != nil {
+			return
+		}
+		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
+	}()
 }

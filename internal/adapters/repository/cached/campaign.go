@@ -89,8 +89,8 @@ func (r *CampaignRepo) FindAllByUserID(ctx context.Context, userID domain.UserID
 	return r.repo.FindAllByUserID(ctx, userID)
 }
 
-func (r *CampaignRepo) Delete(ctx context.Context, id string) error {
-	if err := r.repo.Delete(ctx, id); err != nil {
+func (r *CampaignRepo) Delete(ctx context.Context, userID domain.UserID, id string) error {
+	if err := r.repo.Delete(ctx, userID, id); err != nil {
 		return err
 	}
 
