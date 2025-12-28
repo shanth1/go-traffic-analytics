@@ -118,7 +118,7 @@ func (r *InMemoryLinkRepo) CountByUserID(_ context.Context, userID domain.UserID
 	return count, nil
 }
 
-func (r *InMemoryLinkRepo) Delete(ctx context.Context, userID domain.UserID, id domain.LinkID) error {
+func (r *InMemoryLinkRepo) Delete(_ context.Context, userID domain.UserID, id domain.LinkID) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

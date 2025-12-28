@@ -5,6 +5,7 @@ import (
 	"errors"
 	"sync"
 
+	"github.com/shanth1/gotools/errs"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
@@ -84,13 +85,13 @@ func (r *InMemoryUserRepo) IncrementUsage(_ context.Context, userID domain.UserI
 	return nil
 }
 
-func (r *InMemoryUserRepo) ResetUsage(ctx context.Context, userID domain.UserID) error {
+func (r *InMemoryUserRepo) ResetUsage(_ context.Context, userID domain.UserID) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	user, ok := r.users[userID]
 	if !ok {
-		return errors.New("user not found")
+		return errs.ErrNotFound
 	}
 
 	user.ClicksCurrentMonth = 0
