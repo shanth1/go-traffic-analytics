@@ -95,13 +95,6 @@ const docTemplate = `{
                 "summary": "Change user plan",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
                         "description": "New Plan ID",
                         "name": "request",
                         "in": "body",
@@ -138,6 +131,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -161,13 +160,6 @@ const docTemplate = `{
                 ],
                 "summary": "Update user status",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "description": "Status",
                         "name": "request",
@@ -202,6 +194,12 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -380,8 +378,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/v1.HeatmapResponse"
                         }
                     },
                     "401": {
@@ -496,8 +493,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/v1.StatsResponse"
                         }
                     },
                     "401": {
@@ -697,7 +693,13 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Invalid credentials",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -707,11 +709,6 @@ const docTemplate = `{
         },
         "/api/v1/auth/register": {
             "post": {
-                "security": [
-                    {
-                        "APIKeyAuth": []
-                    }
-                ],
                 "description": "Register a new user account",
                 "consumes": [
                     "application/json"
@@ -747,14 +744,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "409": {
+                        "description": "Email already taken",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "409": {
-                        "description": "Email already taken",
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -816,12 +813,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -877,43 +868,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/campaigns/tree": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get hierarchical structure of User -\u003e Campaigns -\u003e Links for Tree visualization",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Campaigns"
-                ],
-                "summary": "Profile Hierarchy",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/domain.HierarchyNode"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -923,28 +877,51 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/campaigns/{id}/links": {
+        "/api/v1/links": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get all links for a specific campaign",
+                "description": "Get links with filtering, search and pagination",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Links"
                 ],
-                "summary": "Get links",
+                "summary": "Get links list",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Campaign ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
+                        "description": "Filter by Campaign ID",
+                        "name": "campaign_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by slug or target URL",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by active status",
+                        "name": "is_active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit (default 10)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset (default 0)",
+                        "name": "offset",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -960,12 +937,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -973,9 +944,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/v1/links": {
+            },
             "post": {
                 "security": [
                     {
@@ -1024,7 +993,13 @@ const docTemplate = `{
                         }
                     },
                     "403": {
-                        "description": "Limit reached",
+                        "description": "Limit reached or Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1044,15 +1019,6 @@ const docTemplate = `{
                     "Links"
                 ],
                 "summary": "Delete link",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Link ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "204": {
                         "description": "No Content",
@@ -1066,8 +1032,39 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/tree": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get hierarchical structure of User -\u003e Campaigns -\u003e Links for Tree visualization",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Profile Hierarchy",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ProfileTreeResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1163,6 +1160,23 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "value": {
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.HeatmapPoint": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "Color intensity",
+                    "type": "integer"
+                },
+                "day": {
+                    "description": "0=Sun, 1=Mon, ..., 6=Sat",
+                    "type": "integer"
+                },
+                "hour": {
+                    "description": "0-23",
                     "type": "integer"
                 }
             }
@@ -1462,6 +1476,17 @@ const docTemplate = `{
                 "data": {}
             }
         },
+        "v1.HeatmapResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.HeatmapPoint"
+                    }
+                }
+            }
+        },
         "v1.LinkResponse": {
             "type": "object",
             "properties": {
@@ -1514,6 +1539,14 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.ProfileTreeResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/domain.HierarchyNode"
+                }
+            }
+        },
         "v1.QualityResponse": {
             "type": "object",
             "properties": {
@@ -1544,6 +1577,17 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/domain.SankeyData"
+                }
+            }
+        },
+        "v1.StatsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CategoryStat"
+                    }
                 }
             }
         },

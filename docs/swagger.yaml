@@ -21,6 +21,18 @@ definitions:
       value:
         type: integer
     type: object
+  domain.HeatmapPoint:
+    properties:
+      count:
+        description: Color intensity
+        type: integer
+      day:
+        description: 0=Sun, 1=Mon, ..., 6=Sat
+        type: integer
+      hour:
+        description: 0-23
+        type: integer
+    type: object
   domain.HierarchyNode:
     properties:
       children:
@@ -217,6 +229,13 @@ definitions:
     properties:
       data: {}
     type: object
+  v1.HeatmapResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/domain.HeatmapPoint'
+        type: array
+    type: object
   v1.LinkResponse:
     properties:
       data:
@@ -250,6 +269,11 @@ definitions:
           $ref: '#/definitions/domain.Plan'
         type: array
     type: object
+  v1.ProfileTreeResponse:
+    properties:
+      data:
+        $ref: '#/definitions/domain.HierarchyNode'
+    type: object
   v1.QualityResponse:
     properties:
       data:
@@ -271,6 +295,13 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/domain.SankeyData'
+    type: object
+  v1.StatsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/domain.CategoryStat'
+        type: array
     type: object
   v1.StreamGraphResponse:
     properties:
@@ -369,11 +400,6 @@ paths:
       - application/json
       description: Set new plan for user
       parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
       - description: New Plan ID
         in: body
         name: request
@@ -401,6 +427,10 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Change user plan
@@ -412,11 +442,6 @@ paths:
       - application/json
       description: Activate/Deactivate user
       parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
       - description: Status
         in: body
         name: request
@@ -442,6 +467,10 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
         "403":
           description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       security:
@@ -555,8 +584,7 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/v1.HeatmapResponse'
         "401":
           description: Unauthorized
           schema:
@@ -629,8 +657,7 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/v1.StatsResponse'
         "401":
           description: Unauthorized
           schema:
@@ -760,7 +787,11 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
         "401":
-          description: Unauthorized
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: Login user
@@ -789,16 +820,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
         "409":
           description: Email already taken
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - APIKeyAuth: []
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Register new user
       tags:
       - Auth
@@ -831,10 +860,6 @@ paths:
             $ref: '#/definitions/v1.CampaignsListResponse'
         "401":
           description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "403":
-          description: Forbidden
           schema:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
@@ -872,8 +897,8 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-        "403":
-          description: Forbidden
+        "500":
+          description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       security:
@@ -881,15 +906,30 @@ paths:
       summary: Create campaign
       tags:
       - Campaigns
-  /api/v1/campaigns/{id}/links:
+  /api/v1/links:
     get:
-      description: Get all links for a specific campaign
+      description: Get links with filtering, search and pagination
       parameters:
-      - description: Campaign ID
-        in: path
-        name: id
-        required: true
+      - description: Filter by Campaign ID
+        in: query
+        name: campaign_id
         type: string
+      - description: Search by slug or target URL
+        in: query
+        name: search
+        type: string
+      - description: Filter by active status
+        in: query
+        name: is_active
+        type: boolean
+      - description: Limit (default 10)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset (default 0)
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
@@ -901,44 +941,15 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Get links
+      summary: Get links list
       tags:
       - Links
-  /api/v1/campaigns/tree:
-    get:
-      description: Get hierarchical structure of User -> Campaigns -> Links for Tree
-        visualization
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.HierarchyNode'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Profile Hierarchy
-      tags:
-      - Campaigns
-  /api/v1/links:
     post:
       consumes:
       - application/json
@@ -966,7 +977,11 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
         "403":
-          description: Limit reached
+          description: Limit reached or Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       security:
@@ -977,12 +992,6 @@ paths:
   /api/v1/links/{id}:
     delete:
       description: Remove a link
-      parameters:
-      - description: Link ID
-        in: path
-        name: id
-        required: true
-        type: string
       responses:
         "204":
           description: No Content
@@ -990,10 +999,6 @@ paths:
             type: string
         "401":
           description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "403":
-          description: Forbidden
           schema:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
@@ -1005,6 +1010,30 @@ paths:
       summary: Delete link
       tags:
       - Links
+  /api/v1/users/tree:
+    get:
+      description: Get hierarchical structure of User -> Campaigns -> Links for Tree
+        visualization
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.ProfileTreeResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Profile Hierarchy
+      tags:
+      - Users
   /health:
     get:
       description: Check if the server is running
