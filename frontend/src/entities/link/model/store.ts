@@ -5,7 +5,6 @@ import type {
   LinksListResponse,
   LinkResponse,
   CreateLinkReq,
-  CampaignsListResponse,
 } from '@/shared/api/types';
 
 interface LinkStore {
@@ -22,27 +21,15 @@ export const useLinkStore = create<LinkStore>((set) => ({
   fetchLinks: async () => {
     set({ isLoading: true });
     try {
-      // 1. Получаем все кампании
-      const campaignsRes = await api.get<CampaignsListResponse>('/campaigns');
-      const campaigns = campaignsRes.data.data;
-
-      // 2. Для каждой кампании запрашиваем ссылки
-      const linksPromises = campaigns.map((c) =>
-        api.get<LinksListResponse>(`/campaigns/${c.id}/links`)
-      );
-
-      const responses = await Promise.all(linksPromises);
-
-      // 3. Объединяем все ссылки в один массив
-      const allLinks = responses.flatMap((res) => res.data.data);
+      const { data } = await api.get<LinksListResponse>('/links');
 
       // Сортируем по дате создания (новые сверху)
-      allLinks.sort(
+      data.data.sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
 
-      set({ links: allLinks });
+      set({ links: data.data });
     } catch (error) {
       console.error('Failed to fetch links', error);
     } finally {

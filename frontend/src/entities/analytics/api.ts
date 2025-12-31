@@ -6,6 +6,7 @@ import type {
   AnalyticsSummaryResponse,
   QualityResponse,
   TreeResponse,
+  StatsResponse,
 } from '@/shared/api/types';
 
 interface AnalyticsParams {
@@ -18,7 +19,7 @@ interface AnalyticsParams {
 
 export const analyticsApi = {
   getHierarchy: async () => {
-    const { data } = await api.get<TreeResponse>('/campaigns/tree');
+    const { data } = await api.get<TreeResponse>('/users/tree');
     return data.data;
   },
 
@@ -28,10 +29,10 @@ export const analyticsApi = {
   },
 
   getStats: async (dimension: 'browser' | 'os' | 'device') => {
-    const { data } = await api.get<Record<string, number>>('/analytics/stats', {
+    const { data } = await api.get<StatsResponse>('/analytics/stats', {
       params: { dimension },
     });
-    return data;
+    return data.data;
   },
 
   getSummary: async () => {
