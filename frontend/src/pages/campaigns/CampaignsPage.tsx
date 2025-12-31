@@ -48,7 +48,7 @@ const CampaignCard = ({ data }: CampaignCardProps) => (
           </span>
         </div>
         <Link
-          to={`/campaigns/${data.id}`}
+          to={`/links?campaign_id=${data.id}`}
           className="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
         >
           Детали <ArrowRightIcon size={14} />

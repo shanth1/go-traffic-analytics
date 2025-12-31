@@ -5,7 +5,7 @@ import {
   BarChart2Icon,
   TrashIcon,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { CreateLinkFeature } from '@/features/create-link/CreateLinkFeature';
 import { useLinkStore } from '@/entities/link/model/store';
 import { useCampaignStore } from '@/entities/campaign/model/store';
@@ -88,23 +88,28 @@ const LinkCard = ({ data }: LinkPageProps) => {
 };
 
 export const LinksPage = () => {
+  const [searchParams] = useSearchParams();
+  const campaignId = searchParams.get('campaign_id');
+
   const { links, fetchLinks, isLoading } = useLinkStore();
   const { fetchCampaigns } = useCampaignStore(); // Подгрузим кампании для формы
 
   useEffect(() => {
-    fetchLinks();
+    fetchLinks(campaignId ? { campaign_id: campaignId } : undefined);
     fetchCampaigns();
-  }, [fetchLinks, fetchCampaigns]);
+  }, [fetchLinks, fetchCampaigns, campaignId]);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
-            Ссылки
+            Ссылки{campaignId ? ` кампании ${campaignId}` : ''}
           </h1>
           <p className="text-slate-500">
-            Все ваши сокращенные ссылки в одном месте.
+            {campaignId
+              ? 'Ссылки выбранной кампании.'
+              : 'Все ваши сокращенные ссылки в одном месте.'}
           </p>
         </div>
         <CreateLinkFeature />
