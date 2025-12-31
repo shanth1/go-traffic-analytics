@@ -57,6 +57,9 @@ run-prod: ## Run app in prod mode
 run-frontend: ## Runs frontend application
 	cd frontend && yarn dev --host
 
+run-frontend-docker: ## Runs frontend application in Docker
+	docker-compose -f docker-compose.frontend.yml up --build
+
 ##@ Builds
 
 build: swagger ## Build binary for current OS
