@@ -241,17 +241,17 @@ func (mr *MockLinkServiceMockRecorder) CreateLink(ctx, cmd any) *gomock.Call {
 }
 
 // DeleteLink mocks base method.
-func (m *MockLinkService) DeleteLink(ctx context.Context, id domain.LinkID) error {
+func (m *MockLinkService) DeleteLink(ctx context.Context, userID domain.UserID, id domain.LinkID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteLink", ctx, id)
+	ret := m.ctrl.Call(m, "DeleteLink", ctx, userID, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteLink indicates an expected call of DeleteLink.
-func (mr *MockLinkServiceMockRecorder) DeleteLink(ctx, id any) *gomock.Call {
+func (mr *MockLinkServiceMockRecorder) DeleteLink(ctx, userID, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteLink", reflect.TypeOf((*MockLinkService)(nil).DeleteLink), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteLink", reflect.TypeOf((*MockLinkService)(nil).DeleteLink), ctx, userID, id)
 }
 
 // GetLinkList mocks base method.
@@ -306,6 +306,20 @@ func (m *MockCampaignService) CreateCampaign(ctx context.Context, userID domain.
 func (mr *MockCampaignServiceMockRecorder) CreateCampaign(ctx, userID, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCampaign", reflect.TypeOf((*MockCampaignService)(nil).CreateCampaign), ctx, userID, name)
+}
+
+// DeleteCampaign mocks base method.
+func (m *MockCampaignService) DeleteCampaign(ctx context.Context, userID domain.UserID, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteCampaign", ctx, userID, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCampaign indicates an expected call of DeleteCampaign.
+func (mr *MockCampaignServiceMockRecorder) DeleteCampaign(ctx, userID, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCampaign", reflect.TypeOf((*MockCampaignService)(nil).DeleteCampaign), ctx, userID, id)
 }
 
 // GetCampaigns mocks base method.

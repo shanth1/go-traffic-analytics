@@ -101,6 +101,20 @@ func (mr *MockUserRepositoryMockRecorder) IncrementUsage(ctx, userID, delta any)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrementUsage", reflect.TypeOf((*MockUserRepository)(nil).IncrementUsage), ctx, userID, delta)
 }
 
+// ResetUsage mocks base method.
+func (m *MockUserRepository) ResetUsage(ctx context.Context, userID domain.UserID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResetUsage", ctx, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ResetUsage indicates an expected call of ResetUsage.
+func (mr *MockUserRepositoryMockRecorder) ResetUsage(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetUsage", reflect.TypeOf((*MockUserRepository)(nil).ResetUsage), ctx, userID)
+}
+
 // Save mocks base method.
 func (m *MockUserRepository) Save(ctx context.Context, user *domain.User) error {
 	m.ctrl.T.Helper()
@@ -140,17 +154,17 @@ func (m *MockCampaignRepository) EXPECT() *MockCampaignRepositoryMockRecorder {
 }
 
 // Delete mocks base method.
-func (m *MockCampaignRepository) Delete(ctx context.Context, id string) error {
+func (m *MockCampaignRepository) Delete(ctx context.Context, userID domain.UserID, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, id)
+	ret := m.ctrl.Call(m, "Delete", ctx, userID, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockCampaignRepositoryMockRecorder) Delete(ctx, id any) *gomock.Call {
+func (mr *MockCampaignRepositoryMockRecorder) Delete(ctx, userID, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockCampaignRepository)(nil).Delete), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockCampaignRepository)(nil).Delete), ctx, userID, id)
 }
 
 // FindAllByUserID mocks base method.
@@ -319,6 +333,20 @@ func (mr *MockLinkRepositoryMockRecorder) CountByUserID(ctx, userID any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByUserID", reflect.TypeOf((*MockLinkRepository)(nil).CountByUserID), ctx, userID)
 }
 
+// Delete mocks base method.
+func (m *MockLinkRepository) Delete(ctx context.Context, userID domain.UserID, id domain.LinkID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, userID, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockLinkRepositoryMockRecorder) Delete(ctx, userID, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockLinkRepository)(nil).Delete), ctx, userID, id)
+}
+
 // FindAll mocks base method.
 func (m *MockLinkRepository) FindAll(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
 	m.ctrl.T.Helper()
@@ -332,6 +360,21 @@ func (m *MockLinkRepository) FindAll(ctx context.Context, filter domain.LinkFilt
 func (mr *MockLinkRepositoryMockRecorder) FindAll(ctx, filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockLinkRepository)(nil).FindAll), ctx, filter)
+}
+
+// FindByID mocks base method.
+func (m *MockLinkRepository) FindByID(ctx context.Context, id domain.LinkID) (*domain.Link, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByID", ctx, id)
+	ret0, _ := ret[0].(*domain.Link)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByID indicates an expected call of FindByID.
+func (mr *MockLinkRepositoryMockRecorder) FindByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockLinkRepository)(nil).FindByID), ctx, id)
 }
 
 // FindBySlug mocks base method.
