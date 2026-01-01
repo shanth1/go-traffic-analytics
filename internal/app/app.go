@@ -53,7 +53,9 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 			PasswordDefault: "password",
 		}
 		seeder := generator.New(userRepo, campRepo, linkRepo, analyticRepo, planRepo)
-		_ = seeder.Seed(context.Background(), cfg)
+		if err := seeder.Seed(context.Background(), cfg); err != nil {
+			logger.Fatal().Err(err).Msg("seeder")
+		}
 	}
 
 	ingestor := ingestor.NewBatchEventIngestor(analyticRepo, userRepo, geoProvider, logger)
