@@ -13,11 +13,12 @@ import (
 )
 
 type Config struct {
-	UsersCount      int
-	LinksPerUser    int
-	ClicksPerLink   int
-	DaysHistory     int
-	PasswordDefault string
+	UsersCount       int
+	CampaignPerUser  int
+	LinksPerCampaign int
+	ClicksPerLink    int
+	DaysHistory      int
+	PasswordDefault  string
 }
 
 type DataSeeder struct {
@@ -49,9 +50,15 @@ func New(
 func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 	fmt.Println("🚀 Starting Advanced Data Seeding...")
 
-	plans := s.seedPlans(ctx)
+	plans, err := s.seedPlans(ctx)
+	if err != nil {
+		return fmt.Errorf("seed plans: %w", err)
+	}
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte(cfg.PasswordDefault), 10)
+	hash, err := bcrypt.GenerateFromPassword([]byte(cfg.PasswordDefault), 10)
+	if err != nil {
+		return fmt.Errorf("password hash: %w", err)
+	}
 	admin := &domain.User{
 		ID:           domain.UserID(uuid.NewString()),
 		Email:        "admin@gotrace.com",
@@ -61,24 +68,32 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 		IsActive:     true,
 		CreatedAt:    time.Now().AddDate(0, -1, 0),
 	}
-	_ = s.userRepo.Save(ctx, admin)
+	if err := s.userRepo.Save(ctx, admin); err != nil {
+		return err
+	}
 
 	for i := 0; i < cfg.UsersCount; i++ {
 		plan := plans[s.rng.Intn(len(plans))]
 		user := s.generateUser(fmt.Sprintf("%d", i), plan.ID, cfg.PasswordDefault)
 		if err := s.userRepo.Save(ctx, user); err != nil {
-			continue
+			return err
 		}
 
-		for c := 0; c < s.rng.Intn(3)+1; c++ {
+		for c := 0; c < s.rng.Intn(cfg.CampaignPerUser)+1; c++ {
 			camp := s.generateCampaign(user.ID)
-			_ = s.campaignRepo.Save(ctx, camp)
+			if err := s.campaignRepo.Save(ctx, camp); err != nil {
+				return err
+			}
 
-			for l := 0; l < cfg.LinksPerUser; l++ {
+			for l := 0; l < cfg.LinksPerCampaign; l++ {
 				link := s.generateLink(user.ID, camp.ID)
-				_ = s.linkRepo.Save(ctx, link)
+				if err := s.linkRepo.Save(ctx, link); err != nil {
+					return err
+				}
 
-				s.seedClicks(ctx, link.ID, link.CampaignID, cfg.ClicksPerLink, cfg.DaysHistory)
+				if err := s.seedClicks(ctx, link.ID, link.CampaignID, cfg.ClicksPerLink, cfg.DaysHistory); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -87,8 +102,8 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 	return nil
 }
 
-func (s *DataSeeder) seedPlans(ctx context.Context) []*domain.Plan {
-	plans := []*domain.Plan{
+func (s *DataSeeder) seedPlans(ctx context.Context) ([]domain.Plan, error) {
+	plans := []domain.Plan{
 		{
 			ID:             "free",
 			Name:           "Free Plan",
@@ -121,9 +136,11 @@ func (s *DataSeeder) seedPlans(ctx context.Context) []*domain.Plan {
 		},
 	}
 	for _, p := range plans {
-		_ = s.planRepo.Save(ctx, p)
+		if err := s.planRepo.Save(ctx, &p); err != nil {
+			return nil, err
+		}
 	}
-	return plans
+	return plans, nil
 }
 
 func (s *DataSeeder) generateUser(id string, planID string, password string) *domain.User {
@@ -171,7 +188,7 @@ func (s *DataSeeder) generateLink(userID domain.UserID, campID string) *domain.L
 	}
 }
 
-func (s *DataSeeder) seedClicks(ctx context.Context, linkID domain.LinkID, campID string, count int, days int) {
+func (s *DataSeeder) seedClicks(ctx context.Context, linkID domain.LinkID, campID string, count int, days int) error {
 	clickEvents := make([]*domain.ClickEvent, 0)
 	for i := 0; i < count; i++ {
 		hour := s.getWeightedHour()
@@ -196,7 +213,11 @@ func (s *DataSeeder) seedClicks(ctx context.Context, linkID domain.LinkID, campI
 		}
 		clickEvents = append(clickEvents, click)
 	}
-	_ = s.analyticsRepo.SaveBatch(ctx, clickEvents)
+	if err := s.analyticsRepo.SaveBatch(ctx, clickEvents); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type geoPair struct{ Country, City string }
