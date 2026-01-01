@@ -9,6 +9,10 @@ import (
 
 type Envelope map[string]interface{}
 
+type DataResponse[T any] struct {
+	Data T
+}
+
 func JSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
