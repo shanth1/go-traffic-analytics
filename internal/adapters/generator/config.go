@@ -33,13 +33,13 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		Seed:                 12345,
-		UsersCount:           10,
-		HistoryDays:          30,
-		CampaignsPerUser:     struct{ Min, Max int }{Min: 1, Max: 5},
-		LinksPerCampaign:     struct{ Min, Max int }{Min: 2, Max: 10},
-		ClicksPerLink:        struct{ Min, Max int }{Min: 50, Max: 500},
+		UsersCount:           5,
+		CampaignsPerUser:     IntRange{Min: 2, Max: 5},
+		LinksPerCampaign:     IntRange{Min: 10, Max: 20},
+		ClicksPerLink:        IntRange{Min: 100, Max: 1000},
+		HistoryDays:          90,
 		ViralLinkProbability: 0.05,
-		BatchSize:            1000,
-		PasswordDefault:      "password123",
+		BatchSize:            100,
+		PasswordDefault:      "password",
 	}
 }
