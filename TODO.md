@@ -1,7 +1,7 @@
 # TODO
 
 ## Jan 2026 (stage 1)
-- [ ] generator
+- [x] generator
 - [ ] http common logic (request, response and logging)
 - [ ] handler logging (info, warn, etc.)
 - [ ] handler and http tests

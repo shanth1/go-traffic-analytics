@@ -45,7 +45,7 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	planRepo := cached.NewPlanRepo(basePlanRepo, cache, 24*time.Hour)
 
 	if cfg.Env != consts.EnvProd {
-		seeder := generator.New(userRepo, campRepo, linkRepo, analyticRepo, planRepo)
+		seeder := generator.New(logger, userRepo, campRepo, linkRepo, analyticRepo, planRepo)
 		if err := seeder.Seed(context.Background(), generator.DefaultConfig()); err != nil {
 			logger.Fatal().Err(err).Msg("seeder")
 		}

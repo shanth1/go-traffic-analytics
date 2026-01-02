@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type DataSeeder struct {
+	logger        log.Logger
 	userRepo      ports.UserRepository
 	campaignRepo  ports.CampaignRepository
 	linkRepo      ports.LinkRepository
@@ -22,13 +24,16 @@ type DataSeeder struct {
 }
 
 func New(
+	logger log.Logger,
 	ur ports.UserRepository,
 	cr ports.CampaignRepository,
 	lr ports.LinkRepository,
 	ar ports.AnalyticsRepository,
 	pr ports.PlanRepository,
 ) *DataSeeder {
+	logger = logger.With(log.Str("module", "generator"))
 	return &DataSeeder{
+		logger:        logger,
 		userRepo:      ur,
 		campaignRepo:  cr,
 		linkRepo:      lr,
@@ -44,7 +49,7 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 	}
 	s.rng = rand.New(rand.NewSource(seed))
 
-	fmt.Printf("🚀 Starting Seeding (Seed: %d)...\n", seed)
+	s.logger.Info().Int64("seed", seed).Msg("starting data seeding")
 
 	plans, err := s.seedPlans(ctx)
 	if err != nil {
@@ -61,7 +66,12 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 		return err
 	}
 
-	for i := 0; i < cfg.UsersCount; i++ {
+	for i := 1; i <= cfg.UsersCount; i++ {
+		var (
+			userTotalLinks  = 0
+			userTotalClicks = 0
+		)
+
 		plan := plans[s.rng.Intn(len(plans))]
 		user := s.generateUser(i, plan.ID, passHashStr)
 
@@ -70,6 +80,7 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 		}
 
 		campCount := s.randomRange(cfg.CampaignsPerUser.Min, cfg.CampaignsPerUser.Max)
+
 		for c := 0; c < campCount; c++ {
 			camp := s.generateCampaign(user.ID)
 			if err := s.campaignRepo.Save(ctx, camp); err != nil {
@@ -77,6 +88,8 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 			}
 
 			linkCount := s.randomRange(cfg.LinksPerCampaign.Min, cfg.LinksPerCampaign.Max)
+			userTotalLinks += linkCount
+
 			for l := 0; l < linkCount; l++ {
 				link := s.generateLink(user.ID, camp.ID)
 				if err := s.linkRepo.Save(ctx, link); err != nil {
@@ -87,8 +100,10 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 				isViral := s.rng.Float64() < cfg.ViralLinkProbability
 				if isViral {
 					clicksCount *= 10
-					fmt.Printf("🔥 Viral link generated: %s (%d clicks)\n", link.Slug, clicksCount)
+					s.logger.Debug().Str("slug", link.Slug).Int("clicks", clicksCount).Msg("Viral link generated")
 				}
+
+				userTotalClicks += clicksCount
 
 				if err := s.seedClicksBatch(ctx, link, clicksCount, cfg); err != nil {
 					return err
@@ -96,12 +111,16 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 			}
 		}
 
-		if (i+1)%1 == 0 {
-			fmt.Printf("👤 Processed %d/%d users...\n", i+1, cfg.UsersCount)
-		}
+		s.logger.Info().
+			Str("plan", plan.Name).
+			Str("email", user.Email).
+			Int("campaigns", campCount).
+			Int("links", userTotalLinks).
+			Int("clicks", userTotalClicks).
+			Msg("user seeded")
 	}
 
-	fmt.Println("✨ Seeding Completed Successfully!")
+	s.logger.Info().Msg("seeding completed successfully")
 	return nil
 }
 
@@ -163,8 +182,8 @@ func (s *DataSeeder) seedClicksBatch(ctx context.Context, link *domain.Link, tot
 
 func (s *DataSeeder) seedPlans(ctx context.Context) ([]domain.Plan, error) {
 	plans := []domain.Plan{
-		{ID: "free", Name: "Free Plan", PriceCents: 0, MaxLinks: 5, MaxClicksMonth: 1000, CanExportData: false, IsActive: true},
-		{ID: "pro", Name: "Pro Plan", PriceCents: 1900, MaxLinks: 100, MaxClicksMonth: 50000, CanExportData: true, IsActive: true},
+		{ID: "free", Name: "Free", PriceCents: 0, MaxLinks: 5, MaxClicksMonth: 1000, CanExportData: false, IsActive: true},
+		{ID: "pro", Name: "Pro", PriceCents: 1900, MaxLinks: 100, MaxClicksMonth: 50000, CanExportData: true, IsActive: true},
 		{ID: "enterprise", Name: "Enterprise", PriceCents: 9900, MaxLinks: -1, MaxClicksMonth: 1000000, CanExportData: true, IsActive: true},
 	}
 	for _, p := range plans {
@@ -175,9 +194,10 @@ func (s *DataSeeder) seedPlans(ctx context.Context) ([]domain.Plan, error) {
 }
 
 func (s *DataSeeder) createAdmin(ctx context.Context, hash string) error {
+	email := "admin@gotrace.com"
 	admin := &domain.User{
 		ID:           domain.UserID(uuid.NewString()),
-		Email:        "admin@gotrace.com",
+		Email:        email,
 		PasswordHash: hash,
 		Role:         domain.RoleAdmin,
 		PlanID:       "enterprise",
@@ -189,6 +209,7 @@ func (s *DataSeeder) createAdmin(ctx context.Context, hash string) error {
 		return err
 	}
 
+	s.logger.Info().Str("email", email).Msg("admin created")
 	return nil
 }
 
