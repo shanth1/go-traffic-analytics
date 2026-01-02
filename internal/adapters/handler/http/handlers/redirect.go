@@ -50,18 +50,15 @@ func (h *RedirectHandler) Redirect(w http.ResponseWriter, r *http.Request) {
 // --- Helpers ---
 
 func getRealIP(r *http.Request) string {
-	// Проверяем X-Forwarded-For
 	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
 		ips := strings.Split(xff, ",")
 		return strings.TrimSpace(ips[0]) // (client, proxy1, proxy2)
 	}
 
-	// X-Real-IP
 	if xrip := r.Header.Get("X-Real-IP"); xrip != "" {
 		return xrip
 	}
 
-	// Fallback на RemoteAddr
 	ip, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return r.RemoteAddr

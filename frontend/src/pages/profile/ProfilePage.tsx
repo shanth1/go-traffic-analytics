@@ -22,19 +22,15 @@ export const ProfilePage = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // 1. Дерево кампаний
         const tree = await analyticsApi.getHierarchy();
         setTreeData(tree);
 
-        // 2. География
         const geo = await analyticsApi.getGeoStats();
         setGeoData(geo);
 
-        // 3. Общая сводка (клики и топы)
         const sum = await analyticsApi.getSummary();
         setSummary(sum);
 
-        // Преобразуем массив Top Browsers в формат для DonutChart { name: value }
         if (sum && sum.top_browsers) {
           const bStats: Record<string, number> = {};
           sum.top_browsers.forEach((b) => {

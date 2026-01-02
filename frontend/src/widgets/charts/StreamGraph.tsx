@@ -31,9 +31,7 @@ interface StreamGraphProps {
   keys: string[];
 }
 
-// Аксессоры
 const getDate = (d: StreamChartData) => d.time;
-// Типизированный бисектор
 const bisectDate = bisector<StreamChartData, Date>((d) => d.time).left;
 
 const StreamGraphBase = ({
@@ -58,11 +56,9 @@ const StreamGraphBase = ({
   const width = parentWidth;
   const height = parentHeight;
 
-  // Размеры области рисования
   const xMax = width - margin.left - margin.right;
   const yMax = height - margin.top - margin.bottom;
 
-  // --- Шкалы ---
   const xScale = useMemo(
     () =>
       scaleTime({
@@ -102,7 +98,6 @@ const StreamGraphBase = ({
     [keys]
   );
 
-  // --- Обработчик событий ---
   const handleTooltip = useCallback(
     (
       event: React.TouchEvent<SVGRectElement> | React.MouseEvent<SVGRectElement>
@@ -161,8 +156,6 @@ const StreamGraphBase = ({
             y1={(d) => yScale(d[1])}
             value={(d, key) => (d[key] as number) || 0}
             curve={curveMonotoneX}
-            // offset="wiggle" // Раскомментируйте для режима "Реки"
-            // order="insideOut"
           >
             {({ stacks, path }) =>
               stacks.map((stack) => (
@@ -241,7 +234,7 @@ const StreamGraphBase = ({
             backgroundColor: '#1e293b',
             color: 'white',
             minWidth: 120,
-            zIndex: 100, // Убедимся, что тултип поверх всего
+            zIndex: 100,
           }}
         >
           <div className="text-xs font-bold mb-1">

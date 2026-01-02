@@ -5,22 +5,14 @@ import {
   Navigate,
   Outlet,
 } from 'react-router-dom';
-
-// Layouts & Widgets
 import { MainLayout } from '@/widgets/layouts/MainLayout';
-
-// Pages
 import { LoginPage } from '@/pages/login/LoginPage';
 import { CampaignsPage } from '@/pages/campaigns/CampaignsPage';
 import { LinksPage } from '@/pages/links/LinksPage';
-// Placeholders (Future Part 3)
 import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { AnalyticsPage } from '@/pages/analytics/AnalyticsPage';
-
-// Store
 import { useAuthStore } from '@/entities/session/store';
 
-// Компонент для защиты маршрутов
 const ProtectedRoute = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
@@ -29,7 +21,6 @@ const ProtectedRoute = () => {
   }
 
   return <MainLayout />;
-  // MainLayout внутри себя содержит <Outlet />, куда будут подставляться страницы
 };
 
 const PublicRoute = () => {

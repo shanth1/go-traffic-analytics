@@ -68,8 +68,7 @@ type AnalyticsRepository interface {
 
 	GetHeatmapData(ctx context.Context, filter domain.AnalyticsFilter) ([]domain.HeatmapPoint, error)
 
-	// Для Pie/Bar/Donut/Geo
+	// Pie/Bar/Donut/Geo
 	// dimension: "browser", "os", "country", "referer"
-	// limit: например, топ 10 + "Others"
 	GetTopStats(ctx context.Context, filter domain.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error)
 }

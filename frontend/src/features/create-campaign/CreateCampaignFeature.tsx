@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PlusIcon } from 'lucide-react';
-import { Button } from '@/shared/ui/button'; // Assume shadcn/generic button
-import { Input } from '@/shared/ui/input'; // Assume generic input
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
 import { ResponsiveSheet } from '@/shared/ui/responsive-sheet';
 import { useCampaignStore } from '@/entities/campaign/model/store';
 

@@ -18,7 +18,6 @@ type LinkFilter struct {
 	Offset     int
 }
 
-// AnalyticsFilter для всех отчетов
 type AnalyticsFilter struct {
 	UserID     UserID
 	LinkID     LinkID
@@ -27,7 +26,6 @@ type AnalyticsFilter struct {
 	To         time.Time
 }
 
-// RequestMetadata — контекст клика (передается из HTTP хендлера)
 type RequestMetadata struct {
 	IP        string
 	UserAgent string

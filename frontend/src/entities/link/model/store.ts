@@ -41,7 +41,6 @@ export const useLinkStore = create<LinkStore>((set) => ({
       const url = `/links${params.toString() ? '?' + params.toString() : ''}`;
       const { data } = await api.get<LinksListResponse>(url);
 
-      // Сортируем по дате создания (новые сверху)
       data.data.sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()

@@ -18,7 +18,6 @@ export const MainLayout = () => {
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-50 overflow-hidden">
       {/* --- Desktop Sidebar --- */}
-      {/* Добавляем flex-shrink-0, чтобы сайдбар не сжимался */}
       <aside className="hidden md:flex flex-col w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 fixed inset-y-0 left-0 z-40 shrink-0">
         <div className="p-6">
           <h1 className="text-2xl font-bold tracking-tight text-indigo-600">

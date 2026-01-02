@@ -13,12 +13,11 @@ export const CreateLinkFeature = () => {
   const [campaignId, setCampaignId] = useState('');
 
   const addLink = useLinkStore((s) => s.addLink);
-  const campaigns = useCampaignStore((s) => s.campaigns); // Для селекта
+  const campaigns = useCampaignStore((s) => s.campaigns);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url) return;
-    // Если кампания не выбрана, берем первую или дефолтную (в реале валидация)
     const targetCampaign = campaignId || (campaigns[0]?.id ?? 'default');
     await addLink(targetCampaign, url, slug);
     setUrl('');

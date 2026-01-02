@@ -6,7 +6,7 @@ import { withParentSize } from '@visx/responsive';
 import type {
   HierarchyPointNode,
   HierarchyPointLink,
-} from '@visx/hierarchy/lib/types'; // Импорт типов
+} from '@visx/hierarchy/lib/types';
 import type { HierarchyNode } from '@/shared/api/types';
 
 interface TreeProps {
@@ -25,17 +25,11 @@ const HierarchyTreeBase = ({
 
   const root = useMemo(() => hierarchy<HierarchyNode>(data), [data]);
 
-  // !!! Исправление 3 (Hooks): Перемещаем проверку width ниже хуков,
-  // но т.к. Cluster сам внутри использует хуки, просто вернем null внутри SVG или
-  // позволим visx обработать это.
-  // Лучше всего вернуть null в самом низу рендера, если width 0.
-
   return (
     <svg width={width} height={height}>
       {width > 10 && (
         <Cluster<HierarchyNode> root={root} size={[width - 40, height - 100]}>
           {(rootNode) => {
-            // Исправление 2: Cluster передает сам rootNode (HierarchyPointNode), а не объект
             const nodes = rootNode.descendants();
             const links = rootNode.links();
 

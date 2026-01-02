@@ -18,7 +18,6 @@ const CampaignCard = ({ data }: CampaignCardProps) => (
         <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg text-indigo-600 dark:text-indigo-400">
           <FolderIcon size={24} />
         </div>
-        {/* Mock mini chart placeholder */}
         <div className="flex space-x-1 items-end h-8">
           {[40, 70, 45, 90, 60].map((h, i) => (
             <div

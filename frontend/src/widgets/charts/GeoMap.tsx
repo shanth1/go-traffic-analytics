@@ -105,7 +105,7 @@ const GeoMapBase = ({
                 <path
                   key={`map-feature-${i}`}
                   d={mercator.path(feature.feature) || ''}
-                  fill={hasData ? colorScale(value) : '#e2e8f0'} // #e2e8f0 - цвет стран без данных
+                  fill={hasData ? colorScale(value) : '#e2e8f0'}
                   stroke="#ffffff"
                   strokeWidth={0.5}
                   className="transition-all duration-200 outline-none hover:opacity-80"

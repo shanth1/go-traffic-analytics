@@ -21,7 +21,6 @@ export const useCampaignStore = create<CampaignStore>((set) => ({
     set({ isLoading: true });
     try {
       const { data } = await api.get<CampaignsListResponse>('/campaigns');
-      // Swagger возвращает { data: Campaign[] }
       set({ campaigns: data.data });
     } catch (error) {
       console.error('Failed to fetch campaigns', error);

@@ -56,7 +56,6 @@ export const analyticsApi = {
   },
 
   getHeatmap: async (linkId: string) => {
-    // Для heatmap тип ответа сложнее (nested object), пока оставляем inline типизацию или Record
     const { data } = await api.get<{
       [day: string]: { [hour: string]: number };
     }>('/analytics/heatmap', { params: { link_id: linkId } });

@@ -19,7 +19,6 @@ export const AnalyticsPage = () => {
       try {
         const rawData = await analyticsApi.getStream(id);
 
-        // 1. Собираем все уникальные ключи
         const allKeysSet = new Set<string>();
         rawData.forEach((item) => {
           if (item.values) {
@@ -28,28 +27,20 @@ export const AnalyticsPage = () => {
         });
         const collectedKeys = Array.from(allKeysSet);
 
-        // 2. Трансформируем данные
         const processedData: StreamChartData[] = rawData.map((d) => {
-          // Инициализируем объект. TypeScript знает, что time - это Date.
           const point: StreamChartData = {
             time: new Date(d.time),
           };
 
-          // Заполняем динамические ключи
           collectedKeys.forEach((key) => {
-            // Используем оператор ?? (nullish coalescing), чтобы не потерять 0, если он придет явно
-            // d.values?.[key] вернет number или undefined
             const value = d.values?.[key] ?? 0;
 
-            // Присваиваем значение.
-            // TS не ругается, так как value (number) входит в тип (number | Date)
             point[key] = value;
           });
 
           return point;
         });
 
-        // 3. Сортируем
         processedData.sort((a, b) => a.time.getTime() - b.time.getTime());
 
         setKeys(collectedKeys);
@@ -66,8 +57,6 @@ export const AnalyticsPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* ... Ваш заголовок ... */}
-
       <Card>
         <CardHeader>
           <CardTitle>Динамика трафика (Stream)</CardTitle>
@@ -89,8 +78,6 @@ export const AnalyticsPage = () => {
           )}
         </CardContent>
       </Card>
-
-      {/* ... Остальные карточки ... */}
     </div>
   );
 };

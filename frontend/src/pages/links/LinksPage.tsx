@@ -23,12 +23,10 @@ const LinkCard = ({ data }: LinkPageProps) => {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(`http://short.ly/${data.slug}`);
-    // Можно добавить toast уведомление
   };
 
   return (
     <Card className="p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-white dark:bg-slate-950 hover:border-indigo-300 transition-colors">
-      {/* Icon Status */}
       <div
         className={cn(
           'w-12 h-12 rounded-full flex items-center justify-center shrink-0',
@@ -40,7 +38,6 @@ const LinkCard = ({ data }: LinkPageProps) => {
         <ExternalLinkIcon size={20} />
       </div>
 
-      {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <h4 className="font-bold text-lg truncate">/{data.slug}</h4>
@@ -59,7 +56,6 @@ const LinkCard = ({ data }: LinkPageProps) => {
         </div>
       </div>
 
-      {/* Actions */}
       <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 border-t sm:border-t-0 pt-3 sm:pt-0">
         <Button
           variant="outline"
@@ -92,7 +88,7 @@ export const LinksPage = () => {
   const campaignId = searchParams.get('campaign_id');
 
   const { links, fetchLinks, isLoading } = useLinkStore();
-  const { fetchCampaigns } = useCampaignStore(); // Подгрузим кампании для формы
+  const { fetchCampaigns } = useCampaignStore();
 
   useEffect(() => {
     fetchLinks(campaignId ? { campaign_id: campaignId } : undefined);
