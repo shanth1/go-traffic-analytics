@@ -46,12 +46,15 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 
 	if cfg.Env != consts.EnvProd {
 		cfg := generator.Config{
-			UsersCount:       5,
-			CampaignPerUser:  3,
-			LinksPerCampaign: 5,
-			ClicksPerLink:    20,
-			DaysHistory:      30,
-			PasswordDefault:  "password",
+			Seed:                 12345,
+			UsersCount:           5,
+			CampaignsPerUser:     generator.IntRange{Min: 2, Max: 5},
+			LinksPerCampaign:     generator.IntRange{Min: 10, Max: 20},
+			ClicksPerLink:        generator.IntRange{Min: 100, Max: 1000},
+			HistoryDays:          90,
+			ViralLinkProbability: 0.05,
+			BatchSize:            100,
+			PasswordDefault:      "password",
 		}
 		seeder := generator.New(userRepo, campRepo, linkRepo, analyticRepo, planRepo)
 		if err := seeder.Seed(context.Background(), cfg); err != nil {
