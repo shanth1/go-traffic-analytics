@@ -190,7 +190,6 @@ definitions:
   response.ErrorResponse:
     properties:
       error:
-        example: message
         type: string
     type: object
   v1.AnalyticsSummaryResponse:
