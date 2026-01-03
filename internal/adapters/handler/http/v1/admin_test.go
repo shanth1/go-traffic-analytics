@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports/mocks"
+	"github.com/shanth1/gotrace/internal/pkg/http/response"
 	"go.uber.org/mock/gomock"
 )
 
@@ -100,8 +101,12 @@ func TestAdminHandler_UpdateUserStatus(t *testing.T) {
 		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 			t.Errorf("failed to unmarshal response: %v", err)
 		}
-		if resp["status"] != "updated" {
-			t.Errorf("expected status 'updated', got %v", resp["status"])
+		if data, ok := resp["data"].(map[string]interface{}); ok {
+			if data["status"] != "updated" {
+				t.Errorf("expected status 'updated', got %v", data["status"])
+			}
+		} else {
+			t.Errorf("expected data key in response")
 		}
 	})
 
@@ -169,13 +174,15 @@ func TestAdminHandler_UpdateUserPlan(t *testing.T) {
 			t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
 		}
 
-		var resp map[string]interface{}
+		var resp response.DataResponse[struct{ Status string }]
 		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 			t.Errorf("failed to unmarshal response: %v", err)
 		}
-		if resp["status"] != "updated" {
-			t.Errorf("expected status 'updated', got %v", resp["status"])
+
+		if resp.Data.Status != "updated" {
+			t.Errorf("expected status 'updated', got %v", resp.Data.Status)
 		}
+
 	})
 
 	t.Run("bad request - invalid json", func(t *testing.T) {

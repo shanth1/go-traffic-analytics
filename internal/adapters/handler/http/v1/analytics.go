@@ -70,7 +70,7 @@ func (h *AnalyticsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_summary_retrieved")
 
-	response.Success(w, r, response.Envelope{"data": summary})
+	response.Success(w, r, summary)
 }
 
 // GetStreamGraph godoc

@@ -10,6 +10,7 @@ import (
 
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports/mocks"
+	"github.com/shanth1/gotrace/internal/pkg/http/response"
 	"go.uber.org/mock/gomock"
 )
 
@@ -48,13 +49,15 @@ func TestAuthHandler_Register(t *testing.T) {
 			t.Errorf("expected status %d, got %d", http.StatusCreated, w.Code)
 		}
 
-		var resp map[string]interface{}
+		var resp response.DataResponse[domain.User]
 		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 			t.Errorf("failed to unmarshal response: %v", err)
 		}
-		if resp["id"] != "user123" {
-			t.Errorf("expected user ID 'user123', got %v", resp["id"])
+
+		if resp.Data.ID != "user123" {
+			t.Errorf("expected user ID 'user123', got %v", resp.Data.ID)
 		}
+
 	})
 
 	t.Run("service error", func(t *testing.T) {
@@ -132,13 +135,21 @@ func TestAuthHandler_Login(t *testing.T) {
 			t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
 		}
 
-		var resp map[string]interface{}
+		var resp response.DataResponse[struct {
+			Token string
+			User  domain.User
+		}]
 		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 			t.Errorf("failed to unmarshal response: %v", err)
 		}
-		if resp["token"] != expectedToken {
-			t.Errorf("expected token %s, got %v", expectedToken, resp["token"])
+
+		if resp.Data.Token != expectedToken {
+			t.Errorf("expected token %s, got %v", expectedToken, resp.Data.Token)
 		}
+		if resp.Data.User.ID != "user123" {
+			t.Errorf("expected user ID 'user123', got %v", resp.Data.User.ID)
+		}
+
 	})
 
 	t.Run("service error", func(t *testing.T) {

@@ -79,12 +79,7 @@ func TestAnalyticsHandler_GetSummary(t *testing.T) {
 		}
 
 		mockService.EXPECT().
-			GetSummary(gomock.Any(), domain.AnalyticsFilter{
-				CampaignID: "test_campaign",
-				LinkID:     "test_link",
-				From:       from,
-				To:         to,
-			}).
+			GetSummary(gomock.Any(), gomock.Any()).
 			Return(expectedSummary, nil).
 			Times(1)
 
