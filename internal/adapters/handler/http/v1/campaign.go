@@ -1,9 +1,9 @@
 package v1
 
 import (
-	"encoding/json"
 	"net/http"
 
+	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
@@ -43,7 +43,7 @@ func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 		campaigns = []*domain.Campaign{}
 	}
 
-	response.JSON(w, http.StatusOK, response.Envelope{"data": campaigns})
+	response.Success(w, r, response.Envelope{"data": campaigns})
 }
 
 // CreateCampaign godoc
@@ -63,13 +63,13 @@ func (h *CampaignHandler) CreateCampaign(w http.ResponseWriter, r *http.Request)
 	userID := request.GetUserID(r)
 
 	var req CreateCampaignRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error(w, http.StatusBadRequest, "invalid request body")
+	if err := request.DecodeJSON(w, r, &req); err != nil {
+		response.ClientError(w, r, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if req.Name == "" {
-		response.Error(w, http.StatusBadRequest, "name is required")
+		response.ClientError(w, r, http.StatusBadRequest, "name is required")
 		return
 	}
 
@@ -79,5 +79,7 @@ func (h *CampaignHandler) CreateCampaign(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	response.JSON(w, http.StatusCreated, response.Envelope{"data": camp})
+	log.FromContext(r.Context()).Info().Str("campaign_id", string(camp.ID)).Str("user_id", string(userID)).Str("name", camp.Name).Msg("campaign_created")
+
+	response.Created(w, r, response.Envelope{"data": camp})
 }

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/consts"
@@ -67,7 +68,9 @@ func (h *AnalyticsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusOK, response.Envelope{"data": summary})
+	log.FromContext(r.Context()).Info().Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_summary_retrieved")
+
+	response.Success(w, r, response.Envelope{"data": summary})
 }
 
 // GetStreamGraph godoc
@@ -100,7 +103,9 @@ func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	response.JSON(w, http.StatusOK, response.Envelope{"data": data})
+	log.FromContext(r.Context()).Info().Str("group_by", groupBy).Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_stream_graph_retrieved")
+
+	response.Success(w, r, response.Envelope{"data": data})
 }
 
 // GetSankeyFlow godoc
@@ -128,7 +133,9 @@ func (h *AnalyticsHandler) GetSankeyFlow(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	response.JSON(w, http.StatusOK, response.Envelope{"data": data})
+	log.FromContext(r.Context()).Info().Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_sankey_flow_retrieved")
+
+	response.Success(w, r, response.Envelope{"data": data})
 }
 
 // GetGeoMap godoc
@@ -155,7 +162,9 @@ func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusOK, response.Envelope{"data": data})
+	log.FromContext(r.Context()).Info().Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_geo_map_retrieved")
+
+	response.Success(w, r, response.Envelope{"data": data})
 }
 
 // GetQualityRadar godoc
@@ -182,7 +191,9 @@ func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	response.JSON(w, http.StatusOK, response.Envelope{"data": data})
+	log.FromContext(r.Context()).Info().Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_quality_radar_retrieved")
+
+	response.Success(w, r, response.Envelope{"data": data})
 }
 
 // GetHeatmap godoc
@@ -204,7 +215,10 @@ func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
 		response.ServerError(w, r, err)
 		return
 	}
-	response.JSON(w, http.StatusOK, response.Envelope{"data": data})
+
+	log.FromContext(r.Context()).Info().Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_heatmap_retrieved")
+
+	response.Success(w, r, response.Envelope{"data": data})
 }
 
 // GetStats godoc
@@ -230,5 +244,8 @@ func (h *AnalyticsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 		response.ServerError(w, r, err)
 		return
 	}
-	response.JSON(w, http.StatusOK, response.Envelope{"data": data})
+
+	log.FromContext(r.Context()).Info().Str("dimension", dim).Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_stats_retrieved")
+
+	response.Success(w, r, response.Envelope{"data": data})
 }

@@ -62,20 +62,24 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	userService := services.NewUserService(userRepo, planRepo, campRepo, linkRepo)
 	billingService := services.NewBillingService(planRepo)
 
-	httpHandler := transport.NewRouter(
-		cfg,
-		authService,
-		analyticsService,
-		campaignService,
-		linkService,
-		redirectService,
-		userService,
-		billingService,
-		linkRepo,
-		userRepo,
-		planRepo,
-		logger,
-	)
+	httpHandler := transport.NewRouter(transport.Container{
+		Cfg:    cfg,
+		Logger: logger,
+		Services: transport.Services{
+			Auth:      authService,
+			Analytics: analyticsService,
+			Campaign:  campaignService,
+			Link:      linkService,
+			Redirect:  redirectService,
+			User:      userService,
+			Billing:   billingService,
+		},
+		Repos: transport.Repositories{
+			Link: linkRepo,
+			User: userRepo,
+			Plan: planRepo,
+		},
+	})
 
 	runHTTPServer(ctx, shutdownCtx, cfg, httpHandler, logger)
 }

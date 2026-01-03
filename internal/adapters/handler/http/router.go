@@ -18,29 +18,41 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+type Container struct {
+	Cfg      *config.Config
+	Logger   log.Logger
+	Services Services
+	Repos    Repositories
+}
+
+type Services struct {
+	Auth      ports.AuthService
+	Analytics ports.AnalyticsService
+	Campaign  ports.CampaignService
+	Link      ports.LinkService
+	Redirect  ports.RedirectService
+	User      ports.UserService
+	Billing   ports.BillingService
+}
+
+type Repositories struct {
+	Link ports.LinkRepository
+	User ports.UserRepository
+	Plan ports.PlanRepository
+}
+
 // TODO: router config struct
 func NewRouter(
-	cfg *config.Config,
-	authService ports.AuthService,
-	analyticsService ports.AnalyticsService,
-	campaignService ports.CampaignService,
-	linkService ports.LinkService,
-	redirectService ports.RedirectService,
-	userService ports.UserService,
-	billingService ports.BillingService,
-	linkRepo ports.LinkRepository,
-	userRepo ports.UserRepository,
-	planRepo ports.PlanRepository,
-	logger log.Logger,
+	c Container,
 ) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(httpMw.Logger(logger))
+	r.Use(httpMw.Logger(c.Logger))
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"}, // TODO: cfg.HTTP.AllowedOrigins
+		AllowedOrigins:   []string{"*"}, // TODO: c.Cfg.HTTP.AllowedOrigins
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
@@ -48,35 +60,35 @@ func NewRouter(
 		MaxAge:           300,
 	}))
 	r.Use(httpMw.Metrics)
-	r.Use(middleware.Timeout(cfg.HTTP.RequestTimeout))
+	r.Use(middleware.Timeout(c.Cfg.HTTP.RequestTimeout))
 
-	redirectHandler := handlers.NewRedirectHandler(redirectService)
+	redirectHandler := handlers.NewRedirectHandler(c.Services.Redirect)
 
 	// Handlers
-	authHandlerV1 := v1.NewAuthHandler(authService)
-	adminHandlerV1 := v1.NewAdminHandler(userService)
-	userHandlerV1 := v1.NewUserHandler(userService)
-	campaignHandlerV1 := v1.NewCampaignHandler(campaignService)
-	linkHandlerV1 := v1.NewLinkHandler(linkService, campaignService)
-	analyticsHandlerV1 := v1.NewAnalyticsHandler(analyticsService)
-	billingHandlerV1 := v1.NewBillingHandler(billingService)
+	authHandlerV1 := v1.NewAuthHandler(c.Services.Auth)
+	adminHandlerV1 := v1.NewAdminHandler(c.Services.User)
+	userHandlerV1 := v1.NewUserHandler(c.Services.User)
+	campaignHandlerV1 := v1.NewCampaignHandler(c.Services.Campaign)
+	linkHandlerV1 := v1.NewLinkHandler(c.Services.Link, c.Services.Campaign)
+	analyticsHandlerV1 := v1.NewAnalyticsHandler(c.Services.Analytics)
+	billingHandlerV1 := v1.NewBillingHandler(c.Services.Billing)
 
 	// Middleware
-	quotaMiddleware := httpMw.NewQuotaMiddleware(linkRepo, userRepo, planRepo)
-	jwtAuthMiddleware := httpMw.JWTAuth(cfg)
-	apiKeyAuthMiddleware := httpMw.APIKeyAuth(cfg)
+	quotaMiddleware := httpMw.NewQuotaMiddleware(c.Repos.Link, c.Repos.User, c.Repos.Plan)
+	jwtAuthMiddleware := httpMw.JWTAuth(c.Cfg)
+	apiKeyAuthMiddleware := httpMw.APIKeyAuth(c.Cfg)
 
 	// --- Public Routes ---
 	r.Get("/health", handlers.HealthCheck)
 	r.With(quotaMiddleware.CheckClickLimit).Get("/{slug}", redirectHandler.Redirect)
 	r.Group(func(sys chi.Router) {
-		if cfg.Metrics.User != "" && cfg.Metrics.Password != "" {
-			sys.Use(httpMw.BasicAuth(cfg.Metrics.User, cfg.Metrics.Password))
+		if c.Cfg.Metrics.User != "" && c.Cfg.Metrics.Password != "" {
+			sys.Use(httpMw.BasicAuth(c.Cfg.Metrics.User, c.Cfg.Metrics.Password))
 		}
 		sys.Handle("/metrics", promhttp.Handler())
 	})
-	if cfg.Env != consts.EnvProd {
-		logger.Info().Msg("Swagger UI enabled at /swagger/index.html")
+	if c.Cfg.Env != consts.EnvProd {
+		c.Logger.Info().Msg("Swagger UI enabled at /swagger/index.html")
 		r.Get("/swagger/*", httpSwagger.Handler(
 			httpSwagger.URL("/swagger/doc.json"),
 		))

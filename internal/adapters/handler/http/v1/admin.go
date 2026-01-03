@@ -1,14 +1,16 @@
 package v1
 
 import (
-	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
+	"github.com/shanth1/gotrace/internal/pkg/request"
 )
 
 type AdminHandler struct {
@@ -51,7 +53,9 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		users = []*domain.User{}
 	}
 
-	response.JSON(w, http.StatusOK, response.Envelope{"data": users})
+	log.FromContext(r.Context()).Info().Int("page", page).Int("limit", limit).Msg("admin_users_listed")
+
+	response.Success(w, r, response.Envelope{"data": users})
 }
 
 type UpdateUserStatusReq struct {
@@ -77,8 +81,8 @@ func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) 
 	id := domain.UserID(chi.URLParam(r, "id"))
 
 	var req UpdateUserStatusReq
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error(w, http.StatusBadRequest, "invalid request body")
+	if err := request.DecodeJSON(w, r, &req); err != nil {
+		response.ClientError(w, r, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -87,11 +91,20 @@ func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	response.JSON(w, http.StatusOK, response.Envelope{"status": "updated"})
+	log.FromContext(r.Context()).Info().Str("user_id", string(id)).Bool("is_active", req.IsActive).Msg("user_status_updated")
+
+	response.Success(w, r, response.Envelope{"status": "updated"})
 }
 
 type UpdateUserPlanReq struct {
 	PlanID string `json:"plan_id"`
+}
+
+func (r UpdateUserPlanReq) Validate() error {
+	if r.PlanID == "" {
+		return errors.New("plan_id is required")
+	}
+	return nil
 }
 
 // UpdateUserPlan godoc
@@ -113,8 +126,8 @@ func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
 	id := domain.UserID(chi.URLParam(r, "id"))
 
 	var req UpdateUserPlanReq
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error(w, http.StatusBadRequest, "invalid request body")
+	if err := request.DecodeJSON(w, r, &req); err != nil {
+		response.ClientError(w, r, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -123,5 +136,7 @@ func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusOK, response.Envelope{"status": "updated"})
+	log.FromContext(r.Context()).Info().Str("user_id", string(id)).Str("plan_id", req.PlanID).Msg("user_plan_updated")
+
+	response.Success(w, r, response.Envelope{"status": "updated"})
 }

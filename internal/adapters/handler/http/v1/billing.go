@@ -3,6 +3,7 @@ package v1
 import (
 	"net/http"
 
+	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
@@ -35,5 +36,7 @@ func (h *BillingHandler) GetPlans(w http.ResponseWriter, r *http.Request) {
 		plans = []*domain.Plan{}
 	}
 
-	response.JSON(w, http.StatusOK, response.Envelope{"data": plans})
+	log.FromContext(r.Context()).Info().Msg("billing_plans_retrieved")
+
+	response.Success(w, r, response.Envelope{"data": plans})
 }

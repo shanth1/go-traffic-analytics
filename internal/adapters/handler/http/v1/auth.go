@@ -1,11 +1,13 @@
 package v1
 
 import (
-	"encoding/json"
+	"errors"
 	"net/http"
 
+	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
+	"github.com/shanth1/gotrace/internal/pkg/request"
 )
 
 type AuthHandler struct {
@@ -21,9 +23,29 @@ type RegisterReq struct {
 	Password string `json:"password" binding:"required" example:"secret123"`
 }
 
+func (r RegisterReq) Validate() error {
+	if r.Email == "" {
+		return errors.New("email is required")
+	}
+	if len(r.Password) < 6 {
+		return errors.New("password must be at least 6 characters")
+	}
+	return nil
+}
+
 type LoginReq struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+func (r LoginReq) Validate() error {
+	if r.Email == "" {
+		return errors.New("email is required")
+	}
+	if r.Password == "" {
+		return errors.New("password is required")
+	}
+	return nil
 }
 
 // Register godoc
@@ -41,23 +63,20 @@ type LoginReq struct {
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterReq
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error(w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
-	if req.Email == "" || req.Password == "" {
-		response.Error(w, http.StatusBadRequest, "email and password are required")
+	if err := request.DecodeJSON(w, r, &req); err != nil {
+		response.ClientError(w, r, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	user, err := h.service.Register(r.Context(), req.Email, req.Password)
 	if err != nil {
-		response.Error(w, http.StatusConflict, err.Error())
+		response.ClientError(w, r, http.StatusConflict, err.Error())
 		return
 	}
 
-	response.JSON(w, http.StatusCreated, user)
+	log.FromContext(r.Context()).Info().Str("user_id", string(user.ID)).Str("email", user.Email).Msg("user_registered")
+
+	response.Created(w, r, user)
 }
 
 // Login godoc
@@ -74,18 +93,20 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 // @Router       /api/v1/auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginReq
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error(w, http.StatusBadRequest, "invalid request body")
+	if err := request.DecodeJSON(w, r, &req); err != nil {
+		response.ClientError(w, r, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	token, user, err := h.service.Login(r.Context(), req.Email, req.Password)
 	if err != nil {
-		response.Error(w, http.StatusUnauthorized, "invalid credentials")
+		response.ClientError(w, r, http.StatusUnauthorized, "invalid credentials")
 		return
 	}
 
-	response.JSON(w, http.StatusOK, response.Envelope{
+	log.FromContext(r.Context()).Info().Str("user_id", string(user.ID)).Str("email", user.Email).Msg("user_logged_in")
+
+	response.Success(w, r, response.Envelope{
 		"token": token,
 		"user":  user,
 	})

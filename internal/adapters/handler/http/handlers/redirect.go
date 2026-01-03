@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
@@ -40,9 +41,11 @@ func (h *RedirectHandler) Redirect(w http.ResponseWriter, r *http.Request) {
 		Referer:   referer,
 	})
 	if err != nil {
-		response.Error(w, http.StatusNotFound, "Link not found or inactive")
+		response.ClientError(w, r, http.StatusNotFound, "Link not found or inactive")
 		return
 	}
+
+	log.FromContext(r.Context()).Info().Str("slug", slug).Str("target_url", targetURL).Msg("link_redirected")
 
 	http.Redirect(w, r, targetURL, http.StatusTemporaryRedirect)
 }

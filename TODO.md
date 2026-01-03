@@ -2,7 +2,7 @@
 
 ## Jan 2026 (stage 1)
 - [x] generator
-- [ ] http common logic (request, response and logging)
+- [x] http common logic (request, response and logging)
 - [ ] handler logging (info, warn, etc.)
 - [ ] handler and http tests
 - [ ] swagger

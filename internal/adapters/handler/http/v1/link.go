@@ -1,11 +1,11 @@
 package v1
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/core/services"
@@ -82,7 +82,7 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 		links = []*domain.Link{}
 	}
 
-	response.JSON(w, http.StatusOK, response.Envelope{"data": links})
+	response.Success(w, r, response.Envelope{"data": links})
 }
 
 // CreateLink godoc
@@ -103,13 +103,13 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
 
 	var req CreateLinkRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error(w, http.StatusBadRequest, "invalid request body")
+	if err := request.DecodeJSON(w, r, &req); err != nil {
+		response.ClientError(w, r, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if req.TargetURL == "" {
-		response.Error(w, http.StatusBadRequest, "target_url is required")
+		response.ClientError(w, r, http.StatusBadRequest, "target_url is required")
 		return
 	}
 
@@ -121,14 +121,16 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		if err == services.ErrLimitReached {
-			response.Error(w, http.StatusForbidden, err.Error())
+			response.ClientError(w, r, http.StatusForbidden, err.Error())
 			return
 		}
 		response.ServerError(w, r, err)
 		return
 	}
 
-	response.JSON(w, http.StatusCreated, response.Envelope{"data": link})
+	log.FromContext(r.Context()).Info().Str("link_id", string(link.ID)).Str("user_id", string(userID)).Msg("link_created")
+
+	response.Created(w, r, response.Envelope{"data": link})
 }
 
 // DeleteLink godoc
@@ -150,5 +152,7 @@ func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	log.FromContext(r.Context()).Info().Str("link_id", string(id)).Str("user_id", string(userID)).Msg("link_deleted")
+
+	response.NoContent(w)
 }

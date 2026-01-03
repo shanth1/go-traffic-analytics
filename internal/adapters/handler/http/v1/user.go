@@ -3,6 +3,7 @@ package v1
 import (
 	"net/http"
 
+	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 	"github.com/shanth1/gotrace/internal/pkg/request"
@@ -37,5 +38,7 @@ func (h *UserHandler) GetProfileTree(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusOK, response.Envelope{"data": tree})
+	log.FromContext(r.Context()).Info().Str("user_id", string(userID)).Msg("profile_tree_retrieved")
+
+	response.Success(w, r, response.Envelope{"data": tree})
 }

@@ -17,6 +17,6 @@ type HealthResponse struct {
 // @Produce      json
 // @Success      200  {object}  HealthResponse
 // @Router       /health [get]
-func HealthCheck(w http.ResponseWriter, _ *http.Request) {
-	response.JSON(w, http.StatusOK, HealthResponse{Status: "OK"})
+func HealthCheck(w http.ResponseWriter, r *http.Request) {
+	response.Success(w, r, HealthResponse{Status: "OK"})
 }
