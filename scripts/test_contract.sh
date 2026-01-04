@@ -27,7 +27,7 @@ curl -s -X POST "$LOCAL_API_URL/api/v1/auth/register" \
 
 TOKEN=$(curl -s -X POST "$LOCAL_API_URL/api/v1/auth/login" \
     -H "Content-Type: application/json" \
-    -d "{\"email\": \"$TEST_EMAIL\", \"password\": \"$TEST_PASS\"}" | jq -r '.token')
+    -d "{\"email\": \"$TEST_EMAIL\", \"password\": \"$TEST_PASS\"}" | jq -r '.data.token')
 
 if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
     echo "Failed to get token!"
