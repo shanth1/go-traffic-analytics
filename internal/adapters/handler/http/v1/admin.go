@@ -69,7 +69,7 @@ type UpdateUserStatusReq struct {
 // @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        id       path domain.UserID                true "User ID"
+// @Param        id       path string                true "User ID"
 // @Param        request  body UpdateUserStatusReq true     "Status"
 // @Success      200      {object}  map[string]string       "Status: updated"
 // @Failure      400      {object}  response.ErrorResponse
@@ -114,7 +114,7 @@ func (r UpdateUserPlanReq) Validate() error {
 // @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        id      path   domain.UserID            true "User ID"
+// @Param        id      path   string            true "User ID"
 // @Param        request body   UpdateUserPlanReq true  "New Plan ID"
 // @Success      200  {object}  map[string]string       "Status: updated"
 // @Failure      400  {object}  response.ErrorResponse

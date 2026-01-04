@@ -82,8 +82,8 @@ func (h *AnalyticsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 // @Param        group_by    query string false "os, browser, country"
 // @Param        campaign_id query string false "Filter by Campaign"
 // @Param        link_id     query string false "Filter by Link"
-// @Param        from        query string false "Date From"
-// @Param        to          query string false "Date To"
+// @Param        from        query string false "Date From (RFC3339)"
+// @Param        to          query string false "Date To (RFC3339)"
 // @Success      200  {object}  StreamGraphResponse
 // @Failure      401  {object}  response.ErrorResponse "Unauthorized"
 // @Failure      403  {object}  response.ErrorResponse "Forbidden"
@@ -116,8 +116,8 @@ func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request
 // @Produce      json
 // @Param        campaign_id query string false "Filter by Campaign"
 // @Param        link_id     query string false "Filter by Link"
-// @Param        from        query string false "Date From"
-// @Param        to          query string false "Date To"
+// @Param        from        query string false "Date From (RFC3339)"
+// @Param        to          query string false "Date To (RFC3339)"
 // @Success      200  {object}  SankeyResponse
 // @Failure      401  {object}  response.ErrorResponse "Unauthorized"
 // @Failure      403  {object}  response.ErrorResponse "Forbidden"
@@ -146,8 +146,8 @@ func (h *AnalyticsHandler) GetSankeyFlow(w http.ResponseWriter, r *http.Request)
 // @Produce      json
 // @Param        campaign_id query string false "Filter by Campaign"
 // @Param        link_id     query string false "Filter by Link"
-// @Param        from        query string false "Date From"
-// @Param        to          query string false "Date To"
+// @Param        from        query string false "Date From (RFC3339)"
+// @Param        to          query string false "Date To (RFC3339)"
 // @Success      200  {object}  GeoResponse
 // @Failure      401  {object}  response.ErrorResponse "Unauthorized"
 // @Failure      403  {object}  response.ErrorResponse "Forbidden"
@@ -175,8 +175,8 @@ func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        campaign_id query string false "Filter by Campaign"
 // @Param        link_id     query string false "Filter by Link"
-// @Param        from        query string false "Date From"
-// @Param        to          query string false "Date To"
+// @Param        from        query string false "Date From (RFC3339)"
+// @Param        to          query string false "Date To (RFC3339)"
 // @Success      200  {object}  QualityResponse
 // @Failure      401  {object}  response.ErrorResponse "Unauthorized"
 // @Failure      403  {object}  response.ErrorResponse "Forbidden"
@@ -204,6 +204,8 @@ func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Reques
 // @Produce      json
 // @Param        campaign_id query string false "Filter"
 // @Param        link_id     query string false "Filter"
+// @Param        from        query string false "Date From (RFC3339)"
+// @Param        to          query string false "Date To (RFC3339)"
 // @Success      200  {object}  HeatmapResponse
 // @Failure      401  {object}  response.ErrorResponse "Unauthorized"
 // @Failure      500  {object}  response.ErrorResponse
@@ -227,7 +229,11 @@ func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
 // @Tags         Analytics
 // @Security     BearerAuth
 // @Produce      json
-// @Param        dimension   query string true  "browser, os, device"
+// @Param        dimension   query string false  "browser, os, device"
+// @Param        campaign_id query string false "Filter by Campaign"
+// @Param        link_id     query string false "Filter by Link"
+// @Param        from        query string false "Date From (RFC3339)"
+// @Param        to          query string false "Date To (RFC3339)"
 // @Success      200  {object}  StatsResponse
 // @Failure      401  {object}  response.ErrorResponse "Unauthorized"
 // @Failure      500  {object}  response.ErrorResponse

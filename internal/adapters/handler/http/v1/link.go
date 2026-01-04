@@ -138,7 +138,7 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 // @Description  Remove a link
 // @Tags         Links
 // @Security     BearerAuth
-// @Param        id   path      domain.LinkID  true  "Link ID"
+// @Param        id   path      string  true  "Link ID"
 // @Success      204  {string}  string  "No Content"
 // @Failure      401  {object}  response.ErrorResponse "Unauthorized"
 // @Failure      500  {object}  response.ErrorResponse

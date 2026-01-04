@@ -57,6 +57,7 @@ func (r LoginReq) Validate() error {
 // @Param        request body RegisterReq true "Registration info"
 // @Success      201  {object}  domain.User "Created user"
 // @Failure      400  {object}  response.ErrorResponse
+// @Failure      401  {object}  response.ErrorResponse "Missing authorization header"
 // @Failure      409  {object}  response.ErrorResponse "Email already taken"
 // @Failure      500  {object}  response.ErrorResponse
 // @Router       /api/v1/auth/register [post]

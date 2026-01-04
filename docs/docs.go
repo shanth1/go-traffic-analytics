@@ -95,6 +95,13 @@ const docTemplate = `{
                 "summary": "Change user plan",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "New Plan ID",
                         "name": "request",
                         "in": "body",
@@ -160,6 +167,13 @@ const docTemplate = `{
                 ],
                 "summary": "Update user status",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "Status",
                         "name": "request",
@@ -237,13 +251,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Date From",
+                        "description": "Date From (RFC3339)",
                         "name": "from",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Date To",
+                        "description": "Date To (RFC3339)",
                         "name": "to",
                         "in": "query"
                     }
@@ -306,13 +320,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Date From",
+                        "description": "Date From (RFC3339)",
                         "name": "from",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Date To",
+                        "description": "Date To (RFC3339)",
                         "name": "to",
                         "in": "query"
                     }
@@ -372,6 +386,18 @@ const docTemplate = `{
                         "description": "Filter",
                         "name": "link_id",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date From (RFC3339)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date To (RFC3339)",
+                        "name": "to",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -426,13 +452,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Date From",
+                        "description": "Date From (RFC3339)",
                         "name": "from",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Date To",
+                        "description": "Date To (RFC3339)",
                         "name": "to",
                         "in": "query"
                     }
@@ -485,8 +511,31 @@ const docTemplate = `{
                         "type": "string",
                         "description": "browser, os, device",
                         "name": "dimension",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by Campaign",
+                        "name": "campaign_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by Link",
+                        "name": "link_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date From (RFC3339)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date To (RFC3339)",
+                        "name": "to",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -547,13 +596,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Date From",
+                        "description": "Date From (RFC3339)",
                         "name": "from",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Date To",
+                        "description": "Date To (RFC3339)",
                         "name": "to",
                         "in": "query"
                     }
@@ -740,6 +789,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Missing authorization header",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1019,6 +1074,15 @@ const docTemplate = `{
                     "Links"
                 ],
                 "summary": "Delete link",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Link ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "204": {
                         "description": "No Content",
@@ -1431,7 +1495,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/domain.Campaign"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "$ref": "#/definitions/domain.Campaign"
+                        }
+                    }
                 }
             }
         },
@@ -1439,9 +1508,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.Campaign"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Campaign"
+                            }
+                        }
                     }
                 }
             }
@@ -1472,16 +1546,26 @@ const docTemplate = `{
         "v1.GeoResponse": {
             "type": "object",
             "properties": {
-                "data": {}
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "data": {}
+                    }
+                }
             }
         },
         "v1.HeatmapResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.HeatmapPoint"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.HeatmapPoint"
+                            }
+                        }
                     }
                 }
             }
@@ -1490,7 +1574,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/domain.Link"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "$ref": "#/definitions/domain.Link"
+                        }
+                    }
                 }
             }
         },
@@ -1498,9 +1587,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.Link"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Link"
+                            }
+                        }
                     }
                 }
             }
@@ -1531,9 +1625,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.Plan"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Plan"
+                            }
+                        }
                     }
                 }
             }
@@ -1550,7 +1649,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/domain.TrafficQuality"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "$ref": "#/definitions/domain.TrafficQuality"
+                        }
+                    }
                 }
             }
         },
@@ -1575,7 +1679,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/domain.SankeyData"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "$ref": "#/definitions/domain.SankeyData"
+                        }
+                    }
                 }
             }
         },
@@ -1583,9 +1692,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.CategoryStat"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.CategoryStat"
+                            }
+                        }
                     }
                 }
             }
@@ -1594,9 +1708,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.StackedPoint"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.StackedPoint"
+                            }
+                        }
                     }
                 }
             }
@@ -1621,9 +1740,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.User"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.User"
+                            }
+                        }
                     }
                 }
             }
