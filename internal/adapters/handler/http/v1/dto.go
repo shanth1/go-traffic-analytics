@@ -11,7 +11,7 @@ import (
 
 type CreateLinkRequest struct {
 	CampaignID string `json:"campaign_id"`
-	TargetURL  string `json:"target_url" binding:"required" minLength:"1" example:"https://google.com"`
+	TargetURL  string `json:"target_url" binding:"required"`
 }
 
 func (r CreateLinkRequest) Validate() error {
@@ -22,7 +22,7 @@ func (r CreateLinkRequest) Validate() error {
 }
 
 type CreateCampaignRequest struct {
-	Name string `json:"name" binding:"required" minLength:"1" example:"My Campaign"`
+	Name string `json:"name" binding:"required"`
 }
 
 func (r CreateCampaignRequest) Validate() error {
@@ -33,8 +33,8 @@ func (r CreateCampaignRequest) Validate() error {
 }
 
 type RegisterReq struct {
-	Email    string `json:"email" binding:"required" minLength:"5" example:"user@example.com"`
-	Password string `json:"password" binding:"required" minLength:"6" example:"secret123"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 func (r RegisterReq) Validate() error {
@@ -48,8 +48,8 @@ func (r RegisterReq) Validate() error {
 }
 
 type LoginReq struct {
-	Email    string `json:"email" binding:"required" minLength:"1" example:"user@example.com"`
-	Password string `json:"password" binding:"required" minLength:"1" example:"secret123"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 func (r LoginReq) Validate() error {
@@ -63,7 +63,7 @@ func (r LoginReq) Validate() error {
 }
 
 type UpdateUserStatusReq struct {
-	IsActive bool `json:"is_active" example:"true"`
+	IsActive bool `json:"is_active"`
 }
 
 func (r UpdateUserStatusReq) Validate() error {
@@ -73,7 +73,7 @@ func (r UpdateUserStatusReq) Validate() error {
 }
 
 type UpdateUserPlanReq struct {
-	PlanID string `json:"plan_id" binding:"required" minLength:"1" example:"plan_pro"`
+	PlanID string `json:"plan_id" binding:"required"`
 }
 
 func (r UpdateUserPlanReq) Validate() error {
@@ -86,7 +86,7 @@ func (r UpdateUserPlanReq) Validate() error {
 // --- Responses (Data Wrappers) ---
 
 type StatusData struct {
-	Status string `json:"status" example:"updated"`
+	Status string `json:"status"`
 }
 
 type StatusResponse struct {
