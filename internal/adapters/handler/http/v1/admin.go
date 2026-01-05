@@ -71,7 +71,7 @@ type UpdateUserStatusReq struct {
 // @Produce      json
 // @Param        id       path string                true "User ID"
 // @Param        request  body UpdateUserStatusReq true     "Status"
-// @Success      200      {object}  StatusResponse       "Status: updated"
+// @Success      200      {object}  map[string]string       "Status: updated"
 // @Failure      400      {object}  response.ErrorResponse
 // @Failure      401      {object}  response.ErrorResponse  "Unauthorized"
 // @Failure      403      {object}  response.ErrorResponse  "Forbidden"
@@ -116,7 +116,7 @@ func (r UpdateUserPlanReq) Validate() error {
 // @Produce      json
 // @Param        id      path   string            true "User ID"
 // @Param        request body   UpdateUserPlanReq true  "New Plan ID"
-// @Success      200  {object}  StatusResponse       "Status: updated"
+// @Success      200  {object}  map[string]string       "Status: updated"
 // @Failure      400  {object}  response.ErrorResponse
 // @Failure      401  {object}  response.ErrorResponse  "Unauthorized"
 // @Failure      403  {object}  response.ErrorResponse  "Forbidden"

@@ -115,7 +115,10 @@ const docTemplate = `{
                     "200": {
                         "description": "Status: updated",
                         "schema": {
-                            "$ref": "#/definitions/v1.StatusResponse"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "400": {
@@ -185,7 +188,10 @@ const docTemplate = `{
                     "200": {
                         "description": "Status: updated",
                         "schema": {
-                            "$ref": "#/definitions/v1.StatusResponse"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "400": {
@@ -778,7 +784,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created user",
                         "schema": {
-                            "$ref": "#/definitions/v1.CreatedUserResponse"
+                            "$ref": "#/definitions/domain.User"
                         }
                     },
                     "400": {
@@ -1485,30 +1491,16 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.CampaignData": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/domain.Campaign"
-                }
-            }
-        },
-        "v1.CampaignListData": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.Campaign"
-                    }
-                }
-            }
-        },
         "v1.CampaignResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/v1.CampaignData"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "$ref": "#/definitions/domain.Campaign"
+                        }
+                    }
                 }
             }
         },
@@ -1516,15 +1508,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/v1.CampaignListData"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Campaign"
+                            }
+                        }
+                    }
                 }
             }
         },
         "v1.CreateCampaignRequest": {
             "type": "object",
-            "required": [
-                "name"
-            ],
             "properties": {
                 "name": {
                     "type": "string"
@@ -1546,35 +1543,13 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.CreatedUserResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/domain.User"
-                }
-            }
-        },
-        "v1.GeoData": {
-            "type": "object",
-            "properties": {
-                "data": {}
-            }
-        },
         "v1.GeoResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/v1.GeoData"
-                }
-            }
-        },
-        "v1.HeatmapData": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.HeatmapPoint"
+                    "type": "object",
+                    "properties": {
+                        "data": {}
                     }
                 }
             }
@@ -1583,25 +1558,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/v1.HeatmapData"
-                }
-            }
-        },
-        "v1.LinkData": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/domain.Link"
-                }
-            }
-        },
-        "v1.LinkListData": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.Link"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.HeatmapPoint"
+                            }
+                        }
                     }
                 }
             }
@@ -1610,7 +1574,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/v1.LinkData"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "$ref": "#/definitions/domain.Link"
+                        }
+                    }
                 }
             }
         },
@@ -1618,27 +1587,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/v1.LinkListData"
-                }
-            }
-        },
-        "v1.LoginData": {
-            "type": "object",
-            "properties": {
-                "token": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/domain.User"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Link"
+                            }
+                        }
+                    }
                 }
             }
         },
         "v1.LoginReq": {
             "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -1651,19 +1613,11 @@ const docTemplate = `{
         "v1.LoginResponse": {
             "type": "object",
             "properties": {
-                "data": {
-                    "$ref": "#/definitions/v1.LoginData"
-                }
-            }
-        },
-        "v1.PlanListData": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.Plan"
-                    }
+                "token": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/domain.User"
                 }
             }
         },
@@ -1671,7 +1625,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/v1.PlanListData"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Plan"
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -1683,19 +1645,16 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.QualityData": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/domain.TrafficQuality"
-                }
-            }
-        },
         "v1.QualityResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/v1.QualityData"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "$ref": "#/definitions/domain.TrafficQuality"
+                        }
+                    }
                 }
             }
         },
@@ -1716,29 +1675,15 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.SankeyData": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/domain.SankeyData"
-                }
-            }
-        },
         "v1.SankeyResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/v1.SankeyData"
-                }
-            }
-        },
-        "v1.StatsData": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.CategoryStat"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "$ref": "#/definitions/domain.SankeyData"
+                        }
                     }
                 }
             }
@@ -1747,33 +1692,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/v1.StatsData"
-                }
-            }
-        },
-        "v1.StatusData": {
-            "type": "object",
-            "properties": {
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.StatusResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/v1.StatusData"
-                }
-            }
-        },
-        "v1.StreamGraphData": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.StackedPoint"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.CategoryStat"
+                            }
+                        }
                     }
                 }
             }
@@ -1782,7 +1708,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/v1.StreamGraphData"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.StackedPoint"
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -1802,22 +1736,19 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.UserListData": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.User"
-                    }
-                }
-            }
-        },
         "v1.UsersListResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/v1.UserListData"
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.User"
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
@@ -146,10 +145,6 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 // @Router       /api/v1/links/{id} [delete]
 func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 	id := domain.LinkID(chi.URLParam(r, "id"))
-	if _, err := uuid.Parse(string(id)); err != nil {
-		response.ClientError(w, r, http.StatusBadRequest, "invalid id")
-		return
-	}
 	userID := request.GetUserID(r)
 
 	if err := h.linkSvc.DeleteLink(r.Context(), userID, id); err != nil {

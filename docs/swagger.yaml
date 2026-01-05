@@ -197,34 +197,28 @@ definitions:
       data:
         $ref: '#/definitions/domain.Summary'
     type: object
-  v1.CampaignData:
-    properties:
-      data:
-        $ref: '#/definitions/domain.Campaign'
-    type: object
-  v1.CampaignListData:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/domain.Campaign'
-        type: array
-    type: object
   v1.CampaignResponse:
     properties:
       data:
-        $ref: '#/definitions/v1.CampaignData'
+        properties:
+          data:
+            $ref: '#/definitions/domain.Campaign'
+        type: object
     type: object
   v1.CampaignsListResponse:
     properties:
       data:
-        $ref: '#/definitions/v1.CampaignListData'
+        properties:
+          data:
+            items:
+              $ref: '#/definitions/domain.Campaign'
+            type: array
+        type: object
     type: object
   v1.CreateCampaignRequest:
     properties:
       name:
         type: string
-    required:
-    - name
     type: object
   v1.CreateLinkRequest:
     properties:
@@ -236,60 +230,40 @@ definitions:
     required:
     - target_url
     type: object
-  v1.CreatedUserResponse:
-    properties:
-      data:
-        $ref: '#/definitions/domain.User'
-    type: object
-  v1.GeoData:
-    properties:
-      data: {}
-    type: object
   v1.GeoResponse:
     properties:
       data:
-        $ref: '#/definitions/v1.GeoData'
-    type: object
-  v1.HeatmapData:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/domain.HeatmapPoint'
-        type: array
+        properties:
+          data: {}
+        type: object
     type: object
   v1.HeatmapResponse:
     properties:
       data:
-        $ref: '#/definitions/v1.HeatmapData'
-    type: object
-  v1.LinkData:
-    properties:
-      data:
-        $ref: '#/definitions/domain.Link'
-    type: object
-  v1.LinkListData:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/domain.Link'
-        type: array
+        properties:
+          data:
+            items:
+              $ref: '#/definitions/domain.HeatmapPoint'
+            type: array
+        type: object
     type: object
   v1.LinkResponse:
     properties:
       data:
-        $ref: '#/definitions/v1.LinkData'
+        properties:
+          data:
+            $ref: '#/definitions/domain.Link'
+        type: object
     type: object
   v1.LinksListResponse:
     properties:
       data:
-        $ref: '#/definitions/v1.LinkListData'
-    type: object
-  v1.LoginData:
-    properties:
-      token:
-        type: string
-      user:
-        $ref: '#/definitions/domain.User'
+        properties:
+          data:
+            items:
+              $ref: '#/definitions/domain.Link'
+            type: array
+        type: object
     type: object
   v1.LoginReq:
     properties:
@@ -297,41 +271,36 @@ definitions:
         type: string
       password:
         type: string
-    required:
-    - email
-    - password
     type: object
   v1.LoginResponse:
     properties:
-      data:
-        $ref: '#/definitions/v1.LoginData'
-    type: object
-  v1.PlanListData:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/domain.Plan'
-        type: array
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/domain.User'
     type: object
   v1.PlansListResponse:
     properties:
       data:
-        $ref: '#/definitions/v1.PlanListData'
+        properties:
+          data:
+            items:
+              $ref: '#/definitions/domain.Plan'
+            type: array
+        type: object
     type: object
   v1.ProfileTreeResponse:
     properties:
       data:
         $ref: '#/definitions/domain.HierarchyNode'
     type: object
-  v1.QualityData:
-    properties:
-      data:
-        $ref: '#/definitions/domain.TrafficQuality'
-    type: object
   v1.QualityResponse:
     properties:
       data:
-        $ref: '#/definitions/v1.QualityData'
+        properties:
+          data:
+            $ref: '#/definitions/domain.TrafficQuality'
+        type: object
     type: object
   v1.RegisterReq:
     properties:
@@ -345,49 +314,33 @@ definitions:
     - email
     - password
     type: object
-  v1.SankeyData:
-    properties:
-      data:
-        $ref: '#/definitions/domain.SankeyData'
-    type: object
   v1.SankeyResponse:
     properties:
       data:
-        $ref: '#/definitions/v1.SankeyData'
-    type: object
-  v1.StatsData:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/domain.CategoryStat'
-        type: array
+        properties:
+          data:
+            $ref: '#/definitions/domain.SankeyData'
+        type: object
     type: object
   v1.StatsResponse:
     properties:
       data:
-        $ref: '#/definitions/v1.StatsData'
-    type: object
-  v1.StatusData:
-    properties:
-      status:
-        type: string
-    type: object
-  v1.StatusResponse:
-    properties:
-      data:
-        $ref: '#/definitions/v1.StatusData'
-    type: object
-  v1.StreamGraphData:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/domain.StackedPoint'
-        type: array
+        properties:
+          data:
+            items:
+              $ref: '#/definitions/domain.CategoryStat'
+            type: array
+        type: object
     type: object
   v1.StreamGraphResponse:
     properties:
       data:
-        $ref: '#/definitions/v1.StreamGraphData'
+        properties:
+          data:
+            items:
+              $ref: '#/definitions/domain.StackedPoint'
+            type: array
+        type: object
     type: object
   v1.UpdateUserPlanReq:
     properties:
@@ -399,17 +352,15 @@ definitions:
       is_active:
         type: boolean
     type: object
-  v1.UserListData:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/domain.User'
-        type: array
-    type: object
   v1.UsersListResponse:
     properties:
       data:
-        $ref: '#/definitions/v1.UserListData'
+        properties:
+          data:
+            items:
+              $ref: '#/definitions/domain.User'
+            type: array
+        type: object
     type: object
 host: localhost:8080
 info:
@@ -501,7 +452,9 @@ paths:
         "200":
           description: 'Status: updated'
           schema:
-            $ref: '#/definitions/v1.StatusResponse'
+            additionalProperties:
+              type: string
+            type: object
         "400":
           description: Bad Request
           schema:
@@ -546,7 +499,9 @@ paths:
         "200":
           description: 'Status: updated'
           schema:
-            $ref: '#/definitions/v1.StatusResponse'
+            additionalProperties:
+              type: string
+            type: object
         "400":
           description: Bad Request
           schema:
@@ -928,7 +883,7 @@ paths:
         "201":
           description: Created user
           schema:
-            $ref: '#/definitions/v1.CreatedUserResponse'
+            $ref: '#/definitions/domain.User'
         "400":
           description: Bad Request
           schema:
