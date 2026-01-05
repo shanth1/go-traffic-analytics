@@ -218,6 +218,10 @@ func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if data == nil {
+		data = []domain.HeatmapPoint{}
+	}
+
 	log.FromContext(r.Context()).Info().Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_heatmap_retrieved")
 
 	response.Success(w, r, response.Envelope{"data": data})

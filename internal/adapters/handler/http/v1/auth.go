@@ -34,8 +34,8 @@ func (r RegisterReq) Validate() error {
 }
 
 type LoginReq struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 func (r LoginReq) Validate() error {
@@ -55,7 +55,7 @@ func (r LoginReq) Validate() error {
 // @Accept       json
 // @Produce      json
 // @Param        request body RegisterReq true "Registration info"
-// @Success      201  {object}  domain.User "Created user"
+// @Success      201  {object}  CreatedUserResponse "Created user"
 // @Failure      400  {object}  response.ErrorResponse
 // @Failure      401  {object}  response.ErrorResponse "Missing authorization header"
 // @Failure      409  {object}  response.ErrorResponse "Email already taken"

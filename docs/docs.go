@@ -115,10 +115,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Status: updated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/v1.StatusResponse"
                         }
                     },
                     "400": {
@@ -188,10 +185,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Status: updated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/v1.StatusResponse"
                         }
                     },
                     "400": {
@@ -784,7 +778,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created user",
                         "schema": {
-                            "$ref": "#/definitions/domain.User"
+                            "$ref": "#/definitions/v1.CreatedUserResponse"
                         }
                     },
                     "400": {
@@ -1491,16 +1485,30 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.CampaignData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/domain.Campaign"
+                }
+            }
+        },
+        "v1.CampaignListData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.Campaign"
+                    }
+                }
+            }
+        },
         "v1.CampaignResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "$ref": "#/definitions/domain.Campaign"
-                        }
-                    }
+                    "$ref": "#/definitions/v1.CampaignData"
                 }
             }
         },
@@ -1508,20 +1516,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.Campaign"
-                            }
-                        }
-                    }
+                    "$ref": "#/definitions/v1.CampaignListData"
                 }
             }
         },
         "v1.CreateCampaignRequest": {
             "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
                 "name": {
                     "type": "string"
@@ -1543,13 +1546,35 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.CreatedUserResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/domain.User"
+                }
+            }
+        },
+        "v1.GeoData": {
+            "type": "object",
+            "properties": {
+                "data": {}
+            }
+        },
         "v1.GeoResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {}
+                    "$ref": "#/definitions/v1.GeoData"
+                }
+            }
+        },
+        "v1.HeatmapData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.HeatmapPoint"
                     }
                 }
             }
@@ -1558,14 +1583,25 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.HeatmapPoint"
-                            }
-                        }
+                    "$ref": "#/definitions/v1.HeatmapData"
+                }
+            }
+        },
+        "v1.LinkData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/domain.Link"
+                }
+            }
+        },
+        "v1.LinkListData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.Link"
                     }
                 }
             }
@@ -1574,12 +1610,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "$ref": "#/definitions/domain.Link"
-                        }
-                    }
+                    "$ref": "#/definitions/v1.LinkData"
                 }
             }
         },
@@ -1587,20 +1618,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.Link"
-                            }
-                        }
-                    }
+                    "$ref": "#/definitions/v1.LinkListData"
+                }
+            }
+        },
+        "v1.LoginData": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/domain.User"
                 }
             }
         },
         "v1.LoginReq": {
             "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -1613,11 +1651,19 @@ const docTemplate = `{
         "v1.LoginResponse": {
             "type": "object",
             "properties": {
-                "token": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/domain.User"
+                "data": {
+                    "$ref": "#/definitions/v1.LoginData"
+                }
+            }
+        },
+        "v1.PlanListData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.Plan"
+                    }
                 }
             }
         },
@@ -1625,15 +1671,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.Plan"
-                            }
-                        }
-                    }
+                    "$ref": "#/definitions/v1.PlanListData"
                 }
             }
         },
@@ -1645,16 +1683,19 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.QualityData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/domain.TrafficQuality"
+                }
+            }
+        },
         "v1.QualityResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "$ref": "#/definitions/domain.TrafficQuality"
-                        }
-                    }
+                    "$ref": "#/definitions/v1.QualityData"
                 }
             }
         },
@@ -1675,15 +1716,29 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.SankeyData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/domain.SankeyData"
+                }
+            }
+        },
         "v1.SankeyResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "$ref": "#/definitions/domain.SankeyData"
-                        }
+                    "$ref": "#/definitions/v1.SankeyData"
+                }
+            }
+        },
+        "v1.StatsData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CategoryStat"
                     }
                 }
             }
@@ -1692,14 +1747,33 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.CategoryStat"
-                            }
-                        }
+                    "$ref": "#/definitions/v1.StatsData"
+                }
+            }
+        },
+        "v1.StatusData": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.StatusResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/v1.StatusData"
+                }
+            }
+        },
+        "v1.StreamGraphData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StackedPoint"
                     }
                 }
             }
@@ -1708,15 +1782,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.StackedPoint"
-                            }
-                        }
-                    }
+                    "$ref": "#/definitions/v1.StreamGraphData"
                 }
             }
         },
@@ -1736,19 +1802,22 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.UserListData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.User"
+                    }
+                }
+            }
+        },
         "v1.UsersListResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.User"
-                            }
-                        }
-                    }
+                    "$ref": "#/definitions/v1.UserListData"
                 }
             }
         }
