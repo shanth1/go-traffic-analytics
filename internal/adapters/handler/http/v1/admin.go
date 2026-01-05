@@ -55,7 +55,7 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Int("page", page).Int("limit", limit).Msg("admin_users_listed")
 
-	response.Success(w, r, response.Envelope{"data": users})
+	response.Success(w, r, users)
 }
 
 type UpdateUserStatusReq struct {

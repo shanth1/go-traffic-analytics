@@ -40,5 +40,5 @@ func (h *UserHandler) GetProfileTree(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Str("user_id", string(userID)).Msg("profile_tree_retrieved")
 
-	response.Success(w, r, response.Envelope{"data": tree})
+	response.Success(w, r, tree)
 }

@@ -19,13 +19,21 @@ type Envelope map[string]any
 
 func JSON(w http.ResponseWriter, r *http.Request, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
 
-	if data != nil {
-		if err := json.NewEncoder(w).Encode(data); err != nil {
-			log.FromContext(r.Context()).Error().Err(err).Msg("response_encode_failure")
-		}
+	if data == nil {
+		w.WriteHeader(status)
+		return
 	}
+
+	buf, err := json.Marshal(data)
+	if err != nil {
+		log.FromContext(r.Context()).Error().Err(err).Msg("response_marshal_failure")
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(status)
+	w.Write(buf)
 }
 
 func Success[T any](w http.ResponseWriter, r *http.Request, data T) {

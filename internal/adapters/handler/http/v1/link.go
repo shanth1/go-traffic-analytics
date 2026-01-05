@@ -82,7 +82,7 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 		links = []*domain.Link{}
 	}
 
-	response.Success(w, r, response.Envelope{"data": links})
+	response.Success(w, r, links)
 }
 
 // CreateLink godoc
@@ -130,7 +130,7 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Str("link_id", string(link.ID)).Str("user_id", string(userID)).Msg("link_created")
 
-	response.Created(w, r, response.Envelope{"data": link})
+	response.Created(w, r, link)
 }
 
 // DeleteLink godoc
