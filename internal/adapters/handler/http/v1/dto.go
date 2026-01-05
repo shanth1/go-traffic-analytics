@@ -1,6 +1,10 @@
 package v1
 
-import "github.com/shanth1/gotrace/internal/core/domain"
+import (
+	"errors"
+
+	"github.com/shanth1/gotrace/internal/core/domain"
+)
 
 // --- Requests ---
 
@@ -18,9 +22,29 @@ type RegisterReq struct {
 	Password string `json:"password" binding:"required" minLength:"6" example:"secret123"`
 }
 
+func (r RegisterReq) Validate() error {
+	if r.Email == "" {
+		return errors.New("email is required")
+	}
+	if len(r.Password) < 6 {
+		return errors.New("password must be at least 6 characters")
+	}
+	return nil
+}
+
 type LoginReq struct {
 	Email    string `json:"email" binding:"required" minLength:"1" example:"user@example.com"`
 	Password string `json:"password" binding:"required" minLength:"1" example:"secret123"`
+}
+
+func (r LoginReq) Validate() error {
+	if r.Email == "" {
+		return errors.New("email is required")
+	}
+	if r.Password == "" {
+		return errors.New("password is required")
+	}
+	return nil
 }
 
 type UpdateUserStatusReq struct {
@@ -29,6 +53,13 @@ type UpdateUserStatusReq struct {
 
 type UpdateUserPlanReq struct {
 	PlanID string `json:"plan_id" binding:"required" minLength:"1" example:"plan_pro"`
+}
+
+func (r *UpdateUserPlanReq) Validate() error {
+	if r.PlanID == "" {
+		return errors.New("plan_id is required")
+	}
+	return nil
 }
 
 // --- Responses (Data Wrappers) ---

@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/shanth1/gotools/log"
@@ -16,26 +15,6 @@ type AuthHandler struct {
 
 func NewAuthHandler(s ports.AuthService) *AuthHandler {
 	return &AuthHandler{service: s}
-}
-
-func (r RegisterReq) Validate() error {
-	if r.Email == "" {
-		return errors.New("email is required")
-	}
-	if len(r.Password) < 6 {
-		return errors.New("password must be at least 6 characters")
-	}
-	return nil
-}
-
-func (r LoginReq) Validate() error {
-	if r.Email == "" {
-		return errors.New("email is required")
-	}
-	if r.Password == "" {
-		return errors.New("password is required")
-	}
-	return nil
 }
 
 // Register godoc

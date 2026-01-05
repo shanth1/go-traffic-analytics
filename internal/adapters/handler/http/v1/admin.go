@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 
@@ -90,13 +89,6 @@ func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) 
 	log.FromContext(r.Context()).Info().Str("user_id", string(id)).Bool("is_active", req.IsActive).Msg("user_status_updated")
 
 	response.Success(w, r, response.Envelope{"status": "updated"})
-}
-
-func (r UpdateUserPlanReq) Validate() error {
-	if r.PlanID == "" {
-		return errors.New("plan_id is required")
-	}
-	return nil
 }
 
 // UpdateUserPlan godoc
