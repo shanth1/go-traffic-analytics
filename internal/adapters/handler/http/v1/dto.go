@@ -6,21 +6,21 @@ import "github.com/shanth1/gotrace/internal/core/domain"
 
 type CreateLinkRequest struct {
 	CampaignID string `json:"campaign_id"`
-	TargetURL  string `json:"target_url" binding:"required" example:"https://google.com"`
+	TargetURL  string `json:"target_url" binding:"required" minLength:"1" example:"https://google.com"`
 }
 
 type CreateCampaignRequest struct {
-	Name string `json:"name" binding:"required" example:"My Campaign"`
+	Name string `json:"name" binding:"required" minLength:"1" example:"My Campaign"`
 }
 
 type RegisterReq struct {
-	Email    string `json:"email" binding:"required" example:"user@example.com"`
-	Password string `json:"password" binding:"required" example:"secret123"`
+	Email    string `json:"email" binding:"required" minLength:"5" example:"user@example.com"`
+	Password string `json:"password" binding:"required" minLength:"6" example:"secret123"`
 }
 
 type LoginReq struct {
-	Email    string `json:"email" binding:"required" example:"user@example.com"`
-	Password string `json:"password" binding:"required" example:"secret123"`
+	Email    string `json:"email" binding:"required" minLength:"1" example:"user@example.com"`
+	Password string `json:"password" binding:"required" minLength:"1" example:"secret123"`
 }
 
 type UpdateUserStatusReq struct {
@@ -28,12 +28,11 @@ type UpdateUserStatusReq struct {
 }
 
 type UpdateUserPlanReq struct {
-	PlanID string `json:"plan_id" binding:"required" example:"plan_pro"`
+	PlanID string `json:"plan_id" binding:"required" minLength:"1" example:"plan_pro"`
 }
 
 // --- Responses (Data Wrappers) ---
 
-// StatusData represents a generic status message inside data
 type StatusData struct {
 	Status string `json:"status" example:"updated"`
 }
@@ -62,7 +61,6 @@ type UsersListResponse struct {
 }
 
 type ProfileTreeResponse struct {
-	// Предпологаем, что HierarchyNode определен в domain
 	Data domain.HierarchyNode `json:"data"`
 }
 
@@ -90,15 +88,12 @@ type LinkResponse struct {
 }
 
 // Analytics Wrappers
-// Используем any, если точные типы в domain сложны для импорта здесь,
-// но лучше использовать точные типы из domain, если они экспортируемы.
 
 type AnalyticsSummaryResponse struct {
 	Data domain.Summary `json:"data"`
 }
 
 type StreamGraphResponse struct {
-	// Предполагаем тип возвращаемого значения сервиса
 	Data []map[string]any `json:"data"`
 }
 
@@ -106,12 +101,12 @@ type SankeyResponse struct {
 	Data domain.SankeyData `json:"data"`
 }
 
-type GeoResponse struct {
+type GeoRespons struct {
 	Data []domain.GeoStat `json:"data"`
 }
 
 type QualityResponse struct {
-	Data []domain.TrafficQuality `json:"data"`
+	Data domain.TrafficQuality `json:"data"`
 }
 
 type HeatmapResponse struct {
