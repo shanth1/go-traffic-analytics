@@ -9,8 +9,8 @@ import (
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/core/services"
+	"github.com/shanth1/gotrace/internal/pkg/http/request"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
-	"github.com/shanth1/gotrace/internal/pkg/request"
 )
 
 type LinkHandler struct {

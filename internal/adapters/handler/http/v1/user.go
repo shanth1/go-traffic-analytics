@@ -5,8 +5,8 @@ import (
 
 	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/ports"
+	"github.com/shanth1/gotrace/internal/pkg/http/request"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
-	"github.com/shanth1/gotrace/internal/pkg/request"
 )
 
 type UserHandler struct {
