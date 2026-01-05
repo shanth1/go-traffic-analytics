@@ -103,6 +103,10 @@ func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if data == nil {
+		data = []domain.StackedPoint{}
+	}
+
 	log.FromContext(r.Context()).Info().Str("group_by", groupBy).Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_stream_graph_retrieved")
 
 	response.Success(w, r, data)
@@ -162,6 +166,10 @@ func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if data == nil {
+		data = []domain.GeoStat{}
+	}
+
 	log.FromContext(r.Context()).Info().Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_geo_map_retrieved")
 
 	response.Success(w, r, data)
@@ -218,6 +226,10 @@ func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if data == nil {
+		data = []domain.HeatmapPoint{}
+	}
+
 	log.FromContext(r.Context()).Info().Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_heatmap_retrieved")
 
 	response.Success(w, r, data)
@@ -249,6 +261,10 @@ func (h *AnalyticsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response.ServerError(w, r, err)
 		return
+	}
+
+	if data == nil {
+		data = []domain.CategoryStat{}
 	}
 
 	log.FromContext(r.Context()).Info().Str("dimension", dim).Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_stats_retrieved")

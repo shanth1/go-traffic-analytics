@@ -2,6 +2,7 @@ package v1
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/shanth1/gotrace/internal/core/domain"
 )
@@ -13,8 +14,22 @@ type CreateLinkRequest struct {
 	TargetURL  string `json:"target_url" binding:"required" minLength:"1" example:"https://google.com"`
 }
 
+func (r CreateLinkRequest) Validate() error {
+	if strings.TrimSpace(r.TargetURL) == "" {
+		return errors.New("target_url is required")
+	}
+	return nil
+}
+
 type CreateCampaignRequest struct {
 	Name string `json:"name" binding:"required" minLength:"1" example:"My Campaign"`
+}
+
+func (r CreateCampaignRequest) Validate() error {
+	if strings.TrimSpace(r.Name) == "" {
+		return errors.New("name is required")
+	}
+	return nil
 }
 
 type RegisterReq struct {
@@ -23,7 +38,7 @@ type RegisterReq struct {
 }
 
 func (r RegisterReq) Validate() error {
-	if r.Email == "" {
+	if strings.TrimSpace(r.Email) == "" {
 		return errors.New("email is required")
 	}
 	if len(r.Password) < 6 {
@@ -38,7 +53,7 @@ type LoginReq struct {
 }
 
 func (r LoginReq) Validate() error {
-	if r.Email == "" {
+	if strings.TrimSpace(r.Email) == "" {
 		return errors.New("email is required")
 	}
 	if r.Password == "" {
@@ -51,12 +66,18 @@ type UpdateUserStatusReq struct {
 	IsActive bool `json:"is_active" example:"true"`
 }
 
+func (r UpdateUserStatusReq) Validate() error {
+	// Булево значение всегда присутствует (true или false),
+	// дополнительная валидация не требуется, но метод нужен для унификации.
+	return nil
+}
+
 type UpdateUserPlanReq struct {
 	PlanID string `json:"plan_id" binding:"required" minLength:"1" example:"plan_pro"`
 }
 
-func (r *UpdateUserPlanReq) Validate() error {
-	if r.PlanID == "" {
+func (r UpdateUserPlanReq) Validate() error {
+	if strings.TrimSpace(r.PlanID) == "" {
 		return errors.New("plan_id is required")
 	}
 	return nil
@@ -132,7 +153,7 @@ type SankeyResponse struct {
 	Data domain.SankeyData `json:"data"`
 }
 
-type GeoRespons struct {
+type GeoResponse struct { // Исправлена опечатка GeoRespons -> GeoResponse
 	Data []domain.GeoStat `json:"data"`
 }
 

@@ -140,6 +140,7 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 // @Security BearerAuth
 // @Param id path string true "Link ID"
 // @Success 204 {string} string "No Content"
+// @Failure 400  {object}  response.ErrorResponse
 // @Failure 401 {object} response.ErrorResponse "Unauthorized"
 // @Failure 500 {object} response.ErrorResponse
 // @Router /api/v1/links/{id} [delete]
