@@ -21,6 +21,13 @@ definitions:
       value:
         type: integer
     type: object
+  domain.GeoStat:
+    properties:
+      country:
+        type: string
+      value:
+        type: integer
+    type: object
   domain.HeatmapPoint:
     properties:
       count:
@@ -117,16 +124,6 @@ definitions:
         description: Column (0 - Referer, 1 - Device...)
         type: integer
     type: object
-  domain.StackedPoint:
-    properties:
-      time:
-        type: string
-      values:
-        additionalProperties:
-          type: integer
-        description: Dynamic keys (OS, Browser...)
-        type: object
-    type: object
   domain.Summary:
     properties:
       top_browsers:
@@ -200,25 +197,22 @@ definitions:
   v1.CampaignResponse:
     properties:
       data:
-        properties:
-          data:
-            $ref: '#/definitions/domain.Campaign'
-        type: object
+        $ref: '#/definitions/domain.Campaign'
     type: object
   v1.CampaignsListResponse:
     properties:
       data:
-        properties:
-          data:
-            items:
-              $ref: '#/definitions/domain.Campaign'
-            type: array
-        type: object
+        items:
+          $ref: '#/definitions/domain.Campaign'
+        type: array
     type: object
   v1.CreateCampaignRequest:
     properties:
       name:
+        example: My Campaign
         type: string
+    required:
+    - name
     type: object
   v1.CreateLinkRequest:
     properties:
@@ -233,74 +227,73 @@ definitions:
   v1.GeoResponse:
     properties:
       data:
-        properties:
-          data: {}
-        type: object
+        items:
+          $ref: '#/definitions/domain.GeoStat'
+        type: array
     type: object
   v1.HeatmapResponse:
     properties:
       data:
-        properties:
-          data:
-            items:
-              $ref: '#/definitions/domain.HeatmapPoint'
-            type: array
-        type: object
+        items:
+          $ref: '#/definitions/domain.HeatmapPoint'
+        type: array
     type: object
   v1.LinkResponse:
     properties:
       data:
-        properties:
-          data:
-            $ref: '#/definitions/domain.Link'
-        type: object
+        $ref: '#/definitions/domain.Link'
     type: object
   v1.LinksListResponse:
     properties:
       data:
-        properties:
-          data:
-            items:
-              $ref: '#/definitions/domain.Link'
-            type: array
-        type: object
+        items:
+          $ref: '#/definitions/domain.Link'
+        type: array
     type: object
-  v1.LoginReq:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-    type: object
-  v1.LoginResponse:
+  v1.LoginData:
     properties:
       token:
         type: string
       user:
         $ref: '#/definitions/domain.User'
     type: object
+  v1.LoginReq:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: secret123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  v1.LoginResponse:
+    properties:
+      data:
+        $ref: '#/definitions/v1.LoginData'
+    type: object
   v1.PlansListResponse:
     properties:
       data:
-        properties:
-          data:
-            items:
-              $ref: '#/definitions/domain.Plan'
-            type: array
-        type: object
+        items:
+          $ref: '#/definitions/domain.Plan'
+        type: array
     type: object
   v1.ProfileTreeResponse:
     properties:
       data:
-        $ref: '#/definitions/domain.HierarchyNode'
+        allOf:
+        - $ref: '#/definitions/domain.HierarchyNode'
+        description: Предпологаем, что HierarchyNode определен в domain
     type: object
   v1.QualityResponse:
     properties:
       data:
-        properties:
-          data:
-            $ref: '#/definitions/domain.TrafficQuality'
-        type: object
+        items:
+          $ref: '#/definitions/domain.TrafficQuality'
+        type: array
     type: object
   v1.RegisterReq:
     properties:
@@ -314,53 +307,63 @@ definitions:
     - email
     - password
     type: object
+  v1.RegisterResponse:
+    properties:
+      data:
+        $ref: '#/definitions/domain.User'
+    type: object
   v1.SankeyResponse:
     properties:
       data:
-        properties:
-          data:
-            $ref: '#/definitions/domain.SankeyData'
-        type: object
+        $ref: '#/definitions/domain.SankeyData'
     type: object
   v1.StatsResponse:
     properties:
       data:
-        properties:
-          data:
-            items:
-              $ref: '#/definitions/domain.CategoryStat'
-            type: array
-        type: object
+        items:
+          $ref: '#/definitions/domain.CategoryStat'
+        type: array
+    type: object
+  v1.StatusData:
+    properties:
+      status:
+        example: updated
+        type: string
+    type: object
+  v1.StatusResponse:
+    properties:
+      data:
+        $ref: '#/definitions/v1.StatusData'
     type: object
   v1.StreamGraphResponse:
     properties:
       data:
-        properties:
-          data:
-            items:
-              $ref: '#/definitions/domain.StackedPoint'
-            type: array
-        type: object
+        description: Предполагаем тип возвращаемого значения сервиса
+        items:
+          additionalProperties: {}
+          type: object
+        type: array
     type: object
   v1.UpdateUserPlanReq:
     properties:
       plan_id:
+        example: plan_pro
         type: string
+    required:
+    - plan_id
     type: object
   v1.UpdateUserStatusReq:
     properties:
       is_active:
+        example: true
         type: boolean
     type: object
   v1.UsersListResponse:
     properties:
       data:
-        properties:
-          data:
-            items:
-              $ref: '#/definitions/domain.User'
-            type: array
-        type: object
+        items:
+          $ref: '#/definitions/domain.User'
+        type: array
     type: object
 host: localhost:8080
 info:
@@ -399,9 +402,10 @@ paths:
       - Redirect
   /api/v1/admin/users:
     get:
-      description: Get paginated users list (Admin)
+      description: Get paginated users list (Admin). Returns array wrapped in data.
       parameters:
-      - description: Page number
+      - default: 1
+        description: Page number
         in: query
         name: page
         type: integer
@@ -440,7 +444,7 @@ paths:
         name: id
         required: true
         type: string
-      - description: New Plan ID
+      - description: Plan Request
         in: body
         name: request
         required: true
@@ -452,9 +456,7 @@ paths:
         "200":
           description: 'Status: updated'
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/v1.StatusResponse'
         "400":
           description: Bad Request
           schema:
@@ -487,7 +489,7 @@ paths:
         name: id
         required: true
         type: string
-      - description: Status
+      - description: Status Request
         in: body
         name: request
         required: true
@@ -499,9 +501,7 @@ paths:
         "200":
           description: 'Status: updated'
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/v1.StatusResponse'
         "400":
           description: Bad Request
           schema:
@@ -699,7 +699,8 @@ paths:
     get:
       description: Get top metrics for a dimension (browser, os, device)
       parameters:
-      - description: browser, os, device
+      - default: browser
+        description: browser, os, device
         in: query
         name: dimension
         type: string
@@ -743,7 +744,8 @@ paths:
     get:
       description: Get time-series data for Streamgraph/Stacked Area charts
       parameters:
-      - description: os, browser, country
+      - default: os
+        description: os, browser, country
         in: query
         name: group_by
         type: string
@@ -789,7 +791,7 @@ paths:
       - Analytics
   /api/v1/analytics/summary:
     get:
-      description: Get aggregated stats
+      description: Get aggregated stats (clicks, uniques, etc.)
       parameters:
       - description: Filter by Campaign
         in: query
@@ -881,9 +883,9 @@ paths:
       - application/json
       responses:
         "201":
-          description: Created user
+          description: Created user data
           schema:
-            $ref: '#/definitions/domain.User'
+            $ref: '#/definitions/v1.RegisterResponse'
         "400":
           description: Bad Request
           schema:

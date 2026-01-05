@@ -18,11 +18,6 @@ func NewAuthHandler(s ports.AuthService) *AuthHandler {
 	return &AuthHandler{service: s}
 }
 
-type RegisterReq struct {
-	Email    string `json:"email" binding:"required" example:"user@example.com"`
-	Password string `json:"password" binding:"required" example:"secret123"`
-}
-
 func (r RegisterReq) Validate() error {
 	if r.Email == "" {
 		return errors.New("email is required")
@@ -31,11 +26,6 @@ func (r RegisterReq) Validate() error {
 		return errors.New("password must be at least 6 characters")
 	}
 	return nil
-}
-
-type LoginReq struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
 }
 
 func (r LoginReq) Validate() error {
@@ -49,18 +39,18 @@ func (r LoginReq) Validate() error {
 }
 
 // Register godoc
-// @Summary      Register new user
-// @Description  Register a new user account
-// @Tags         Auth
-// @Accept       json
-// @Produce      json
-// @Param        request body RegisterReq true "Registration info"
-// @Success      201  {object}  domain.User "Created user"
-// @Failure      400  {object}  response.ErrorResponse
-// @Failure      401  {object}  response.ErrorResponse "Missing authorization header"
-// @Failure      409  {object}  response.ErrorResponse "Email already taken"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/auth/register [post]
+// @Summary Register new user
+// @Description Register a new user account
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body RegisterReq true "Registration info"
+// @Success 201 {object} RegisterResponse "Created user data"
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse "Missing authorization header"
+// @Failure 409 {object} response.ErrorResponse "Email already taken"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/auth/register [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterReq
 
@@ -81,17 +71,17 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 // Login godoc
-// @Summary      Login user
-// @Description  Authenticate and get JWT token
-// @Tags         Auth
-// @Accept       json
-// @Produce      json
-// @Param        request body LoginReq true "Credentials"
-// @Success      200  {object}  LoginResponse "Token and User info"
-// @Failure      400  {object}  response.ErrorResponse
-// @Failure      401  {object}  response.ErrorResponse "Invalid credentials"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/auth/login [post]
+// @Summary Login user
+// @Description Authenticate and get JWT token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body LoginReq true "Credentials"
+// @Success 200 {object} LoginResponse "Token and User info"
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse "Invalid credentials"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginReq
 	if err := request.DecodeJSON(w, r, &req); err != nil {

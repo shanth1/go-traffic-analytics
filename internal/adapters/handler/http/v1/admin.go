@@ -24,17 +24,17 @@ func NewAdminHandler(u ports.UserService) *AdminHandler {
 }
 
 // GetUsers godoc
-// @Summary      List users
-// @Description  Get paginated users list (Admin)
-// @Tags         Admin
-// @Security     BearerAuth
-// @Produce      json
-// @Param        page query int false "Page number"
-// @Success      200  {object}  UsersListResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
-// @Failure      500  {object}  response.ErrorResponse "Internal Server Error"
-// @Router       /api/v1/admin/users [get]
+// @Summary List users
+// @Description Get paginated users list (Admin). Returns array wrapped in data.
+// @Tags Admin
+// @Security BearerAuth
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Success 200 {object} UsersListResponse
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 403 {object} response.ErrorResponse "Forbidden"
+// @Failure 500 {object} response.ErrorResponse "Internal Server Error"
+// @Router /api/v1/admin/users [get]
 func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	pageStr := r.URL.Query().Get("page")
 	page, _ := strconv.Atoi(pageStr)
@@ -58,25 +58,21 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, r, users)
 }
 
-type UpdateUserStatusReq struct {
-	IsActive bool `json:"is_active"`
-}
-
 // UpdateUserStatus godoc
-// @Summary      Update user status
-// @Description  Activate/Deactivate user
-// @Tags         Admin
-// @Security     BearerAuth
-// @Accept       json
-// @Produce      json
-// @Param        id       path string                true "User ID"
-// @Param        request  body UpdateUserStatusReq true     "Status"
-// @Success      200      {object}  map[string]string       "Status: updated"
-// @Failure      400      {object}  response.ErrorResponse
-// @Failure      401      {object}  response.ErrorResponse  "Unauthorized"
-// @Failure      403      {object}  response.ErrorResponse  "Forbidden"
-// @Failure      500      {object}  response.ErrorResponse
-// @Router       /api/v1/admin/users/{id}/status [patch]
+// @Summary Update user status
+// @Description Activate/Deactivate user
+// @Tags Admin
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Param request body UpdateUserStatusReq true "Status Request"
+// @Success 200 {object} StatusResponse "Status: updated"
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 403 {object} response.ErrorResponse "Forbidden"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/admin/users/{id}/status [patch]
 func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) {
 	id := domain.UserID(chi.URLParam(r, "id"))
 
@@ -96,10 +92,6 @@ func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) 
 	response.Success(w, r, response.Envelope{"status": "updated"})
 }
 
-type UpdateUserPlanReq struct {
-	PlanID string `json:"plan_id"`
-}
-
 func (r UpdateUserPlanReq) Validate() error {
 	if r.PlanID == "" {
 		return errors.New("plan_id is required")
@@ -108,20 +100,20 @@ func (r UpdateUserPlanReq) Validate() error {
 }
 
 // UpdateUserPlan godoc
-// @Summary      Change user plan
-// @Description  Set new plan for user
-// @Tags         Admin
-// @Security     BearerAuth
-// @Accept       json
-// @Produce      json
-// @Param        id      path   string            true "User ID"
-// @Param        request body   UpdateUserPlanReq true  "New Plan ID"
-// @Success      200  {object}  map[string]string       "Status: updated"
-// @Failure      400  {object}  response.ErrorResponse
-// @Failure      401  {object}  response.ErrorResponse  "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse  "Forbidden"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/admin/users/{id}/plan [patch]
+// @Summary Change user plan
+// @Description Set new plan for user
+// @Tags Admin
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Param request body UpdateUserPlanReq true "Plan Request"
+// @Success 200 {object} StatusResponse "Status: updated"
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 403 {object} response.ErrorResponse "Forbidden"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/admin/users/{id}/plan [patch]
 func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
 	id := domain.UserID(chi.URLParam(r, "id"))
 

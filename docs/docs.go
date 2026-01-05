@@ -31,7 +31,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get paginated users list (Admin)",
+                "description": "Get paginated users list (Admin). Returns array wrapped in data.",
                 "produces": [
                     "application/json"
                 ],
@@ -42,6 +42,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "default": 1,
                         "description": "Page number",
                         "name": "page",
                         "in": "query"
@@ -102,7 +103,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "New Plan ID",
+                        "description": "Plan Request",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -115,10 +116,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Status: updated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/v1.StatusResponse"
                         }
                     },
                     "400": {
@@ -175,7 +173,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Status",
+                        "description": "Status Request",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -188,10 +186,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Status: updated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/v1.StatusResponse"
                         }
                     },
                     "400": {
@@ -509,6 +504,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "default": "browser",
                         "description": "browser, os, device",
                         "name": "dimension",
                         "in": "query"
@@ -578,6 +574,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "default": "os",
                         "description": "os, browser, country",
                         "name": "group_by",
                         "in": "query"
@@ -642,7 +639,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get aggregated stats",
+                "description": "Get aggregated stats (clicks, uniques, etc.)",
                 "produces": [
                     "application/json"
                 ],
@@ -782,9 +779,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created user",
+                        "description": "Created user data",
                         "schema": {
-                            "$ref": "#/definitions/domain.User"
+                            "$ref": "#/definitions/v1.RegisterResponse"
                         }
                     },
                     "400": {
@@ -1228,6 +1225,17 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.GeoStat": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "integer"
+                }
+            }
+        },
         "domain.HeatmapPoint": {
             "type": "object",
             "properties": {
@@ -1370,21 +1378,6 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.StackedPoint": {
-            "type": "object",
-            "properties": {
-                "time": {
-                    "type": "string"
-                },
-                "values": {
-                    "description": "Dynamic keys (OS, Browser...)",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
         "domain.Summary": {
             "type": "object",
             "properties": {
@@ -1495,12 +1488,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "$ref": "#/definitions/domain.Campaign"
-                        }
-                    }
+                    "$ref": "#/definitions/domain.Campaign"
                 }
             }
         },
@@ -1508,23 +1496,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.Campaign"
-                            }
-                        }
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.Campaign"
                     }
                 }
             }
         },
         "v1.CreateCampaignRequest": {
             "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "My Campaign"
                 }
             }
         },
@@ -1547,9 +1534,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {}
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.GeoStat"
                     }
                 }
             }
@@ -1558,14 +1545,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.HeatmapPoint"
-                            }
-                        }
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.HeatmapPoint"
                     }
                 }
             }
@@ -1574,12 +1556,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "$ref": "#/definitions/domain.Link"
-                        }
-                    }
+                    "$ref": "#/definitions/domain.Link"
                 }
             }
         },
@@ -1587,30 +1564,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.Link"
-                            }
-                        }
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.Link"
                     }
                 }
             }
         },
-        "v1.LoginReq": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.LoginResponse": {
+        "v1.LoginData": {
             "type": "object",
             "properties": {
                 "token": {
@@ -1621,18 +1582,38 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.LoginReq": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "secret123"
+                }
+            }
+        },
+        "v1.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/v1.LoginData"
+                }
+            }
+        },
         "v1.PlansListResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.Plan"
-                            }
-                        }
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.Plan"
                     }
                 }
             }
@@ -1641,7 +1622,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/domain.HierarchyNode"
+                    "description": "Предпологаем, что HierarchyNode определен в domain",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.HierarchyNode"
+                        }
+                    ]
                 }
             }
         },
@@ -1649,11 +1635,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "$ref": "#/definitions/domain.TrafficQuality"
-                        }
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.TrafficQuality"
                     }
                 }
             }
@@ -1675,16 +1659,19 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.RegisterResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/domain.User"
+                }
+            }
+        },
         "v1.SankeyResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "$ref": "#/definitions/domain.SankeyData"
-                        }
-                    }
+                    "$ref": "#/definitions/domain.SankeyData"
                 }
             }
         },
@@ -1692,15 +1679,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.CategoryStat"
-                            }
-                        }
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CategoryStat"
                     }
+                }
+            }
+        },
+        "v1.StatusData": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "updated"
+                }
+            }
+        },
+        "v1.StatusResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/v1.StatusData"
                 }
             }
         },
@@ -1708,23 +1707,24 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.StackedPoint"
-                            }
-                        }
+                    "description": "Предполагаем тип возвращаемого значения сервиса",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": {}
                     }
                 }
             }
         },
         "v1.UpdateUserPlanReq": {
             "type": "object",
+            "required": [
+                "plan_id"
+            ],
             "properties": {
                 "plan_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "plan_pro"
                 }
             }
         },
@@ -1732,7 +1732,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "is_active": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -1740,14 +1741,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.User"
-                            }
-                        }
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.User"
                     }
                 }
             }

@@ -21,15 +21,15 @@ func NewCampaignHandler(cs ports.CampaignService) *CampaignHandler {
 }
 
 // GetCampaigns godoc
-// @Summary      Get campaigns
-// @Description  Get list of user campaigns
-// @Tags         Campaigns
-// @Security     BearerAuth
-// @Produce      json
-// @Success      200  {object}  CampaignsListResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/campaigns [get]
+// @Summary Get campaigns
+// @Description Get list of user campaigns
+// @Tags Campaigns
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} CampaignsListResponse
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/campaigns [get]
 func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
 
@@ -47,18 +47,18 @@ func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateCampaign godoc
-// @Summary      Create campaign
-// @Description  Create a new campaign
-// @Tags         Campaigns
-// @Security     BearerAuth
-// @Accept       json
-// @Produce      json
-// @Param        request body CreateCampaignRequest true "Campaign Name"
-// @Success      201  {object}  CampaignResponse
-// @Failure      400  {object}  response.ErrorResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/campaigns [post]
+// @Summary Create campaign
+// @Description Create a new campaign
+// @Tags Campaigns
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body CreateCampaignRequest true "Campaign Name"
+// @Success 201 {object} CampaignResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/campaigns [post]
 func (h *CampaignHandler) CreateCampaign(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
 

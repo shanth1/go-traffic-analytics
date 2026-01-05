@@ -26,20 +26,20 @@ func NewLinkHandler(ls ports.LinkService, cs ports.CampaignService) *LinkHandler
 }
 
 // GetLinks godoc
-// @Summary      Get links list
-// @Description  Get links with filtering, search and pagination
-// @Tags         Links
-// @Security     BearerAuth
-// @Produce      json
-// @Param        campaign_id query     string  false  "Filter by Campaign ID"
-// @Param        search      query     string  false  "Search by slug or target URL"
-// @Param        is_active   query     boolean false  "Filter by active status"
-// @Param        limit       query     int     false  "Limit (default 10)"
-// @Param        offset      query     int     false  "Offset (default 0)"
-// @Success      200         {object}  LinksListResponse
-// @Failure      401         {object}  response.ErrorResponse "Unauthorized"
-// @Failure      500         {object}  response.ErrorResponse
-// @Router       /api/v1/links [get]
+// @Summary Get links list
+// @Description Get links with filtering, search and pagination
+// @Tags Links
+// @Security BearerAuth
+// @Produce json
+// @Param campaign_id query string false "Filter by Campaign ID"
+// @Param search query string false "Search by slug or target URL"
+// @Param is_active query boolean false "Filter by active status"
+// @Param limit query int false "Limit (default 10)"
+// @Param offset query int false "Offset (default 0)"
+// @Success 200 {object} LinksListResponse
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/links [get]
 func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
 
@@ -86,19 +86,19 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateLink godoc
-// @Summary      Create link
-// @Description  Shorten a URL
-// @Tags         Links
-// @Security     BearerAuth
-// @Accept       json
-// @Produce      json
-// @Param        request body CreateLinkRequest true "Link Info"
-// @Success      201  {object}  LinkResponse
-// @Failure      400  {object}  response.ErrorResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Limit reached or Forbidden"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/links [post]
+// @Summary Create link
+// @Description Shorten a URL
+// @Tags Links
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body CreateLinkRequest true "Link Info"
+// @Success 201 {object} LinkResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 403 {object} response.ErrorResponse "Limit reached or Forbidden"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/links [post]
 func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
 
@@ -134,15 +134,15 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteLink godoc
-// @Summary      Delete link
-// @Description  Remove a link
-// @Tags         Links
-// @Security     BearerAuth
-// @Param        id   path      string  true  "Link ID"
-// @Success      204  {string}  string  "No Content"
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/links/{id} [delete]
+// @Summary Delete link
+// @Description Remove a link
+// @Tags Links
+// @Security BearerAuth
+// @Param id path string true "Link ID"
+// @Success 204 {string} string "No Content"
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/links/{id} [delete]
 func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 	id := domain.LinkID(chi.URLParam(r, "id"))
 	userID := request.GetUserID(r)

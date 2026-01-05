@@ -20,15 +20,15 @@ func NewUserHandler(us ports.UserService) *UserHandler {
 }
 
 // GetProfileTree godoc
-// @Summary      Profile Hierarchy
-// @Description  Get hierarchical structure of User -> Campaigns -> Links for Tree visualization
-// @Tags         Users
-// @Security     BearerAuth
-// @Produce      json
-// @Success      200  {object}  ProfileTreeResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/users/tree [get]
+// @Summary Profile Hierarchy
+// @Description Get hierarchical structure of User -> Campaigns -> Links for Tree visualization
+// @Tags Users
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} ProfileTreeResponse
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/users/tree [get]
 func (h *UserHandler) GetProfileTree(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
 

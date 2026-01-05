@@ -45,20 +45,20 @@ func (h *AnalyticsHandler) parseFilter(r *http.Request) domain.AnalyticsFilter {
 }
 
 // GetSummary godoc
-// @Summary      Analytics summary
-// @Description  Get aggregated stats
-// @Tags         Analytics
-// @Security     BearerAuth
-// @Produce      json
-// @Param        campaign_id query string false "Filter by Campaign"
-// @Param        link_id     query string false "Filter by Link"
-// @Param        from        query string false "Date From (RFC3339)"
-// @Param        to          query string false "Date To (RFC3339)"
-// @Success      200  {object}  AnalyticsSummaryResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/analytics/summary [get]
+// @Summary Analytics summary
+// @Description Get aggregated stats (clicks, uniques, etc.)
+// @Tags Analytics
+// @Security BearerAuth
+// @Produce json
+// @Param campaign_id query string false "Filter by Campaign"
+// @Param link_id query string false "Filter by Link"
+// @Param from query string false "Date From (RFC3339)"
+// @Param to query string false "Date To (RFC3339)"
+// @Success 200 {object} AnalyticsSummaryResponse
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 403 {object} response.ErrorResponse "Forbidden"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/analytics/summary [get]
 func (h *AnalyticsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 
@@ -74,21 +74,21 @@ func (h *AnalyticsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetStreamGraph godoc
-// @Summary      Stream graph data
-// @Description  Get time-series data for Streamgraph/Stacked Area charts
-// @Tags         Analytics
-// @Security     BearerAuth
-// @Produce      json
-// @Param        group_by    query string false "os, browser, country"
-// @Param        campaign_id query string false "Filter by Campaign"
-// @Param        link_id     query string false "Filter by Link"
-// @Param        from        query string false "Date From (RFC3339)"
-// @Param        to          query string false "Date To (RFC3339)"
-// @Success      200  {object}  StreamGraphResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/analytics/stream [get]
+// @Summary Stream graph data
+// @Description Get time-series data for Streamgraph/Stacked Area charts
+// @Tags Analytics
+// @Security BearerAuth
+// @Produce json
+// @Param group_by query string false "os, browser, country" default(os)
+// @Param campaign_id query string false "Filter by Campaign"
+// @Param link_id query string false "Filter by Link"
+// @Param from query string false "Date From (RFC3339)"
+// @Param to query string false "Date To (RFC3339)"
+// @Success 200 {object} StreamGraphResponse
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 403 {object} response.ErrorResponse "Forbidden"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/analytics/stream [get]
 func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 
@@ -109,20 +109,20 @@ func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request
 }
 
 // GetSankeyFlow godoc
-// @Summary      Sankey flow
-// @Description  Get flow data (Referer -> Device -> Country)
-// @Tags         Analytics
-// @Security     BearerAuth
-// @Produce      json
-// @Param        campaign_id query string false "Filter by Campaign"
-// @Param        link_id     query string false "Filter by Link"
-// @Param        from        query string false "Date From (RFC3339)"
-// @Param        to          query string false "Date To (RFC3339)"
-// @Success      200  {object}  SankeyResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/analytics/flow [get]
+// @Summary Sankey flow
+// @Description Get flow data (Referer -> Device -> Country)
+// @Tags Analytics
+// @Security BearerAuth
+// @Produce json
+// @Param campaign_id query string false "Filter by Campaign"
+// @Param link_id query string false "Filter by Link"
+// @Param from query string false "Date From (RFC3339)"
+// @Param to query string false "Date To (RFC3339)"
+// @Success 200 {object} SankeyResponse
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 403 {object} response.ErrorResponse "Forbidden"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/analytics/flow [get]
 func (h *AnalyticsHandler) GetSankeyFlow(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 	stages := []string{consts.Referer, consts.Device, consts.Country}
@@ -139,20 +139,20 @@ func (h *AnalyticsHandler) GetSankeyFlow(w http.ResponseWriter, r *http.Request)
 }
 
 // GetGeoMap godoc
-// @Summary      Geo distribution
-// @Description  Get clicks count by country
-// @Tags         Analytics
-// @Security     BearerAuth
-// @Produce      json
-// @Param        campaign_id query string false "Filter by Campaign"
-// @Param        link_id     query string false "Filter by Link"
-// @Param        from        query string false "Date From (RFC3339)"
-// @Param        to          query string false "Date To (RFC3339)"
-// @Success      200  {object}  GeoResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/analytics/geo [get]
+// @Summary Geo distribution
+// @Description Get clicks count by country
+// @Tags Analytics
+// @Security BearerAuth
+// @Produce json
+// @Param campaign_id query string false "Filter by Campaign"
+// @Param link_id query string false "Filter by Link"
+// @Param from query string false "Date From (RFC3339)"
+// @Param to query string false "Date To (RFC3339)"
+// @Success 200 {object} GeoResponse
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 403 {object} response.ErrorResponse "Forbidden"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/analytics/geo [get]
 func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 
@@ -168,20 +168,20 @@ func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetQualityRadar godoc
-// @Summary      Traffic quality
-// @Description  Get quality metrics for Radar Chart
-// @Tags         Analytics
-// @Security     BearerAuth
-// @Produce      json
-// @Param        campaign_id query string false "Filter by Campaign"
-// @Param        link_id     query string false "Filter by Link"
-// @Param        from        query string false "Date From (RFC3339)"
-// @Param        to          query string false "Date To (RFC3339)"
-// @Success      200  {object}  QualityResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      403  {object}  response.ErrorResponse "Forbidden"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/analytics/quality [get]
+// @Summary Traffic quality
+// @Description Get quality metrics for Radar Chart
+// @Tags Analytics
+// @Security BearerAuth
+// @Produce json
+// @Param campaign_id query string false "Filter by Campaign"
+// @Param link_id query string false "Filter by Link"
+// @Param from query string false "Date From (RFC3339)"
+// @Param to query string false "Date To (RFC3339)"
+// @Success 200 {object} QualityResponse
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 403 {object} response.ErrorResponse "Forbidden"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/analytics/quality [get]
 func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 
@@ -197,19 +197,19 @@ func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Reques
 }
 
 // GetHeatmap godoc
-// @Summary      Heatmap data
-// @Description  Get click intensity by Day of Week and Hour
-// @Tags         Analytics
-// @Security     BearerAuth
-// @Produce      json
-// @Param        campaign_id query string false "Filter"
-// @Param        link_id     query string false "Filter"
-// @Param        from        query string false "Date From (RFC3339)"
-// @Param        to          query string false "Date To (RFC3339)"
-// @Success      200  {object}  HeatmapResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/analytics/heatmap [get]
+// @Summary Heatmap data
+// @Description Get click intensity by Day of Week and Hour
+// @Tags Analytics
+// @Security BearerAuth
+// @Produce json
+// @Param campaign_id query string false "Filter"
+// @Param link_id query string false "Filter"
+// @Param from query string false "Date From (RFC3339)"
+// @Param to query string false "Date To (RFC3339)"
+// @Success 200 {object} HeatmapResponse
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/analytics/heatmap [get]
 func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 	data, err := h.service.GetHeatmapData(r.Context(), filter)
@@ -224,20 +224,20 @@ func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetStats godoc
-// @Summary      Category Stats (Pie/Bar)
-// @Description  Get top metrics for a dimension (browser, os, device)
-// @Tags         Analytics
-// @Security     BearerAuth
-// @Produce      json
-// @Param        dimension   query string false  "browser, os, device"
-// @Param        campaign_id query string false "Filter by Campaign"
-// @Param        link_id     query string false "Filter by Link"
-// @Param        from        query string false "Date From (RFC3339)"
-// @Param        to          query string false "Date To (RFC3339)"
-// @Success      200  {object}  StatsResponse
-// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
-// @Failure      500  {object}  response.ErrorResponse
-// @Router       /api/v1/analytics/stats [get]
+// @Summary Category Stats (Pie/Bar)
+// @Description Get top metrics for a dimension (browser, os, device)
+// @Tags Analytics
+// @Security BearerAuth
+// @Produce json
+// @Param dimension query string false "browser, os, device" default(browser)
+// @Param campaign_id query string false "Filter by Campaign"
+// @Param link_id query string false "Filter by Link"
+// @Param from query string false "Date From (RFC3339)"
+// @Param to query string false "Date To (RFC3339)"
+// @Success 200 {object} StatsResponse
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/v1/analytics/stats [get]
 func (h *AnalyticsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 	dim := r.URL.Query().Get("dimension")
