@@ -59,9 +59,9 @@ export const AnalyticsPage = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Динамика трафика (Stream)</CardTitle>
+          <CardTitle>Traffic Dynamics (Stream)</CardTitle>
           <p className="text-sm text-slate-400">
-            Распределение устройств во времени
+            Device distribution over time
           </p>
         </CardHeader>
         <CardContent className="h-[400px]">
@@ -73,7 +73,7 @@ export const AnalyticsPage = () => {
             <StreamGraph data={chartData} keys={keys} />
           ) : (
             <div className="h-full flex items-center justify-center text-slate-400">
-              Нет данных для отображения графика
+              No data to display the chart
             </div>
           )}
         </CardContent>

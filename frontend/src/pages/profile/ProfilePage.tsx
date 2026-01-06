@@ -52,7 +52,7 @@ export const ProfilePage = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-slate-500">
-              Всего кликов
+              Total Clicks
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -66,14 +66,14 @@ export const ProfilePage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 min-h-[400px]">
           <CardHeader>
-            <CardTitle>Структура кампаний</CardTitle>
+            <CardTitle>Campaign Structure</CardTitle>
           </CardHeader>
           <CardContent className="h-[350px]">
             {treeData ? (
               <HierarchyTree data={treeData} />
             ) : (
               <div className="h-full flex items-center justify-center">
-                Loading structure...
+                Loading campaign structure...
               </div>
             )}
           </CardContent>
@@ -81,14 +81,14 @@ export const ProfilePage = () => {
 
         <Card className="min-h-[400px]">
           <CardHeader>
-            <CardTitle>Топ браузеров</CardTitle>
+            <CardTitle>Top Browsers</CardTitle>
           </CardHeader>
           <CardContent className="h-[350px]">
             {browserStats ? (
               <DonutChart data={browserStats} />
             ) : (
               <div className="h-full flex items-center justify-center">
-                Loading stats...
+                Loading browser stats...
               </div>
             )}
           </CardContent>
@@ -97,14 +97,14 @@ export const ProfilePage = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>География трафика</CardTitle>
+          <CardTitle>Traffic Geography</CardTitle>
         </CardHeader>
         <CardContent className="h-[400px] w-full overflow-hidden">
           {geoData ? (
             <GeoMap data={geoData} />
           ) : (
             <div className="p-4 h-full flex items-center justify-center">
-              Loading Map...
+              Loading map...
             </div>
           )}
         </CardContent>

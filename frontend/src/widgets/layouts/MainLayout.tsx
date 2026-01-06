@@ -4,9 +4,9 @@ import { cn } from '@/shared/lib/utils';
 import { useAuthStore } from '@/entities/session/store';
 
 const NAV_ITEMS = [
-  { label: 'Профиль', path: '/', icon: UserIcon },
-  { label: 'Кампании', path: '/campaigns', icon: LayersIcon },
-  { label: 'Ссылки', path: '/links', icon: LinkIcon },
+  { label: 'Profile', path: '/', icon: UserIcon },
+  { label: 'Campaigns', path: '/campaigns', icon: LayersIcon },
+  { label: 'Links', path: '/links', icon: LinkIcon },
 ];
 
 export const MainLayout = () => {
@@ -49,7 +49,7 @@ export const MainLayout = () => {
             className="flex items-center gap-3 px-4 py-3 w-full text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
           >
             <LogOutIcon size={20} />
-            Выйти
+            Logout
           </button>
         </div>
       </aside>
@@ -88,7 +88,7 @@ export const MainLayout = () => {
             className="flex flex-col items-center justify-center w-full h-full gap-1 text-slate-500 active:scale-95 transition-transform"
           >
             <LogOutIcon size={24} />
-            <span className="text-[10px] font-medium">Выход</span>
+            <span className="text-[10px] font-medium">Exit</span>
           </button>
         </div>
       </nav>

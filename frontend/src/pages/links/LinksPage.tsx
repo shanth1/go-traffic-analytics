@@ -100,12 +100,12 @@ export const LinksPage = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
-            Ссылки{campaignId ? ` кампании ${campaignId}` : ''}
+            Links{campaignId ? ` of campaign ${campaignId}` : ''}
           </h1>
           <p className="text-slate-500">
             {campaignId
-              ? 'Ссылки выбранной кампании.'
-              : 'Все ваши сокращенные ссылки в одном месте.'}
+              ? 'Links of the selected campaign.'
+              : 'All your shortened links in one place.'}
           </p>
         </div>
         <CreateLinkFeature />

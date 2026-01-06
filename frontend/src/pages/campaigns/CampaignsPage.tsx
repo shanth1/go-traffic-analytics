@@ -40,7 +40,7 @@ const CampaignCard = ({ data }: CampaignCardProps) => (
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
         <div className="flex flex-col">
           <span className="text-xs text-slate-400 uppercase font-bold tracking-wider">
-            Клики
+            Clicks
           </span>
           <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">
             1,234
@@ -50,7 +50,7 @@ const CampaignCard = ({ data }: CampaignCardProps) => (
           to={`/links?campaign_id=${data.id}`}
           className="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
         >
-          Детали <ArrowRightIcon size={14} />
+          Details <ArrowRightIcon size={14} />
         </Link>
       </div>
     </div>
@@ -69,10 +69,10 @@ export const CampaignsPage = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-            Кампании
+            Campaigns
           </h1>
           <p className="text-slate-500 mt-1">
-            Управляйте группами ссылок и отслеживайте их эффективность.
+            Manage link groups and track their effectiveness.
           </p>
         </div>
         <CreateCampaignFeature />

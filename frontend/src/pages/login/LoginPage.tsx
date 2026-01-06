@@ -23,10 +23,10 @@ export const LoginPage = () => {
       console.error(error);
       if (error instanceof AxiosError && error.response) {
         alert(
-          `Ошибка входа: ${error.response.data?.error || 'Неверные данные'}`
+          `Login error: ${error.response.data?.error || 'Invalid credentials'}`
         );
       } else {
-        alert('Ошибка сети или сервера');
+        alert('Network or server error');
       }
     } finally {
       setLoading(false);
@@ -38,10 +38,10 @@ export const LoginPage = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            Вход в систему
+            Sign In
           </CardTitle>
           <p className="text-sm text-slate-500 text-center">
-            Введите email и пароль для доступа
+            Enter email and password to access
           </p>
         </CardHeader>
         <CardContent>
@@ -57,7 +57,7 @@ export const LoginPage = () => {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Пароль</label>
+              <label className="text-sm font-medium">Password</label>
               <Input
                 type="password"
                 value={password}
@@ -66,7 +66,7 @@ export const LoginPage = () => {
               />
             </div>
             <Button className="w-full" type="submit" disabled={loading}>
-              {loading ? 'Вход...' : 'Войти'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
         </CardContent>

@@ -32,18 +32,18 @@ export const CreateLinkFeature = () => {
         className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
       >
         <PlusIcon size={18} />
-        <span className="hidden sm:inline">Сократить ссылку</span>
-        <span className="sm:hidden">Ссылка</span>
+        <span className="hidden sm:inline">Shorten Link</span>
+        <span className="sm:hidden">Link</span>
       </Button>
 
       <ResponsiveSheet
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        title="Новая ссылка"
+        title="New Link"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Целевой URL</label>
+            <label className="text-sm font-medium">Target URL</label>
             <div className="relative">
               <Link2Icon
                 className="absolute left-3 top-3 text-slate-400"
@@ -62,7 +62,7 @@ export const CreateLinkFeature = () => {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              Свой алиас (необязательно)
+              Custom Alias (optional)
             </label>
             <div className="flex items-center gap-2">
               <span className="text-slate-400 text-sm bg-slate-100 px-2 py-2 rounded-md border border-slate-200">
@@ -77,13 +77,13 @@ export const CreateLinkFeature = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Кампания</label>
+            <label className="text-sm font-medium">Campaign</label>
             <select
               className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               value={campaignId}
               onChange={(e) => setCampaignId(e.target.value)}
             >
-              <option value="">Без кампании</option>
+              <option value="">No Campaign</option>
               {campaigns.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -96,7 +96,7 @@ export const CreateLinkFeature = () => {
             type="submit"
             className="w-full bg-indigo-600 text-white mt-4"
           >
-            Создать ссылку
+            Create Link
           </Button>
         </form>
       </ResponsiveSheet>
