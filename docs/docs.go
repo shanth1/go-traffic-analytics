@@ -1087,6 +1087,12 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
@@ -1418,7 +1424,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.User": {
+        "domain.UserPublic": {
             "type": "object",
             "properties": {
                 "clicks_current_month": {
@@ -1437,27 +1443,15 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "plan_expires": {
-                    "description": "nil = forever (for free)",
                     "type": "string"
                 },
                 "plan_id": {
                     "type": "string"
                 },
                 "role": {
-                    "$ref": "#/definitions/domain.UserRole"
+                    "type": "string"
                 }
             }
-        },
-        "domain.UserRole": {
-            "type": "string",
-            "enum": [
-                "admin",
-                "client"
-            ],
-            "x-enum-varnames": [
-                "RoleAdmin",
-                "RoleClient"
-            ]
         },
         "handlers.HealthResponse": {
             "type": "object",
@@ -1510,8 +1504,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "name": {
-                    "type": "string",
-                    "example": "My Campaign"
+                    "type": "string"
                 }
             }
         },
@@ -1525,8 +1518,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "target_url": {
-                    "type": "string",
-                    "example": "https://google.com"
+                    "type": "string"
                 }
             }
         },
@@ -1578,7 +1570,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/domain.User"
+                    "$ref": "#/definitions/domain.UserPublic"
                 }
             }
         },
@@ -1591,11 +1583,11 @@ const docTemplate = `{
             "properties": {
                 "email": {
                     "type": "string",
-                    "example": "user@example.com"
+                    "example": "user1@example.com"
                 },
                 "password": {
                     "type": "string",
-                    "example": "secret123"
+                    "example": "password"
                 }
             }
         },
@@ -1622,12 +1614,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "description": "Предпологаем, что HierarchyNode определен в domain",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/domain.HierarchyNode"
-                        }
-                    ]
+                    "$ref": "#/definitions/domain.HierarchyNode"
                 }
             }
         },
@@ -1635,10 +1622,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.TrafficQuality"
-                    }
+                    "$ref": "#/definitions/domain.TrafficQuality"
                 }
             }
         },
@@ -1651,11 +1635,11 @@ const docTemplate = `{
             "properties": {
                 "email": {
                     "type": "string",
-                    "example": "user@example.com"
+                    "example": "user1@example.com"
                 },
                 "password": {
                     "type": "string",
-                    "example": "secret123"
+                    "example": "password"
                 }
             }
         },
@@ -1663,7 +1647,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/domain.User"
+                    "$ref": "#/definitions/domain.UserPublic"
                 }
             }
         },
@@ -1690,8 +1674,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "status": {
-                    "type": "string",
-                    "example": "updated"
+                    "type": "string"
                 }
             }
         },
@@ -1707,7 +1690,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "description": "Предполагаем тип возвращаемого значения сервиса",
                     "type": "array",
                     "items": {
                         "type": "object",
@@ -1723,8 +1705,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "plan_id": {
-                    "type": "string",
-                    "example": "plan_pro"
+                    "type": "string"
                 }
             }
         },
@@ -1732,8 +1713,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "is_active": {
-                    "type": "boolean",
-                    "example": true
+                    "type": "boolean"
                 }
             }
         },
@@ -1743,7 +1723,7 @@ const docTemplate = `{
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.User"
+                        "$ref": "#/definitions/domain.UserPublic"
                     }
                 }
             }

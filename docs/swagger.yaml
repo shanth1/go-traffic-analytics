@@ -150,7 +150,7 @@ definitions:
       mobile_friendly_score:
         type: integer
     type: object
-  domain.User:
+  domain.UserPublic:
     properties:
       clicks_current_month:
         type: integer
@@ -163,21 +163,12 @@ definitions:
       is_active:
         type: boolean
       plan_expires:
-        description: nil = forever (for free)
         type: string
       plan_id:
         type: string
       role:
-        $ref: '#/definitions/domain.UserRole'
+        type: string
     type: object
-  domain.UserRole:
-    enum:
-    - admin
-    - client
-    type: string
-    x-enum-varnames:
-    - RoleAdmin
-    - RoleClient
   handlers.HealthResponse:
     properties:
       status:
@@ -209,7 +200,6 @@ definitions:
   v1.CreateCampaignRequest:
     properties:
       name:
-        example: My Campaign
         type: string
     required:
     - name
@@ -219,7 +209,6 @@ definitions:
       campaign_id:
         type: string
       target_url:
-        example: https://google.com
         type: string
     required:
     - target_url
@@ -255,15 +244,15 @@ definitions:
       token:
         type: string
       user:
-        $ref: '#/definitions/domain.User'
+        $ref: '#/definitions/domain.UserPublic'
     type: object
   v1.LoginReq:
     properties:
       email:
-        example: user@example.com
+        example: user1@example.com
         type: string
       password:
-        example: secret123
+        example: password
         type: string
     required:
     - email
@@ -284,24 +273,20 @@ definitions:
   v1.ProfileTreeResponse:
     properties:
       data:
-        allOf:
-        - $ref: '#/definitions/domain.HierarchyNode'
-        description: Предпологаем, что HierarchyNode определен в domain
+        $ref: '#/definitions/domain.HierarchyNode'
     type: object
   v1.QualityResponse:
     properties:
       data:
-        items:
-          $ref: '#/definitions/domain.TrafficQuality'
-        type: array
+        $ref: '#/definitions/domain.TrafficQuality'
     type: object
   v1.RegisterReq:
     properties:
       email:
-        example: user@example.com
+        example: user1@example.com
         type: string
       password:
-        example: secret123
+        example: password
         type: string
     required:
     - email
@@ -310,7 +295,7 @@ definitions:
   v1.RegisterResponse:
     properties:
       data:
-        $ref: '#/definitions/domain.User'
+        $ref: '#/definitions/domain.UserPublic'
     type: object
   v1.SankeyResponse:
     properties:
@@ -327,7 +312,6 @@ definitions:
   v1.StatusData:
     properties:
       status:
-        example: updated
         type: string
     type: object
   v1.StatusResponse:
@@ -338,7 +322,6 @@ definitions:
   v1.StreamGraphResponse:
     properties:
       data:
-        description: Предполагаем тип возвращаемого значения сервиса
         items:
           additionalProperties: {}
           type: object
@@ -347,7 +330,6 @@ definitions:
   v1.UpdateUserPlanReq:
     properties:
       plan_id:
-        example: plan_pro
         type: string
     required:
     - plan_id
@@ -355,14 +337,13 @@ definitions:
   v1.UpdateUserStatusReq:
     properties:
       is_active:
-        example: true
         type: boolean
     type: object
   v1.UsersListResponse:
     properties:
       data:
         items:
-          $ref: '#/definitions/domain.User'
+          $ref: '#/definitions/domain.UserPublic'
         type: array
     type: object
 host: localhost:8080
@@ -1077,6 +1058,10 @@ paths:
           description: No Content
           schema:
             type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "401":
           description: Unauthorized
           schema:

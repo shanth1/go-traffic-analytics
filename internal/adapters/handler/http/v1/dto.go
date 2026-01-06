@@ -33,8 +33,8 @@ func (r CreateCampaignRequest) Validate() error {
 }
 
 type RegisterReq struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Email    string `json:"email" binding:"required" example:"user1@example.com"`
+	Password string `json:"password" binding:"required" example:"password"`
 }
 
 func (r RegisterReq) Validate() error {
@@ -48,8 +48,8 @@ func (r RegisterReq) Validate() error {
 }
 
 type LoginReq struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Email    string `json:"email" binding:"required" example:"user1@example.com"`
+	Password string `json:"password" binding:"required" example:"password"`
 }
 
 func (r LoginReq) Validate() error {
