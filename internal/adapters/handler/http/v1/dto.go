@@ -67,8 +67,6 @@ type UpdateUserStatusReq struct {
 }
 
 func (r UpdateUserStatusReq) Validate() error {
-	// Булево значение всегда присутствует (true или false),
-	// дополнительная валидация не требуется, но метод нужен для унификации.
 	return nil
 }
 
@@ -95,8 +93,8 @@ type StatusResponse struct {
 
 // Auth
 type LoginData struct {
-	Token string       `json:"token"`
-	User  *domain.User `json:"user"`
+	Token string            `json:"token"`
+	User  domain.UserPublic `json:"user"`
 }
 
 type LoginResponse struct {
@@ -104,12 +102,12 @@ type LoginResponse struct {
 }
 
 type RegisterResponse struct {
-	Data *domain.User `json:"data"`
+	Data domain.UserPublic `json:"data"`
 }
 
 // Users
 type UsersListResponse struct {
-	Data []*domain.User `json:"data"`
+	Data []domain.UserPublic `json:"data"`
 }
 
 type ProfileTreeResponse struct {

@@ -52,9 +52,14 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		users = []*domain.User{}
 	}
 
+	publicUsers := make([]domain.UserPublic, len(users))
+	for i, user := range users {
+		publicUsers[i] = user.ToPublic()
+	}
+
 	log.FromContext(r.Context()).Info().Int("page", page).Int("limit", limit).Msg("admin_users_listed")
 
-	response.Success(w, r, users)
+	response.Success(w, r, publicUsers)
 }
 
 // UpdateUserStatus godoc

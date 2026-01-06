@@ -46,7 +46,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Str("user_id", string(user.ID)).Str("email", user.Email).Msg("user_registered")
 
-	response.Created(w, r, user)
+	response.Created(w, r, user.ToPublic())
 }
 
 // Login godoc
@@ -76,8 +76,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Str("user_id", string(user.ID)).Str("email", user.Email).Msg("user_logged_in")
 
-	response.Success(w, r, response.Envelope{
-		"token": token,
-		"user":  user,
+	response.Success(w, r, LoginData{
+		Token: token,
+		User:  user.ToPublic(),
 	})
 }
