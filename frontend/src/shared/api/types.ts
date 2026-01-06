@@ -41,6 +41,11 @@ export interface StackedPoint {
   values: Record<string, number>;
 }
 
+export interface StreamChartData {
+  time: Date;
+  [key: string]: number | Date;
+}
+
 export interface HierarchyNode {
   name: string;
   type: 'root' | 'campaign' | 'link';
