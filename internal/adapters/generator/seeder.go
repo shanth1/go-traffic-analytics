@@ -43,7 +43,7 @@ func New(
 }
 
 func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
-	var seed int64 = cfg.Seed
+	var seed = cfg.Seed
 	if seed == 0 {
 		seed = time.Now().UnixNano()
 	}
@@ -295,11 +295,11 @@ func (s *DataSeeder) generateRealisticIP() string {
 		s.rng.Intn(254)+1)
 }
 
-func (s *DataSeeder) randomRange(min, max int) int {
-	if min >= max {
-		return min
+func (s *DataSeeder) randomRange(minVal, maxVal int) int {
+	if minVal >= maxVal {
+		return minVal
 	}
-	return s.rng.Intn(max-min+1) + min
+	return s.rng.Intn(maxVal-minVal+1) + minVal
 }
 
 func (s *DataSeeder) randomString(n int) string {

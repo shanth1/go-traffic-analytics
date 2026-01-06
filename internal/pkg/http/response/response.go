@@ -33,7 +33,9 @@ func JSON(w http.ResponseWriter, r *http.Request, status int, data any) {
 	}
 
 	w.WriteHeader(status)
-	w.Write(buf)
+	if _, err := w.Write(buf); err != nil {
+		log.FromContext(r.Context()).Error().Err(err).Msg("response_write_failure")
+	}
 }
 
 func Success[T any](w http.ResponseWriter, r *http.Request, data T) {

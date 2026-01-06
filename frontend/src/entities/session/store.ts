@@ -19,7 +19,11 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       login: async (creds) => {
         const { data } = await api.post<AuthResponse>('/auth/login', creds);
-        set({ token: data.token, user: data.user, isAuthenticated: true });
+        set({
+          token: data.data.token,
+          user: data.data.user,
+          isAuthenticated: true,
+        });
       },
       logout: () => set({ token: null, user: null, isAuthenticated: false }),
     }),

@@ -36,7 +36,7 @@ func TestJWTAuth(t *testing.T) {
 		}
 
 		nextCalled := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 			nextCalled = true
 			_, ok := r.Context().Value(domain.CtxKeyUser).(*domain.JwtCustomClaims)
 			if !ok {
@@ -55,9 +55,9 @@ func TestJWTAuth(t *testing.T) {
 		}
 	})
 
-	t.Run("missing token", func(t *testing.T) {
+	t.Run("missing api key", func(t *testing.T) {
 		nextCalled := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 			nextCalled = true
 		})
 
@@ -83,7 +83,7 @@ func TestAdminOnly(t *testing.T) {
 		ctx := context.WithValue(context.Background(), domain.CtxKeyUser, claims)
 
 		nextCalled := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 			nextCalled = true
 		})
 
@@ -102,7 +102,7 @@ func TestAdminOnly(t *testing.T) {
 		ctx := context.WithValue(context.Background(), domain.CtxKeyUser, claims)
 
 		nextCalled := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 			nextCalled = true
 		})
 
@@ -131,7 +131,7 @@ func TestAPIKeyAuth(t *testing.T) {
 
 	t.Run("valid api key", func(t *testing.T) {
 		nextCalled := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 			nextCalled = true
 		})
 
@@ -148,7 +148,7 @@ func TestAPIKeyAuth(t *testing.T) {
 
 	t.Run("invalid api key", func(t *testing.T) {
 		nextCalled := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 			nextCalled = true
 		})
 
@@ -172,7 +172,7 @@ func TestBasicAuth(t *testing.T) {
 
 	t.Run("valid credentials", func(t *testing.T) {
 		nextCalled := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 			nextCalled = true
 		})
 
@@ -189,7 +189,7 @@ func TestBasicAuth(t *testing.T) {
 
 	t.Run("invalid credentials", func(t *testing.T) {
 		nextCalled := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 			nextCalled = true
 		})
 

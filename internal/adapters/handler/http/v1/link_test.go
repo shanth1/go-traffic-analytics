@@ -198,9 +198,9 @@ func TestLinkHandler_DeleteLink(t *testing.T) {
 
 		handler.DeleteLink(w, req)
 
-		// if w.Code != http.StatusNoContent {
-		// 	t.Errorf("expected status %d, got %d", http.StatusNoContent, w.Code)
-		// }
+		if w.Code != http.StatusNoContent {
+			t.Errorf("expected status %d, got %d", http.StatusNoContent, w.Code)
+		}
 	})
 
 	t.Run("service error", func(t *testing.T) {

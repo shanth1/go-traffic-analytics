@@ -32,7 +32,7 @@ func TestQuotaMiddleware_CheckClickLimit(t *testing.T) {
 		mockPlanRepo.EXPECT().FindByID(gomock.Any(), user.PlanID).Return(plan, nil)
 
 		nextCalled := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 			nextCalled = true
 		})
 
@@ -59,7 +59,7 @@ func TestQuotaMiddleware_CheckClickLimit(t *testing.T) {
 		mockPlanRepo.EXPECT().FindByID(gomock.Any(), user.PlanID).Return(plan, nil)
 
 		nextCalled := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 			nextCalled = true
 		})
 

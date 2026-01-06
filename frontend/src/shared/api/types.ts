@@ -2,7 +2,7 @@
 export interface User {
   id: string;
   email: string;
-  role: 'admin' | 'client';
+  role: string;
   is_active: boolean;
   clicks_current_month: number;
   plan_id: string;
@@ -65,7 +65,7 @@ export interface SankeyData {
 export interface CategoryStat {
   name: string;
   value: number;
-  share?: number;
+  share: number;
 }
 
 export interface AnalyticsSummary {
@@ -98,10 +98,12 @@ export interface CreateLinkReq {
 }
 
 // --- Responses ---
-export interface AuthResponse {
+export interface LoginData {
   token: string;
   user: User;
 }
+
+export type AuthResponse = ResponseWrapper<LoginData>;
 
 export interface ResponseWrapper<T> {
   data: T;
@@ -123,8 +125,10 @@ export type StreamGraphResponse = ResponseWrapper<StackedPoint[]>;
 export type SankeyResponse = ResponseWrapper<SankeyData>;
 export type QualityResponse = ResponseWrapper<TrafficQuality>;
 export type StatsResponse = ResponseWrapper<CategoryStat[]>;
+export type HeatmapResponse = ResponseWrapper<HeatmapPoint[]>;
 
-export interface StreamChartData {
-  time: Date;
-  [key: string]: number | Date;
+export interface HeatmapPoint {
+  day: string;
+  hour: string;
+  count: number;
 }

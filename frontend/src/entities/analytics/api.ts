@@ -7,6 +7,7 @@ import type {
   QualityResponse,
   TreeResponse,
   StatsResponse,
+  HeatmapResponse,
 } from '@/shared/api/types';
 
 interface AnalyticsParams {
@@ -56,10 +57,10 @@ export const analyticsApi = {
   },
 
   getHeatmap: async (linkId: string) => {
-    const { data } = await api.get<{
-      [day: string]: { [hour: string]: number };
-    }>('/analytics/heatmap', { params: { link_id: linkId } });
-    return data;
+    const { data } = await api.get<HeatmapResponse>('/analytics/heatmap', {
+      params: { link_id: linkId },
+    });
+    return data.data;
   },
 
   getQuality: async (linkId: string) => {
