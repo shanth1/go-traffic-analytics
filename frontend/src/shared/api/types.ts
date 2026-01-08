@@ -33,11 +33,6 @@ export interface Plan {
   max_clicks_month: number;
   price_cents: number;
   is_active: boolean;
-  monthly_clicks_limit: number;
-}
-
-export interface UserExtended extends User {
-  plan: Plan;
 }
 
 // --- Analytics Models ---

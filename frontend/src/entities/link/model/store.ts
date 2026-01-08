@@ -11,18 +11,8 @@ interface LinkFilters {
   campaign_id?: string;
   search?: string;
   is_active?: boolean;
-  limit: number;
-  offset: number;
-}
-
-interface Link {
-  id: string;
-  slug: string;
-  target_url: string;
-  is_active: boolean;
-  created_at: string;
-  campaign_id: string;
-  user_id: string;
+  limit?: number;
+  offset?: number;
 }
 
 interface LinkStore {
