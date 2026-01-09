@@ -1,4 +1,4 @@
-package cached
+package cachedproxy
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
@@ -34,10 +33,8 @@ func (r *UserRepo) buildEmailKey(email string) string {
 }
 
 func (r *UserRepo) Save(ctx context.Context, user *domain.User) error {
-	const op = "cached.UserRepo.Save"
-
 	if err := r.repo.Save(ctx, user); err != nil {
-		return ops.E(op, err)
+		return err
 	}
 
 	go func() {
@@ -53,8 +50,6 @@ func (r *UserRepo) Save(ctx context.Context, user *domain.User) error {
 }
 
 func (r *UserRepo) FindByID(ctx context.Context, id domain.UserID) (*domain.User, error) {
-	const op = "cached.UserRepo.FindByID"
-
 	key := r.buildIDKey(id)
 
 	val, err := r.cache.Get(ctx, key)
@@ -73,7 +68,7 @@ func (r *UserRepo) FindByID(ctx context.Context, id domain.UserID) (*domain.User
 
 	user, err := r.repo.FindByID(ctx, id)
 	if err != nil {
-		return nil, ops.E(op, err)
+		return nil, err
 	}
 
 	go func() {
@@ -89,8 +84,6 @@ func (r *UserRepo) FindByID(ctx context.Context, id domain.UserID) (*domain.User
 }
 
 func (r *UserRepo) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
-	const op = "cached.UserRepo.FindByEmail"
-
 	key := r.buildEmailKey(email)
 	val, err := r.cache.Get(ctx, key)
 	if err == nil {
@@ -104,7 +97,7 @@ func (r *UserRepo) FindByEmail(ctx context.Context, email string) (*domain.User,
 
 	user, err := r.repo.FindByEmail(ctx, email)
 	if err != nil {
-		return nil, ops.E(op, err)
+		return nil, err
 	}
 
 	go func() {
@@ -120,32 +113,16 @@ func (r *UserRepo) FindByEmail(ctx context.Context, email string) (*domain.User,
 }
 
 func (r *UserRepo) FindAll(ctx context.Context, limit, offset int) ([]*domain.User, error) {
-	const op = "cached.UserRepo.FindAll"
-
-	users, err := r.repo.FindAll(ctx, limit, offset)
-	if err != nil {
-		return nil, ops.E(op, err)
-	}
-
-	return users, nil
+	return r.repo.FindAll(ctx, limit, offset)
 }
 
 func (r *UserRepo) Count(ctx context.Context) (int64, error) {
-	const op = "cached.UserRepo.Count"
-
-	count, err := r.repo.Count(ctx)
-	if err != nil {
-		return 0, ops.E(op, err)
-	}
-
-	return count, nil
+	return r.repo.Count(ctx)
 }
 
 func (r *UserRepo) IncrementUsage(ctx context.Context, userID domain.UserID, delta int) error {
-	const op = "cached.UserRepo.IncrementUsage"
-
 	if err := r.repo.IncrementUsage(ctx, userID, delta); err != nil {
-		return ops.E(op, err)
+		return err
 	}
 
 	go func() {
@@ -158,10 +135,8 @@ func (r *UserRepo) IncrementUsage(ctx context.Context, userID domain.UserID, del
 }
 
 func (r *UserRepo) ResetUsage(ctx context.Context, userID domain.UserID) error {
-	const op = "cached.UserRepo.ResetUsage"
-
 	if err := r.repo.ResetUsage(ctx, userID); err != nil {
-		return ops.E(op, err)
+		return err
 	}
 
 	go func() {

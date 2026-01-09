@@ -1,4 +1,4 @@
-package cached
+package cachedproxy
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
@@ -34,8 +33,6 @@ func (r *PlanRepo) buildAllKey() string {
 }
 
 func (r *PlanRepo) FindByID(ctx context.Context, id string) (*domain.Plan, error) {
-	const op = "cached.PlanRepo.FindByID"
-
 	key := r.buildKey(id)
 
 	val, err := r.cache.Get(ctx, key)
@@ -54,7 +51,7 @@ func (r *PlanRepo) FindByID(ctx context.Context, id string) (*domain.Plan, error
 
 	plan, err := r.repo.FindByID(ctx, id)
 	if err != nil {
-		return nil, ops.E(op, err)
+		return nil, err
 	}
 
 	go func() {
@@ -75,19 +72,10 @@ func (r *PlanRepo) FindByID(ctx context.Context, id string) (*domain.Plan, error
 }
 
 func (r *PlanRepo) FindDefault(ctx context.Context) (*domain.Plan, error) {
-	const op = "cached.PlanRepo.FindDefault"
-
-	plan, err := r.FindByID(ctx, "free")
-	if err != nil {
-		return nil, ops.E(op, err)
-	}
-
-	return plan, nil
+	return r.FindByID(ctx, "free")
 }
 
 func (r *PlanRepo) FindAll(ctx context.Context) ([]*domain.Plan, error) {
-	const op = "cached.PlanRepo.FindAll"
-
 	key := r.buildAllKey()
 
 	val, err := r.cache.Get(ctx, key)
@@ -106,7 +94,7 @@ func (r *PlanRepo) FindAll(ctx context.Context) ([]*domain.Plan, error) {
 
 	plans, err := r.repo.FindAll(ctx)
 	if err != nil {
-		return nil, ops.E(op, err)
+		return nil, err
 	}
 
 	go func() {
@@ -127,10 +115,8 @@ func (r *PlanRepo) FindAll(ctx context.Context) ([]*domain.Plan, error) {
 }
 
 func (r *PlanRepo) Save(ctx context.Context, plan *domain.Plan) error {
-	const op = "cached.PlanRepo.Save"
-
 	if err := r.repo.Save(ctx, plan); err != nil {
-		return ops.E(op, err)
+		return err
 	}
 
 	go func() {

@@ -1,4 +1,4 @@
-package cached
+package cachedproxy
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
@@ -30,10 +29,8 @@ func (r *LinkRepo) buildKey(criteria string, value string) string {
 }
 
 func (r *LinkRepo) Save(ctx context.Context, link *domain.Link) error {
-	const op = "cached.LinkRepo.Save"
-
 	if err := r.repo.Save(ctx, link); err != nil {
-		return ops.E(op, err)
+		return err
 	}
 
 	go func() {
@@ -55,8 +52,6 @@ func (r *LinkRepo) Save(ctx context.Context, link *domain.Link) error {
 }
 
 func (r *LinkRepo) FindByID(ctx context.Context, id domain.LinkID) (*domain.Link, error) {
-	const op = "cached.LinkRepo.FindByID"
-
 	key := r.buildKey("id", string(id))
 
 	if link, err := r.getFromCache(ctx, key); err == nil && link != nil {
@@ -65,7 +60,7 @@ func (r *LinkRepo) FindByID(ctx context.Context, id domain.LinkID) (*domain.Link
 
 	link, err := r.repo.FindByID(ctx, id)
 	if err != nil {
-		return nil, ops.E(op, err)
+		return nil, err
 	}
 
 	r.setCache(key, link)
@@ -74,15 +69,13 @@ func (r *LinkRepo) FindByID(ctx context.Context, id domain.LinkID) (*domain.Link
 }
 
 func (r *LinkRepo) FindBySlug(ctx context.Context, slug string) (*domain.Link, error) {
-	const op = "cached.LinkRepo.FindBySlug"
-
 	key := r.buildKey("slug", slug)
 	if link, err := r.getFromCache(ctx, key); err == nil && link != nil {
 		return link, nil
 	}
 	link, err := r.repo.FindBySlug(ctx, slug)
 	if err != nil {
-		return nil, ops.E(op, err)
+		return nil, err
 	}
 
 	r.setCache(key, link)
@@ -90,30 +83,19 @@ func (r *LinkRepo) FindBySlug(ctx context.Context, slug string) (*domain.Link, e
 }
 
 func (r *LinkRepo) FindAll(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
-	const op = "cached.LinkRepo.FindAll"
-
 	links, err := r.repo.FindAll(ctx, filter)
 	if err != nil {
-		return nil, ops.E(op, err)
+		return nil, err
 	}
 
 	return links, nil
 }
 
 func (r *LinkRepo) Count(ctx context.Context, filter domain.LinkFilter) (int64, error) {
-	const op = "cached.LinkRepo.Count"
-
-	count, err := r.repo.Count(ctx, filter)
-	if err != nil {
-		return 0, ops.E(op, err)
-	}
-
-	return count, nil
+	return r.repo.Count(ctx, filter)
 }
 
 func (r *LinkRepo) Delete(ctx context.Context, userID domain.UserID, id domain.LinkID) error {
-	const op = "cached.LinkRepo.Delete"
-
 	link, err := r.repo.FindByID(ctx, id)
 
 	var slugToDelete string
@@ -122,7 +104,7 @@ func (r *LinkRepo) Delete(ctx context.Context, userID domain.UserID, id domain.L
 	}
 
 	if err := r.repo.Delete(ctx, userID, id); err != nil {
-		return ops.E(op, err)
+		return err
 	}
 
 	go func() {

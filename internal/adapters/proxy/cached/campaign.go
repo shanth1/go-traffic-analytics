@@ -1,4 +1,4 @@
-package cached
+package cachedproxy
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
@@ -30,10 +29,8 @@ func (r *CampaignRepo) buildKey(id string) string {
 }
 
 func (r *CampaignRepo) Save(ctx context.Context, camp *domain.Campaign) error {
-	const op = "cached.CampaignRepo.Save"
-
 	if err := r.repo.Save(ctx, camp); err != nil {
-		return ops.E(op, err)
+		return err
 	}
 
 	go func() {
@@ -48,8 +45,6 @@ func (r *CampaignRepo) Save(ctx context.Context, camp *domain.Campaign) error {
 }
 
 func (r *CampaignRepo) FindByID(ctx context.Context, id string) (*domain.Campaign, error) {
-	const op = "cached.CampaignRepo.FindByID"
-
 	key := r.buildKey(id)
 	val, err := r.cache.Get(ctx, key)
 	if err == nil {
@@ -67,7 +62,7 @@ func (r *CampaignRepo) FindByID(ctx context.Context, id string) (*domain.Campaig
 
 	camp, err := r.repo.FindByID(ctx, id)
 	if err != nil {
-		return nil, ops.E(op, err)
+		return nil, err
 	}
 
 	go func() {
@@ -85,32 +80,26 @@ func (r *CampaignRepo) FindByID(ctx context.Context, id string) (*domain.Campaig
 }
 
 func (r *CampaignRepo) FindAll(ctx context.Context, filter domain.CampaignFilter) ([]*domain.Campaign, error) {
-	const op = "cached.CampaignRepo.FindAll"
-
 	campaigns, err := r.repo.FindAll(ctx, filter)
 	if err != nil {
-		return nil, ops.E(op, err)
+		return nil, err
 	}
 
 	return campaigns, nil
 }
 
 func (r *CampaignRepo) Count(ctx context.Context, filter domain.CampaignFilter) (int64, error) {
-	const op = "cached.CampaignRepo.Count"
-
 	count, err := r.repo.Count(ctx, filter)
 	if err != nil {
-		return 0, ops.E(op, err)
+		return 0, err
 	}
 
 	return count, nil
 }
 
 func (r *CampaignRepo) Delete(ctx context.Context, userID domain.UserID, id string) error {
-	const op = "cached.CampaignRepo.Delete"
-
 	if err := r.repo.Delete(ctx, userID, id); err != nil {
-		return ops.E(op, err)
+		return err
 	}
 
 	go func() {

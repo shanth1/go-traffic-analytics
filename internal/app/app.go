@@ -12,7 +12,7 @@ import (
 	"github.com/shanth1/gotrace/internal/adapters/generator"
 	transport "github.com/shanth1/gotrace/internal/adapters/handler/http"
 	"github.com/shanth1/gotrace/internal/adapters/ingestor"
-	"github.com/shanth1/gotrace/internal/adapters/repository/cached"
+	cachedproxy "github.com/shanth1/gotrace/internal/adapters/proxy/cached"
 	"github.com/shanth1/gotrace/internal/adapters/repository/geography"
 	memoryrepo "github.com/shanth1/gotrace/internal/adapters/repository/memory"
 	"github.com/shanth1/gotrace/internal/config"
@@ -38,11 +38,11 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	basePlanRepo := memoryrepo.NewPlanRepo()
 
 	// Cached Repositories
-	userRepo := cached.NewUserRepo(baseUserRepo, cache, 5*time.Minute)
-	campRepo := cached.NewCampaignRepo(baseCampRepo, cache, 10*time.Minute)
-	linkRepo := cached.NewLinkRepo(baseLinkRepo, cache, 10*time.Minute)
-	analyticRepo := cached.NewAnalyicRepo(baseAnalyticRepo, cache, 30*time.Second)
-	planRepo := cached.NewPlanRepo(basePlanRepo, cache, 24*time.Hour)
+	userRepo := cachedproxy.NewUserRepo(baseUserRepo, cache, 5*time.Minute)
+	campRepo := cachedproxy.NewCampaignRepo(baseCampRepo, cache, 10*time.Minute)
+	linkRepo := cachedproxy.NewLinkRepo(baseLinkRepo, cache, 10*time.Minute)
+	analyticRepo := cachedproxy.NewAnalyicRepo(baseAnalyticRepo, cache, 30*time.Second)
+	planRepo := cachedproxy.NewPlanRepo(basePlanRepo, cache, 24*time.Hour)
 
 	if cfg.Env != consts.EnvProd {
 		seeder := generator.New(logger, userRepo, campRepo, linkRepo, analyticRepo, planRepo)
