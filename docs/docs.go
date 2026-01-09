@@ -31,7 +31,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get paginated users list (Admin). Returns array wrapped in data.",
+                "description": "Get paginated users list (Admin). Returns array wrapped in data with metadata.",
                 "produces": [
                     "application/json"
                 ],
@@ -45,6 +45,13 @@ const docTemplate = `{
                         "default": 1,
                         "description": "Page number",
                         "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Limit",
+                        "name": "limit",
                         "in": "query"
                     }
                 ],
@@ -844,7 +851,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get list of user campaigns",
+                "description": "Get list of user campaigns with pagination",
                 "produces": [
                     "application/json"
                 ],
@@ -852,6 +859,20 @@ const docTemplate = `{
                     "Campaigns"
                 ],
                 "summary": "Get campaigns",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Limit (default 10)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset (default 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1307,6 +1328,20 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.PaginationMeta": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
         "domain.Plan": {
             "type": "object",
             "properties": {
@@ -1494,6 +1529,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/domain.Campaign"
                     }
+                },
+                "meta": {
+                    "$ref": "#/definitions/domain.PaginationMeta"
                 }
             }
         },
@@ -1560,6 +1598,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/domain.Link"
                     }
+                },
+                "meta": {
+                    "$ref": "#/definitions/domain.PaginationMeta"
                 }
             }
         },
@@ -1725,6 +1766,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/domain.UserPublic"
                     }
+                },
+                "meta": {
+                    "$ref": "#/definitions/domain.PaginationMeta"
                 }
             }
         }

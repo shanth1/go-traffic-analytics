@@ -72,6 +72,15 @@ definitions:
       user_id:
         type: string
     type: object
+  domain.PaginationMeta:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      total:
+        type: integer
+    type: object
   domain.Plan:
     properties:
       can_export_data:
@@ -196,6 +205,8 @@ definitions:
         items:
           $ref: '#/definitions/domain.Campaign'
         type: array
+      meta:
+        $ref: '#/definitions/domain.PaginationMeta'
     type: object
   v1.CreateCampaignRequest:
     properties:
@@ -238,6 +249,8 @@ definitions:
         items:
           $ref: '#/definitions/domain.Link'
         type: array
+      meta:
+        $ref: '#/definitions/domain.PaginationMeta'
     type: object
   v1.LoginData:
     properties:
@@ -345,6 +358,8 @@ definitions:
         items:
           $ref: '#/definitions/domain.UserPublic'
         type: array
+      meta:
+        $ref: '#/definitions/domain.PaginationMeta'
     type: object
 host: localhost:8080
 info:
@@ -383,12 +398,18 @@ paths:
       - Redirect
   /api/v1/admin/users:
     get:
-      description: Get paginated users list (Admin). Returns array wrapped in data.
+      description: Get paginated users list (Admin). Returns array wrapped in data
+        with metadata.
       parameters:
       - default: 1
         description: Page number
         in: query
         name: page
+        type: integer
+      - default: 20
+        description: Limit
+        in: query
+        name: limit
         type: integer
       produces:
       - application/json
@@ -905,7 +926,16 @@ paths:
       - Billing
   /api/v1/campaigns:
     get:
-      description: Get list of user campaigns
+      description: Get list of user campaigns with pagination
+      parameters:
+      - description: Limit (default 10)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset (default 0)
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
