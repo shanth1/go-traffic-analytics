@@ -2,10 +2,11 @@ package memoryrepo
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/shanth1/gotools/errs"
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
@@ -24,37 +25,47 @@ func NewUserRepo() ports.UserRepository {
 }
 
 func (r *InMemoryUserRepo) Save(_ context.Context, user *domain.User) error {
+	const op = "memoryrepo.InMemoryUserRepo.Save"
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	if existingID, exists := r.emails[user.Email]; exists {
 		if existingID != user.ID {
-			return errors.New("email already exists")
+			return ops.E(op, ops.KindExist, fmt.Errorf("email conflict: %q is owned by user %q (current user: %q): %w", user.Email, existingID, user.ID, errs.ErrAlreadyExists))
 		}
 	}
 
 	r.users[user.ID] = user
 	r.emails[user.Email] = user.ID
+
 	return nil
 }
 
 func (r *InMemoryUserRepo) FindByID(_ context.Context, id domain.UserID) (*domain.User, error) {
+	const op = "memoryrepo.InMemoryUserRepo.FindByID"
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
+
 	u, ok := r.users[id]
 	if !ok {
-		return nil, errors.New("user not found")
+		return nil, ops.E(op, ops.KindNotFound, fmt.Errorf("user with id %q: %w", id, errs.ErrNotFound))
 	}
+
 	return u, nil
 }
 
 func (r *InMemoryUserRepo) FindByEmail(_ context.Context, email string) (*domain.User, error) {
+	const op = "memoryrepo.InMemoryUserRepo.FindByEmail"
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	id, ok := r.emails[email]
 	if !ok {
-		return nil, errors.New("user not found")
+		return nil, ops.E(op, ops.KindNotFound, fmt.Errorf("user with email %q: %w", email, errs.ErrNotFound))
 	}
+
 	return r.users[id], nil
 }
 
@@ -82,12 +93,14 @@ func (r *InMemoryUserRepo) Count(_ context.Context) (int64, error) {
 }
 
 func (r *InMemoryUserRepo) IncrementUsage(_ context.Context, userID domain.UserID, delta int) error {
+	const op = "memoryrepo.InMemoryUserRepo.IncrementUsage"
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	user, ok := r.users[userID]
 	if !ok {
-		return errors.New("user not found")
+		return ops.E(op, ops.KindNotFound, fmt.Errorf("user with id %q: %w", userID, errs.ErrNotFound))
 	}
 
 	user.ClicksCurrentMonth += delta
@@ -95,12 +108,14 @@ func (r *InMemoryUserRepo) IncrementUsage(_ context.Context, userID domain.UserI
 }
 
 func (r *InMemoryUserRepo) ResetUsage(_ context.Context, userID domain.UserID) error {
+	const op = "memoryrepo.InMemoryUserRepo.ResetUsage"
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	user, ok := r.users[userID]
 	if !ok {
-		return errs.ErrNotFound
+		return ops.E(op, ops.KindNotFound, fmt.Errorf("user with id %q: %w", userID, errs.ErrNotFound))
 	}
 
 	user.ClicksCurrentMonth = 0

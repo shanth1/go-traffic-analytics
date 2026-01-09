@@ -2,12 +2,13 @@ package memoryrepo
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"sort"
 	"strings"
 	"sync"
 
 	"github.com/shanth1/gotools/errs"
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
@@ -26,10 +27,12 @@ func NewLinkRepo() ports.LinkRepository {
 }
 
 func (r *InMemoryLinkRepo) Save(_ context.Context, link *domain.Link) error {
+	const op = "memoryrepo.InMemoryLinkRepo.Save"
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if _, exists := r.slugs[link.Slug]; exists {
-		return errors.New("slug already exists")
+		return ops.E(op, ops.KindExist, fmt.Errorf("link with slug %q: %w", link.Slug, errs.ErrAlreadyExists))
 	}
 	r.links[link.ID] = link
 	r.slugs[link.Slug] = link.ID
@@ -37,23 +40,29 @@ func (r *InMemoryLinkRepo) Save(_ context.Context, link *domain.Link) error {
 }
 
 func (r *InMemoryLinkRepo) FindByID(_ context.Context, id domain.LinkID) (*domain.Link, error) {
+	const op = "memoryrepo.InMemoryLinkRepo.FindByID"
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
 	link, ok := r.links[id]
 	if !ok {
-		return nil, errs.ErrNotFound
+		return nil, ops.E(op, ops.KindNotFound, fmt.Errorf("link with id %q: %w", id, errs.ErrNotFound))
 	}
+
 	return link, nil
 }
 
 func (r *InMemoryLinkRepo) FindBySlug(_ context.Context, slug string) (*domain.Link, error) {
+	const op = "memoryrepo.InMemoryLinkRepo.FindBySlug"
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	id, ok := r.slugs[slug]
 	if !ok {
-		return nil, errs.ErrNotFound
+		return nil, ops.E(op, ops.KindNotFound, fmt.Errorf("link with slug %q: %w", slug, errs.ErrNotFound))
 	}
+
 	return r.links[id], nil
 }
 
@@ -118,16 +127,18 @@ func (r *InMemoryLinkRepo) Count(_ context.Context, filter domain.LinkFilter) (i
 }
 
 func (r *InMemoryLinkRepo) Delete(_ context.Context, userID domain.UserID, id domain.LinkID) error {
+	const op = "memoryrepo.InMemoryLinkRepo.Delete"
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	link, ok := r.links[id]
 	if !ok {
-		return errs.ErrNotFound
+		return ops.E(op, ops.KindNotFound, fmt.Errorf("link with id %q: %w", id, errs.ErrNotFound))
 	}
 
 	if link.UserID != userID {
-		return errs.ErrUnauthorized
+		return ops.E(op, ops.KindUnauthorized, fmt.Errorf("expected user with id %q, got %q: %w", userID, link.UserID, errs.ErrUnauthorized))
 	}
 
 	delete(r.slugs, link.Slug)

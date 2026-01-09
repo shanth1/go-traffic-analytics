@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/consts"
@@ -199,6 +200,8 @@ func (r *InMemoryAnalyticRepo) GetHeatmapData(_ context.Context, filter domain.A
 }
 
 func (r *InMemoryAnalyticRepo) GetTopStats(_ context.Context, filter domain.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error) {
+	const op = "memoryrepo.InMemoryAnalyticRepo.GetTopStats"
+
 	events := r.filterClicks(filter)
 	if len(events) == 0 {
 		return []domain.CategoryStat{}, nil
@@ -241,7 +244,7 @@ func (r *InMemoryAnalyticRepo) GetTopStats(_ context.Context, filter domain.Anal
 				key = ValueDirect
 			}
 		default:
-			return nil, fmt.Errorf("unsupported dimension for stats: %s", dimension)
+			return nil, ops.E(op, ops.KindInvalid, fmt.Errorf("unsupported dimension for stats: %s", dimension))
 		}
 
 		counts[key]++

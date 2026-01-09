@@ -2,11 +2,12 @@ package memoryrepo
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"sort"
 	"sync"
 
 	"github.com/shanth1/gotools/errs"
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
@@ -30,12 +31,15 @@ func (r *InMemoryCampaignRepo) Save(_ context.Context, camp *domain.Campaign) er
 }
 
 func (r *InMemoryCampaignRepo) FindByID(_ context.Context, id string) (*domain.Campaign, error) {
+	const op = "memoryrepo.InMemoryCampaignRepo.FindByID"
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	c, ok := r.campaigns[id]
 	if !ok {
-		return nil, errors.New("campaign not found")
+		return nil, ops.E(op, ops.KindNotFound, fmt.Errorf("campaign with id %q: %w", id, errs.ErrNotFound))
 	}
+
 	return c, nil
 }
 
@@ -80,16 +84,18 @@ func (r *InMemoryCampaignRepo) Count(_ context.Context, filter domain.CampaignFi
 }
 
 func (r *InMemoryCampaignRepo) Delete(_ context.Context, userID domain.UserID, id string) error {
+	const op = "memoryrepo.InMemoryCampaignRepo.Delete"
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	c, ok := r.campaigns[id]
 	if !ok {
-		return errs.ErrNotFound
+		return ops.E(op, ops.KindNotFound, fmt.Errorf("campaign with id %q: %w", id, errs.ErrNotFound))
 	}
 
 	if c.UserID != userID {
-		return errs.ErrUnauthorized
+		return ops.E(op, ops.KindUnauthorized, fmt.Errorf("expected user with id %q, got %q: %w", userID, c.UserID, errs.ErrUnauthorized))
 	}
 
 	delete(r.campaigns, id)

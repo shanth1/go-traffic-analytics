@@ -2,9 +2,11 @@ package memoryrepo
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"sync"
 
+	"github.com/shanth1/gotools/errs"
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
@@ -23,12 +25,15 @@ func NewPlanRepo() ports.PlanRepository {
 }
 
 func (r *InMemoryPlanRepo) FindByID(_ context.Context, id string) (*domain.Plan, error) {
+	const op = "memoryrepo.InMemoryPlanRepo.FindByID"
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	p, ok := r.plans[id]
 	if !ok {
-		return nil, errors.New("plan not found")
+		return nil, ops.E(op, ops.KindNotFound, fmt.Errorf("plan with id %q: %w", id, errs.ErrNotFound))
 	}
+
 	return p, nil
 }
 
