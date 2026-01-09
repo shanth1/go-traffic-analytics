@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
@@ -16,7 +17,7 @@ type AnalyticRepo struct {
 	ttl   time.Duration
 }
 
-func NewClickRepo(repo ports.AnalyticsRepository, cache ports.Cache, ttl time.Duration) ports.AnalyticsRepository {
+func NewAnalyicRepo(repo ports.AnalyticsRepository, cache ports.Cache, ttl time.Duration) ports.AnalyticsRepository {
 	return &AnalyticRepo{
 		repo:  repo,
 		cache: cache,
@@ -34,10 +35,18 @@ func (r *AnalyticRepo) buildKey(prefix string, params ...interface{}) string {
 }
 
 func (r *AnalyticRepo) SaveBatch(ctx context.Context, events []*domain.ClickEvent) error {
-	return r.repo.SaveBatch(ctx, events)
+	const op = "cached.AnalyticRepo.SaveBatch"
+
+	if err := r.repo.SaveBatch(ctx, events); err != nil {
+		return ops.E(op, err)
+	}
+
+	return nil
 }
 
 func (r *AnalyticRepo) CountTotal(ctx context.Context, filter domain.AnalyticsFilter) (int64, error) {
+	const op = "cached.AnalyticRepo.CountTotal"
+
 	key := r.buildKey("count", filter)
 
 	val, err := r.cache.Get(ctx, key)
@@ -56,7 +65,7 @@ func (r *AnalyticRepo) CountTotal(ctx context.Context, filter domain.AnalyticsFi
 
 	count, err := r.repo.CountTotal(ctx, filter)
 	if err != nil {
-		return 0, err
+		return 0, ops.E(op, err)
 	}
 
 	go func() {
@@ -70,6 +79,8 @@ func (r *AnalyticRepo) CountTotal(ctx context.Context, filter domain.AnalyticsFi
 }
 
 func (r *AnalyticRepo) GetTimeSeriesGrouped(ctx context.Context, filter domain.AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error) {
+	const op = "cached.AnalyticRepo.GetTimeSeriesGrouped"
+
 	key := r.buildKey("timeseries", filter, dimension, interval)
 
 	val, err := r.cache.Get(ctx, key)
@@ -88,7 +99,7 @@ func (r *AnalyticRepo) GetTimeSeriesGrouped(ctx context.Context, filter domain.A
 
 	result, err := r.repo.GetTimeSeriesGrouped(ctx, filter, dimension, interval)
 	if err != nil {
-		return nil, err
+		return nil, ops.E(op, err)
 	}
 
 	go func() {
@@ -102,6 +113,8 @@ func (r *AnalyticRepo) GetTimeSeriesGrouped(ctx context.Context, filter domain.A
 }
 
 func (r *AnalyticRepo) GetFlowData(ctx context.Context, filter domain.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
+	const op = "cached.AnalyticRepo.GetFlowData"
+
 	key := r.buildKey("flow", filter, stages)
 
 	val, err := r.cache.Get(ctx, key)
@@ -120,7 +133,7 @@ func (r *AnalyticRepo) GetFlowData(ctx context.Context, filter domain.AnalyticsF
 
 	data, err := r.repo.GetFlowData(ctx, filter, stages)
 	if err != nil {
-		return nil, err
+		return nil, ops.E(op, err)
 	}
 
 	go func() {
@@ -134,6 +147,8 @@ func (r *AnalyticRepo) GetFlowData(ctx context.Context, filter domain.AnalyticsF
 }
 
 func (r *AnalyticRepo) GetHeatmapData(ctx context.Context, filter domain.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
+	const op = "cached.AnalyticRepo.GetHeatmapData"
+
 	key := r.buildKey("heatmap", filter)
 
 	val, err := r.cache.Get(ctx, key)
@@ -152,7 +167,7 @@ func (r *AnalyticRepo) GetHeatmapData(ctx context.Context, filter domain.Analyti
 
 	points, err := r.repo.GetHeatmapData(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, ops.E(op, err)
 	}
 
 	go func() {
@@ -166,6 +181,8 @@ func (r *AnalyticRepo) GetHeatmapData(ctx context.Context, filter domain.Analyti
 }
 
 func (r *AnalyticRepo) GetTopStats(ctx context.Context, filter domain.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error) {
+	const op = "cached.AnalyticRepo.GetTopStats"
+
 	key := r.buildKey("topstats", filter, dimension, limit)
 
 	val, err := r.cache.Get(ctx, key)
@@ -184,7 +201,7 @@ func (r *AnalyticRepo) GetTopStats(ctx context.Context, filter domain.AnalyticsF
 
 	stats, err := r.repo.GetTopStats(ctx, filter, dimension, limit)
 	if err != nil {
-		return nil, err
+		return nil, ops.E(op, err)
 	}
 
 	go func() {

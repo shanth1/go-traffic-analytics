@@ -34,14 +34,14 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	baseUserRepo := memoryrepo.NewUserRepo()
 	baseCampRepo := memoryrepo.NewCampaignRepo()
 	baseLinkRepo := memoryrepo.NewLinkRepo()
-	baseClickRepo := memoryrepo.NewAnalyticRepo()
+	baseAnalyticRepo := memoryrepo.NewAnalyticRepo()
 	basePlanRepo := memoryrepo.NewPlanRepo()
 
 	// Cached Repositories
 	userRepo := cached.NewUserRepo(baseUserRepo, cache, 5*time.Minute)
 	campRepo := cached.NewCampaignRepo(baseCampRepo, cache, 10*time.Minute)
 	linkRepo := cached.NewLinkRepo(baseLinkRepo, cache, 10*time.Minute)
-	analyticRepo := cached.NewClickRepo(baseClickRepo, cache, 30*time.Second)
+	analyticRepo := cached.NewAnalyicRepo(baseAnalyticRepo, cache, 30*time.Second)
 	planRepo := cached.NewPlanRepo(basePlanRepo, cache, 24*time.Hour)
 
 	if cfg.Env != consts.EnvProd {
