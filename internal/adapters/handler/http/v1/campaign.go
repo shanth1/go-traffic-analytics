@@ -63,7 +63,7 @@ func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 		campaigns = []*domain.Campaign{}
 	}
 
-	response.Success(w, r, CampaignsListResponse{
+	response.SuccessData(w, r, CampaignsListResponse{
 		Data: campaigns,
 		Meta: domain.PaginationMeta{
 			Total:  total,

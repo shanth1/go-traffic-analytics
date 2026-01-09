@@ -76,7 +76,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Str("user_id", string(user.ID)).Str("email", user.Email).Msg("user_logged_in")
 
-	response.Success(w, r, LoginData{
+	response.SuccessData(w, r, LoginData{
 		Token: token,
 		User:  user.ToPublic(),
 	})

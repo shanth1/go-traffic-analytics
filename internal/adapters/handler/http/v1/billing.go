@@ -38,5 +38,5 @@ func (h *BillingHandler) GetPlans(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Msg("billing_plans_retrieved")
 
-	response.Success(w, r, plans)
+	response.SuccessData(w, r, plans)
 }

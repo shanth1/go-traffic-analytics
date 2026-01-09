@@ -65,7 +65,7 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Int("page", page).Int("limit", limit).Int64("total", total).Msg("admin_users_listed")
 
-	response.Success(w, r, UsersListResponse{
+	response.SuccessData(w, r, UsersListResponse{
 		Data: publicUsers,
 		Meta: domain.PaginationMeta{
 			Total:  total,
@@ -106,7 +106,7 @@ func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) 
 
 	log.FromContext(r.Context()).Info().Str("user_id", string(id)).Bool("is_active", req.IsActive).Msg("user_status_updated")
 
-	response.Success(w, r, response.Envelope{"status": "updated"})
+	response.SuccessData(w, r, response.Envelope{"status": "updated"})
 }
 
 // UpdateUserPlan godoc
@@ -140,5 +140,5 @@ func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Str("user_id", string(id)).Str("plan_id", req.PlanID).Msg("user_plan_updated")
 
-	response.Success(w, r, response.Envelope{"status": "updated"})
+	response.SuccessData(w, r, response.Envelope{"status": "updated"})
 }

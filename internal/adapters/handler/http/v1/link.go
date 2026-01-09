@@ -82,7 +82,7 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 		links = []*domain.Link{}
 	}
 
-	response.Success(w, r, LinksListResponse{
+	response.SuccessData(w, r, LinksListResponse{
 		Data: links,
 		Meta: domain.PaginationMeta{
 			Total:  total,

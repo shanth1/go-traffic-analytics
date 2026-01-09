@@ -70,7 +70,7 @@ func (h *AnalyticsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_summary_retrieved")
 
-	response.Success(w, r, summary)
+	response.SuccessData(w, r, summary)
 }
 
 // GetStreamGraph godoc
@@ -109,7 +109,7 @@ func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request
 
 	log.FromContext(r.Context()).Info().Str("group_by", groupBy).Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_stream_graph_retrieved")
 
-	response.Success(w, r, data)
+	response.SuccessData(w, r, data)
 }
 
 // GetSankeyFlow godoc
@@ -139,7 +139,7 @@ func (h *AnalyticsHandler) GetSankeyFlow(w http.ResponseWriter, r *http.Request)
 
 	log.FromContext(r.Context()).Info().Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_sankey_flow_retrieved")
 
-	response.Success(w, r, data)
+	response.SuccessData(w, r, data)
 }
 
 // GetGeoMap godoc
@@ -172,7 +172,7 @@ func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_geo_map_retrieved")
 
-	response.Success(w, r, data)
+	response.SuccessData(w, r, data)
 }
 
 // GetQualityRadar godoc
@@ -201,7 +201,7 @@ func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Reques
 
 	log.FromContext(r.Context()).Info().Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_quality_radar_retrieved")
 
-	response.Success(w, r, data)
+	response.SuccessData(w, r, data)
 }
 
 // GetHeatmap godoc
@@ -232,7 +232,7 @@ func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_heatmap_retrieved")
 
-	response.Success(w, r, data)
+	response.SuccessData(w, r, data)
 }
 
 // GetStats godoc
@@ -269,5 +269,5 @@ func (h *AnalyticsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Str("dimension", dim).Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_stats_retrieved")
 
-	response.Success(w, r, data)
+	response.SuccessData(w, r, data)
 }
