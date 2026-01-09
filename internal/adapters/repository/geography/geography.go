@@ -7,6 +7,7 @@ import (
 	"net"
 
 	"github.com/oschwald/geoip2-golang"
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/config"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
@@ -17,13 +18,15 @@ type GeoProvider struct {
 }
 
 func NewGeoProvider(cfg *config.Config) (ports.GeoProvider, error) {
+	const op = "geography.NewGeoProvider"
+
 	var db *geoip2.Reader
 	var err error
 
 	if cfg.GeoIP.Enabled {
 		db, err = geoip2.Open(cfg.GeoIP.DBPath)
 		if err != nil {
-			return nil, fmt.Errorf("open geoip2 database: %w", err)
+			return nil, ops.E(op, ops.KindInternal, fmt.Errorf("open geoip2 database with path %q: %w", cfg.GeoIP.DBPath, err))
 		}
 	}
 
@@ -33,6 +36,8 @@ func NewGeoProvider(cfg *config.Config) (ports.GeoProvider, error) {
 }
 
 func (g *GeoProvider) Lookup(_ context.Context, ipStr string) (*domain.GeoLocation, error) {
+	const op = "geography.GeoProvider.Lookup"
+
 	if ipStr == "127.0.0.1" || ipStr == "::1" {
 		return &domain.GeoLocation{
 			Country: "Local",
@@ -41,17 +46,17 @@ func (g *GeoProvider) Lookup(_ context.Context, ipStr string) (*domain.GeoLocati
 	}
 
 	if g.geoDB == nil {
-		return nil, errors.New("geo db is nil")
+		return nil, ops.E(op, ops.KindInternal, errors.New("geo db is nil"))
 	}
 
 	ip := net.ParseIP(ipStr)
 	if ip == nil {
-		return nil, fmt.Errorf("parse ip: %s", ipStr)
+		return nil, ops.E(op, ops.KindInvalid, fmt.Errorf("parse ip: %q", ipStr))
 	}
 
 	record, err := g.geoDB.City(ip)
 	if err != nil {
-		return nil, fmt.Errorf("get geoip2 record: %w", err)
+		return nil, ops.E(op, ops.KindInternal, fmt.Errorf("get geoip2 record with ip %q: %w", ip.String(), err))
 	}
 
 	country := record.Country.IsoCode
