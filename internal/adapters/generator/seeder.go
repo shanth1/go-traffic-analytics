@@ -63,7 +63,7 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 	passHashStr := string(defaultPassHash)
 
 	if err := s.createAdmin(ctx, passHashStr); err != nil {
-		return err
+		return fmt.Errorf("create admin: %w", err)
 	}
 
 	for i := 1; i <= cfg.UsersCount; i++ {
@@ -84,7 +84,7 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 		for c := 0; c < campCount; c++ {
 			camp := s.generateCampaign(user.ID)
 			if err := s.campaignRepo.Save(ctx, camp); err != nil {
-				return err
+				return fmt.Errorf("save campaign: %w", err)
 			}
 
 			linkCount := s.randomRange(cfg.LinksPerCampaign.Min, cfg.LinksPerCampaign.Max)
@@ -93,7 +93,7 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 			for l := 0; l < linkCount; l++ {
 				link := s.generateLink(user.ID, camp.ID)
 				if err := s.linkRepo.Save(ctx, link); err != nil {
-					return err
+					return fmt.Errorf("save link: %w", err)
 				}
 
 				clicksCount := s.randomRange(cfg.ClicksPerLink.Min, cfg.ClicksPerLink.Max)
@@ -106,7 +106,7 @@ func (s *DataSeeder) Seed(ctx context.Context, cfg Config) error {
 				userTotalClicks += clicksCount
 
 				if err := s.seedClicksBatch(ctx, link, clicksCount, cfg); err != nil {
-					return err
+					return fmt.Errorf("seed clicks batch: %w", err)
 				}
 			}
 		}
