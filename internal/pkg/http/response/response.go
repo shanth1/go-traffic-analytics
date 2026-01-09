@@ -38,8 +38,16 @@ func JSON(w http.ResponseWriter, r *http.Request, status int, data any) {
 	}
 }
 
+func Success(w http.ResponseWriter, r *http.Request, data any) {
+	JSON(w, r, http.StatusOK, data)
+}
+
 func SuccessData[T any](w http.ResponseWriter, r *http.Request, data T) {
 	JSON(w, r, http.StatusOK, DataResponse[T]{Data: data})
+}
+
+func Created(w http.ResponseWriter, r *http.Request, data any) {
+	JSON(w, r, http.StatusCreated, data)
 }
 
 func CreatedData[T any](w http.ResponseWriter, r *http.Request, data T) {
