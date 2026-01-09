@@ -46,7 +46,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Str("user_id", string(user.ID)).Str("email", user.Email).Msg("user_registered")
 
-	response.Created(w, r, user.ToPublic())
+	response.CreatedData(w, r, user.ToPublic())
 }
 
 // Login godoc

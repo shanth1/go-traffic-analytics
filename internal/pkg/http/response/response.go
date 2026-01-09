@@ -42,7 +42,7 @@ func SuccessData[T any](w http.ResponseWriter, r *http.Request, data T) {
 	JSON(w, r, http.StatusOK, DataResponse[T]{Data: data})
 }
 
-func Created[T any](w http.ResponseWriter, r *http.Request, data T) {
+func CreatedData[T any](w http.ResponseWriter, r *http.Request, data T) {
 	JSON(w, r, http.StatusCreated, DataResponse[T]{Data: data})
 }
 

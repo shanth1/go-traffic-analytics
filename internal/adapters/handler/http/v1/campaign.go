@@ -108,5 +108,5 @@ func (h *CampaignHandler) CreateCampaign(w http.ResponseWriter, r *http.Request)
 
 	log.FromContext(r.Context()).Info().Str("campaign_id", string(camp.ID)).Str("user_id", string(userID)).Str("name", camp.Name).Msg("campaign_created")
 
-	response.Created(w, r, camp)
+	response.CreatedData(w, r, camp)
 }

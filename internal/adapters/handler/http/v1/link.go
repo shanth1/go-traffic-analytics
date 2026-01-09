@@ -137,7 +137,7 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Str("link_id", string(link.ID)).Str("user_id", string(userID)).Msg("link_created")
 
-	response.Created(w, r, link)
+	response.CreatedData(w, r, link)
 }
 
 // DeleteLink godoc
