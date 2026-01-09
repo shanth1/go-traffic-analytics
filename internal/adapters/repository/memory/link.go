@@ -15,7 +15,7 @@ import (
 type InMemoryLinkRepo struct {
 	mu    sync.RWMutex
 	links map[domain.LinkID]*domain.Link
-	slugs map[string]domain.LinkID // slug -> id (index)
+	slugs map[string]domain.LinkID // slug -> linkID (index)
 }
 
 func NewLinkRepo() ports.LinkRepository {
@@ -57,36 +57,36 @@ func (r *InMemoryLinkRepo) FindBySlug(_ context.Context, slug string) (*domain.L
 	return r.links[id], nil
 }
 
+func (r *InMemoryLinkRepo) matchesFilter(link *domain.Link, filter domain.LinkFilter) bool {
+	if filter.UserID != "" && link.UserID != filter.UserID {
+		return false
+	}
+	if filter.CampaignID != "" && link.CampaignID != filter.CampaignID {
+		return false
+	}
+	if filter.IsActive != nil && link.IsActive != *filter.IsActive {
+		return false
+	}
+	if filter.Search != "" {
+		term := strings.ToLower(filter.Search)
+		slug := strings.ToLower(link.Slug)
+		target := strings.ToLower(link.TargetURL)
+		if !strings.Contains(slug, term) && !strings.Contains(target, term) {
+			return false
+		}
+	}
+	return true
+}
+
 func (r *InMemoryLinkRepo) FindAll(_ context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	matches := make([]*domain.Link, 0, len(r.links))
-
+	matches := make([]*domain.Link, 0)
 	for _, link := range r.links {
-		if filter.UserID != "" && link.UserID != filter.UserID {
-			continue
+		if r.matchesFilter(link, filter) {
+			matches = append(matches, link)
 		}
-
-		if filter.CampaignID != "" && link.CampaignID != filter.CampaignID {
-			continue
-		}
-
-		if filter.IsActive != nil && link.IsActive != *filter.IsActive {
-			continue
-		}
-
-		if filter.Search != "" {
-			term := strings.ToLower(filter.Search)
-			slug := strings.ToLower(link.Slug)
-			target := strings.ToLower(link.TargetURL)
-
-			if !strings.Contains(slug, term) && !strings.Contains(target, term) {
-				continue
-			}
-		}
-
-		matches = append(matches, link)
 	}
 
 	sort.Slice(matches, func(i, j int) bool {
@@ -98,7 +98,6 @@ func (r *InMemoryLinkRepo) FindAll(_ context.Context, filter domain.LinkFilter) 
 	}
 
 	res := matches[filter.Offset:]
-
 	if filter.Limit > 0 && filter.Limit < len(res) {
 		res = res[:filter.Limit]
 	}
@@ -106,12 +105,12 @@ func (r *InMemoryLinkRepo) FindAll(_ context.Context, filter domain.LinkFilter) 
 	return res, nil
 }
 
-func (r *InMemoryLinkRepo) CountByUserID(_ context.Context, userID domain.UserID) (int64, error) {
+func (r *InMemoryLinkRepo) Count(_ context.Context, filter domain.LinkFilter) (int64, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var count int64
-	for _, l := range r.links {
-		if l.UserID == userID {
+	for _, link := range r.links {
+		if r.matchesFilter(link, filter) {
 			count++
 		}
 	}

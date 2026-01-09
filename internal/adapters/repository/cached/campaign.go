@@ -37,10 +37,8 @@ func (r *CampaignRepo) Save(ctx context.Context, camp *domain.Campaign) error {
 		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		key := r.buildKey(camp.ID)
-
-		// TODO: logging (failed to clear cache)
-		_ = r.cache.Delete(bgCtx, key)
+		// TODO: logging
+		_ = r.cache.Delete(bgCtx, r.buildKey(camp.ID))
 	}()
 
 	return nil
@@ -48,7 +46,6 @@ func (r *CampaignRepo) Save(ctx context.Context, camp *domain.Campaign) error {
 
 func (r *CampaignRepo) FindByID(ctx context.Context, id string) (*domain.Campaign, error) {
 	key := r.buildKey(id)
-
 	val, err := r.cache.Get(ctx, key)
 	if err == nil {
 		if bytesVal, ok := val.([]byte); ok {
@@ -70,39 +67,35 @@ func (r *CampaignRepo) FindByID(ctx context.Context, id string) (*domain.Campaig
 
 	go func() {
 		bytes, err := json.Marshal(camp)
-		if err != nil {
-			// TODO: logging (marshal error)
-			return
+		if err == nil {
+			bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			// TODO: logging
+			_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
 		}
-
-		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		// TODO: logging (failed to set cache)
-		_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
+		// TODO: logging
 	}()
 
 	return camp, nil
 }
 
-func (r *CampaignRepo) FindAllByUserID(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error) {
-	return r.repo.FindAllByUserID(ctx, userID)
+func (r *CampaignRepo) FindAll(ctx context.Context, filter domain.CampaignFilter) ([]*domain.Campaign, error) {
+	return r.repo.FindAll(ctx, filter)
+}
+
+func (r *CampaignRepo) Count(ctx context.Context, filter domain.CampaignFilter) (int64, error) {
+	return r.repo.Count(ctx, filter)
 }
 
 func (r *CampaignRepo) Delete(ctx context.Context, userID domain.UserID, id string) error {
 	if err := r.repo.Delete(ctx, userID, id); err != nil {
 		return err
 	}
-
 	go func() {
 		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-
-		key := r.buildKey(id)
-
-		// TODO: logging (failed to delete from cache)
-		_ = r.cache.Delete(bgCtx, key)
+		// TODO: logging
+		_ = r.cache.Delete(bgCtx, r.buildKey(id))
 	}()
-
 	return nil
 }

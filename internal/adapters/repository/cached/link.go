@@ -70,59 +70,23 @@ func (r *LinkRepo) FindByID(ctx context.Context, id domain.LinkID) (*domain.Link
 
 func (r *LinkRepo) FindBySlug(ctx context.Context, slug string) (*domain.Link, error) {
 	key := r.buildKey("slug", slug)
-
-	val, err := r.cache.Get(ctx, key)
-	if err == nil {
-		if bytesVal, ok := val.([]byte); ok {
-			var link domain.Link
-			if jsonErr := json.Unmarshal(bytesVal, &link); jsonErr == nil {
-				return &link, nil
-			}
-			// TODO: logging
-		}
+	if link, err := r.getFromCache(ctx, key); err == nil && link != nil {
+		return link, nil
 	}
-	// else if !errors.Is(err, ports.ErrCacheMiss) {
-	// TODO: logging
-	// }
-
 	link, err := r.repo.FindBySlug(ctx, slug)
 	if err != nil {
 		return nil, err
 	}
-
-	go func() {
-		bytes, err := json.Marshal(link)
-		if err != nil {
-			// TODO: logging
-			return
-		}
-
-		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		// TODO: logging
-		_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
-	}()
-
+	r.setCache(key, link)
 	return link, nil
 }
 
 func (r *LinkRepo) FindAll(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
-	links, err := r.repo.FindAll(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	return links, nil
+	return r.repo.FindAll(ctx, filter)
 }
 
-func (r *LinkRepo) CountByUserID(ctx context.Context, userID domain.UserID) (int64, error) {
-	count, err := r.repo.CountByUserID(ctx, userID)
-	if err != nil {
-		return 0, err
-	}
-
-	return count, nil
+func (r *LinkRepo) Count(ctx context.Context, filter domain.LinkFilter) (int64, error) {
+	return r.repo.Count(ctx, filter)
 }
 
 func (r *LinkRepo) Delete(ctx context.Context, userID domain.UserID, id domain.LinkID) error {
@@ -140,21 +104,11 @@ func (r *LinkRepo) Delete(ctx context.Context, userID domain.UserID, id domain.L
 	go func() {
 		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-
-		keys := []string{
-			r.buildKey("id", string(id)),
-		}
-
+		_ = r.cache.Delete(bgCtx, r.buildKey("id", string(id)))
 		if slugToDelete != "" {
-			keys = append(keys, r.buildKey("slug", slugToDelete))
-		}
-
-		for _, key := range keys {
-			// TODO: logging
-			_ = r.cache.Delete(bgCtx, key)
+			_ = r.cache.Delete(bgCtx, r.buildKey("slug", slugToDelete))
 		}
 	}()
-
 	return nil
 }
 
@@ -163,12 +117,10 @@ func (r *LinkRepo) getFromCache(ctx context.Context, key string) (*domain.Link, 
 	if err != nil {
 		return nil, err
 	}
-
 	bytesVal, ok := val.([]byte)
 	if !ok {
 		return nil, nil
 	}
-
 	var link domain.Link
 	if err := json.Unmarshal(bytesVal, &link); err != nil {
 		return nil, err
@@ -179,11 +131,10 @@ func (r *LinkRepo) getFromCache(ctx context.Context, key string) (*domain.Link, 
 func (r *LinkRepo) setCache(key string, link *domain.Link) {
 	go func() {
 		bytes, err := json.Marshal(link)
-		if err != nil {
-			return
+		if err == nil {
+			bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
 		}
-		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
 	}()
 }

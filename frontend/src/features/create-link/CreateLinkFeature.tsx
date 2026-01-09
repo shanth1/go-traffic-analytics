@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlusIcon, Link2Icon } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
@@ -13,7 +13,15 @@ export const CreateLinkFeature = () => {
   const [campaignId, setCampaignId] = useState('');
 
   const addLink = useLinkStore((s) => s.addLink);
-  const campaigns = useCampaignStore((s) => s.campaigns);
+  const { campaigns, fetchCampaigns } = useCampaignStore();
+
+  useEffect(() => {
+    if (isOpen) {
+      // Fetch list for dropdown (fetching page 1 usually enough for dropdown in simple cases,
+      // ideally should have specific endpoint for dropdowns or infinite scroll)
+      fetchCampaigns(100, 0);
+    }
+  }, [isOpen, fetchCampaigns]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +32,8 @@ export const CreateLinkFeature = () => {
     setSlug('');
     setIsOpen(false);
   };
+
+  // ... (rest of the component remains similar, ensure Select uses campaigns array)
 
   return (
     <>
@@ -66,7 +76,7 @@ export const CreateLinkFeature = () => {
             </label>
             <div className="flex items-center gap-2">
               <span className="text-slate-400 text-sm bg-slate-100 px-2 py-2 rounded-md border border-slate-200">
-                domain.com/
+                /
               </span>
               <Input
                 placeholder="my-super-link"
@@ -79,11 +89,11 @@ export const CreateLinkFeature = () => {
           <div className="space-y-2">
             <label className="text-sm font-medium">Campaign</label>
             <select
-              className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full flex h-10 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
               value={campaignId}
               onChange={(e) => setCampaignId(e.target.value)}
             >
-              <option value="">No Campaign</option>
+              <option value="">Select Campaign...</option>
               {campaigns.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}

@@ -87,6 +87,17 @@ export interface TrafficQuality {
   mobile_friendly_score: number;
 }
 
+export interface HeatmapPoint {
+  day: string;
+  hour: string;
+  count: number;
+}
+
+export interface GeoPoint {
+  country: string;
+  value: number;
+}
+
 // --- Requests ---
 export interface LoginReq {
   email: string;
@@ -102,27 +113,38 @@ export interface CreateLinkReq {
   target_url: string;
 }
 
-// --- Responses ---
-export interface LoginData {
-  token: string;
-  user: User;
-}
+// --- Responses & Metadata ---
 
-export type AuthResponse = ResponseWrapper<LoginData>;
+export interface PaginationMeta {
+  total: number;
+  limit: number;
+  offset: number;
+}
 
 export interface ResponseWrapper<T> {
   data: T;
 }
 
-export interface GeoPoint {
-  country: string;
-  value: number;
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
 }
 
-export type CampaignsListResponse = ResponseWrapper<Campaign[]>;
+export interface LoginData {
+  token: string;
+  user: User;
+}
+
+// Typed Responses
+export type AuthResponse = ResponseWrapper<LoginData>;
 export type CampaignResponse = ResponseWrapper<Campaign>;
-export type LinksListResponse = ResponseWrapper<Link[]>;
 export type LinkResponse = ResponseWrapper<Link>;
+
+// List Responses
+export type CampaignsListResponse = PaginatedResponse<Campaign>;
+export type LinksListResponse = PaginatedResponse<Link>;
+
+// Analytics Responses
 export type AnalyticsSummaryResponse = ResponseWrapper<AnalyticsSummary>;
 export type GeoResponse = ResponseWrapper<GeoPoint[]>;
 export type TreeResponse = ResponseWrapper<HierarchyNode>;
@@ -131,9 +153,3 @@ export type SankeyResponse = ResponseWrapper<SankeyData>;
 export type QualityResponse = ResponseWrapper<TrafficQuality>;
 export type StatsResponse = ResponseWrapper<CategoryStat[]>;
 export type HeatmapResponse = ResponseWrapper<HeatmapPoint[]>;
-
-export interface HeatmapPoint {
-  day: string;
-  hour: string;
-  count: number;
-}

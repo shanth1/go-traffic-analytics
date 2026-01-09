@@ -73,24 +73,17 @@ func (r *UserRepo) FindByID(ctx context.Context, id domain.UserID) (*domain.User
 
 	go func() {
 		bytes, err := json.Marshal(user)
-		if err != nil {
-			// TODO: logging (marshal error)
-			return
+		if err == nil {
+			bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
 		}
-
-		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		// TODO: logging (failed to set cache)
-		_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
 	}()
-
 	return user, nil
 }
 
 func (r *UserRepo) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
 	key := r.buildEmailKey(email)
-
 	val, err := r.cache.Get(ctx, key)
 	if err == nil {
 		if bytesVal, ok := val.([]byte); ok {
@@ -98,12 +91,8 @@ func (r *UserRepo) FindByEmail(ctx context.Context, email string) (*domain.User,
 			if jsonErr := json.Unmarshal(bytesVal, &user); jsonErr == nil {
 				return &user, nil
 			}
-			// TODO: logging (unmarshal error)
 		}
 	}
-	// else if !errors.Is(err, ports.ErrCacheMiss) {
-	// TODO: logging (cache error)
-	// }
 
 	user, err := r.repo.FindByEmail(ctx, email)
 	if err != nil {
@@ -112,23 +101,21 @@ func (r *UserRepo) FindByEmail(ctx context.Context, email string) (*domain.User,
 
 	go func() {
 		bytes, err := json.Marshal(user)
-		if err != nil {
-			// TODO: logging (marshal error)
-			return
+		if err == nil {
+			bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
 		}
-
-		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		// TODO: logging (failed to set cache)
-		_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
 	}()
-
 	return user, nil
 }
 
 func (r *UserRepo) FindAll(ctx context.Context, limit, offset int) ([]*domain.User, error) {
 	return r.repo.FindAll(ctx, limit, offset)
+}
+
+func (r *UserRepo) Count(ctx context.Context) (int64, error) {
+	return r.repo.Count(ctx)
 }
 
 func (r *UserRepo) IncrementUsage(ctx context.Context, userID domain.UserID, delta int) error {
@@ -139,8 +126,6 @@ func (r *UserRepo) IncrementUsage(ctx context.Context, userID domain.UserID, del
 	go func() {
 		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-
-		// TODO: logging
 		_ = r.cache.Delete(bgCtx, r.buildIDKey(userID))
 	}()
 
@@ -151,7 +136,6 @@ func (r *UserRepo) ResetUsage(ctx context.Context, userID domain.UserID) error {
 	if err := r.repo.ResetUsage(ctx, userID); err != nil {
 		return err
 	}
-
 	go func() {
 		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()

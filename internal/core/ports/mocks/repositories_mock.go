@@ -42,6 +42,21 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 	return m.recorder
 }
 
+// Count mocks base method.
+func (m *MockUserRepository) Count(ctx context.Context) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Count", ctx)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Count indicates an expected call of Count.
+func (mr *MockUserRepositoryMockRecorder) Count(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Count", reflect.TypeOf((*MockUserRepository)(nil).Count), ctx)
+}
+
 // FindAll mocks base method.
 func (m *MockUserRepository) FindAll(ctx context.Context, limit, offset int) ([]*domain.User, error) {
 	m.ctrl.T.Helper()
@@ -153,6 +168,21 @@ func (m *MockCampaignRepository) EXPECT() *MockCampaignRepositoryMockRecorder {
 	return m.recorder
 }
 
+// Count mocks base method.
+func (m *MockCampaignRepository) Count(ctx context.Context, filter domain.CampaignFilter) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Count", ctx, filter)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Count indicates an expected call of Count.
+func (mr *MockCampaignRepositoryMockRecorder) Count(ctx, filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Count", reflect.TypeOf((*MockCampaignRepository)(nil).Count), ctx, filter)
+}
+
 // Delete mocks base method.
 func (m *MockCampaignRepository) Delete(ctx context.Context, userID domain.UserID, id string) error {
 	m.ctrl.T.Helper()
@@ -167,19 +197,19 @@ func (mr *MockCampaignRepositoryMockRecorder) Delete(ctx, userID, id any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockCampaignRepository)(nil).Delete), ctx, userID, id)
 }
 
-// FindAllByUserID mocks base method.
-func (m *MockCampaignRepository) FindAllByUserID(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error) {
+// FindAll mocks base method.
+func (m *MockCampaignRepository) FindAll(ctx context.Context, filter domain.CampaignFilter) ([]*domain.Campaign, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAllByUserID", ctx, userID)
+	ret := m.ctrl.Call(m, "FindAll", ctx, filter)
 	ret0, _ := ret[0].([]*domain.Campaign)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindAllByUserID indicates an expected call of FindAllByUserID.
-func (mr *MockCampaignRepositoryMockRecorder) FindAllByUserID(ctx, userID any) *gomock.Call {
+// FindAll indicates an expected call of FindAll.
+func (mr *MockCampaignRepositoryMockRecorder) FindAll(ctx, filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserID", reflect.TypeOf((*MockCampaignRepository)(nil).FindAllByUserID), ctx, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockCampaignRepository)(nil).FindAll), ctx, filter)
 }
 
 // FindByID mocks base method.
@@ -318,19 +348,19 @@ func (m *MockLinkRepository) EXPECT() *MockLinkRepositoryMockRecorder {
 	return m.recorder
 }
 
-// CountByUserID mocks base method.
-func (m *MockLinkRepository) CountByUserID(ctx context.Context, userID domain.UserID) (int64, error) {
+// Count mocks base method.
+func (m *MockLinkRepository) Count(ctx context.Context, filter domain.LinkFilter) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountByUserID", ctx, userID)
+	ret := m.ctrl.Call(m, "Count", ctx, filter)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CountByUserID indicates an expected call of CountByUserID.
-func (mr *MockLinkRepositoryMockRecorder) CountByUserID(ctx, userID any) *gomock.Call {
+// Count indicates an expected call of Count.
+func (mr *MockLinkRepositoryMockRecorder) Count(ctx, filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByUserID", reflect.TypeOf((*MockLinkRepository)(nil).CountByUserID), ctx, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Count", reflect.TypeOf((*MockLinkRepository)(nil).Count), ctx, filter)
 }
 
 // Delete mocks base method.

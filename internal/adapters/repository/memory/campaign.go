@@ -3,6 +3,7 @@ package memoryrepo
 import (
 	"context"
 	"errors"
+	"sort"
 	"sync"
 
 	"github.com/shanth1/gotools/errs"
@@ -38,16 +39,44 @@ func (r *InMemoryCampaignRepo) FindByID(_ context.Context, id string) (*domain.C
 	return c, nil
 }
 
-func (r *InMemoryCampaignRepo) FindAllByUserID(_ context.Context, userID domain.UserID) ([]*domain.Campaign, error) {
+func (r *InMemoryCampaignRepo) FindAll(_ context.Context, filter domain.CampaignFilter) ([]*domain.Campaign, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	var result []*domain.Campaign
+	var matches []*domain.Campaign
 	for _, c := range r.campaigns {
-		if c.UserID == userID {
-			result = append(result, c)
+		if c.UserID == filter.UserID {
+			matches = append(matches, c)
 		}
 	}
-	return result, nil
+
+	// Sort by creation desc
+	sort.Slice(matches, func(i, j int) bool {
+		return matches[i].CreatedAt.After(matches[j].CreatedAt)
+	})
+
+	// Pagination
+	if filter.Offset >= len(matches) {
+		return []*domain.Campaign{}, nil
+	}
+
+	res := matches[filter.Offset:]
+	if filter.Limit > 0 && filter.Limit < len(res) {
+		res = res[:filter.Limit]
+	}
+
+	return res, nil
+}
+
+func (r *InMemoryCampaignRepo) Count(_ context.Context, filter domain.CampaignFilter) (int64, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	var count int64
+	for _, c := range r.campaigns {
+		if c.UserID == filter.UserID {
+			count++
+		}
+	}
+	return count, nil
 }
 
 func (r *InMemoryCampaignRepo) Delete(_ context.Context, userID domain.UserID, id string) error {

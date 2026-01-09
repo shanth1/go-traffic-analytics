@@ -18,5 +18,5 @@ type HealthResponse struct {
 // @Success      200  {object}  HealthResponse
 // @Router       /health [get]
 func HealthCheck(w http.ResponseWriter, r *http.Request) {
-	response.Success(w, r, HealthResponse{Status: "OK"})
+	response.SuccessData(w, r, HealthResponse{Status: "OK"})
 }

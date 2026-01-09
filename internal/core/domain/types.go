@@ -18,6 +18,12 @@ type LinkFilter struct {
 	Offset     int
 }
 
+type CampaignFilter struct {
+	UserID UserID
+	Limit  int
+	Offset int
+}
+
 type AnalyticsFilter struct {
 	UserID     UserID
 	LinkID     LinkID
