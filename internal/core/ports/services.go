@@ -25,13 +25,19 @@ type AnalyticsService interface {
 
 type LinkService interface {
 	CreateLink(ctx context.Context, cmd domain.CreateLinkCmd) (*domain.Link, error)
-	GetLinkList(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error)
+
+	// TODO: ?
+	GetLinkList(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, int64, error) // Returns total count
+
 	DeleteLink(ctx context.Context, userID domain.UserID, id domain.LinkID) error
 }
 
 type CampaignService interface {
 	CreateCampaign(ctx context.Context, userID domain.UserID, name string) (*domain.Campaign, error)
-	GetCampaigns(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error)
+
+	// TODO: ?
+	GetCampaigns(ctx context.Context, filter domain.CampaignFilter) ([]*domain.Campaign, int64, error) // Returns total count
+
 	DeleteCampaign(ctx context.Context, userID domain.UserID, id string) error
 }
 
@@ -40,7 +46,7 @@ type RedirectService interface {
 }
 
 type UserService interface {
-	GetAll(ctx context.Context, page, limit int) ([]*domain.User, error)
+	GetAll(ctx context.Context, page, limit int) ([]*domain.User, int64, error) // Returns total count
 	SetStatus(ctx context.Context, userID domain.UserID, isActive bool) error
 	ChangePlan(ctx context.Context, userID domain.UserID, planID string) error
 	GetHierarchy(ctx context.Context, id domain.UserID) (*domain.HierarchyNode, error)

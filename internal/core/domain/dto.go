@@ -2,6 +2,14 @@ package domain
 
 import "time"
 
+// --- Common ---
+
+type PaginationMeta struct {
+	Total  int64 `json:"total"`
+	Limit  int   `json:"limit"`
+	Offset int   `json:"offset"`
+}
+
 // --- Analytics DTOs (Visx Friendly) ---
 
 // TimeSeriesPoint - point for line charts

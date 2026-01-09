@@ -2,6 +2,7 @@ package v1
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/shanth1/gotools/log"
 	"github.com/shanth1/gotrace/internal/core/domain"
@@ -22,18 +23,37 @@ func NewCampaignHandler(cs ports.CampaignService) *CampaignHandler {
 
 // GetCampaigns godoc
 // @Summary Get campaigns
-// @Description Get list of user campaigns
+// @Description Get list of user campaigns with pagination
 // @Tags Campaigns
 // @Security BearerAuth
 // @Produce json
+// @Param limit query int false "Limit (default 10)"
+// @Param offset query int false "Offset (default 0)"
 // @Success 200 {object} CampaignsListResponse
 // @Failure 401 {object} response.ErrorResponse "Unauthorized"
 // @Failure 500 {object} response.ErrorResponse
 // @Router /api/v1/campaigns [get]
 func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
+	q := r.URL.Query()
 
-	campaigns, err := h.campSvc.GetCampaigns(r.Context(), userID)
+	limit, err := strconv.Atoi(q.Get("limit"))
+	if err != nil || limit <= 0 {
+		limit = 10
+	}
+
+	offset, err := strconv.Atoi(q.Get("offset"))
+	if err != nil || offset < 0 {
+		offset = 0
+	}
+
+	filter := domain.CampaignFilter{
+		UserID: userID,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	campaigns, total, err := h.campSvc.GetCampaigns(r.Context(), filter)
 	if err != nil {
 		response.ServerError(w, r, err)
 		return
@@ -43,7 +63,14 @@ func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 		campaigns = []*domain.Campaign{}
 	}
 
-	response.Success(w, r, campaigns)
+	response.Success(w, r, CampaignsListResponse{
+		Data: campaigns,
+		Meta: domain.PaginationMeta{
+			Total:  total,
+			Limit:  limit,
+			Offset: offset,
+		},
+	})
 }
 
 // CreateCampaign godoc

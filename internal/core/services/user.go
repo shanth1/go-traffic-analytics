@@ -24,9 +24,32 @@ func NewUserService(ur ports.UserRepository, pr ports.PlanRepository, cr ports.C
 	}
 }
 
-func (s *UserService) GetAll(ctx context.Context, page, limit int) ([]*domain.User, error) {
+func (s *UserService) GetAll(ctx context.Context, page, limit int) ([]*domain.User, int64, error) {
 	offset := (page - 1) * limit
-	return s.userRepo.FindAll(ctx, limit, offset)
+	var (
+		users []*domain.User
+		total int64
+	)
+
+	g, gCtx := errgroup.WithContext(ctx)
+
+	g.Go(func() error {
+		var err error
+		users, err = s.userRepo.FindAll(gCtx, limit, offset)
+		return err
+	})
+
+	g.Go(func() error {
+		var err error
+		total, err = s.userRepo.Count(gCtx)
+		return err
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, 0, err
+	}
+
+	return users, total, nil
 }
 
 func (s *UserService) SetStatus(ctx context.Context, userID domain.UserID, isActive bool) error {
@@ -65,9 +88,10 @@ func (s *UserService) GetHierarchy(ctx context.Context, id domain.UserID) (*doma
 		return err
 	})
 
+	// Get ALL campaigns for hierarchy
 	g.Go(func() error {
 		var err error
-		campaigns, err = s.campRepo.FindAllByUserID(ctx, id)
+		campaigns, err = s.campRepo.FindAll(ctx, domain.CampaignFilter{UserID: id, Limit: 1000})
 		return err
 	})
 

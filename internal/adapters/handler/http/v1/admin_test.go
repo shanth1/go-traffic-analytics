@@ -27,10 +27,11 @@ func TestAdminHandler_GetUsers(t *testing.T) {
 		expectedUsers := []*domain.User{
 			{ID: "user1", Email: "user1@example.com"},
 		}
+		expectedUsersCount := int64(len(expectedUsers))
 
 		mockUserService.EXPECT().
 			GetAll(gomock.Any(), 1, 20).
-			Return(expectedUsers, nil).
+			Return(expectedUsers, expectedUsersCount, nil).
 			Times(1)
 
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/admin/users?page=1", nil)
@@ -52,9 +53,10 @@ func TestAdminHandler_GetUsers(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
+		expectedUsersCount := int64(0)
 		mockUserService.EXPECT().
 			GetAll(gomock.Any(), 1, 20).
-			Return(nil, errors.New("service error")).
+			Return(nil, expectedUsersCount, errors.New("service error")).
 			Times(1)
 
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/admin/users?page=1", nil)

@@ -13,7 +13,7 @@ import (
 type InMemoryUserRepo struct {
 	mu     sync.RWMutex
 	users  map[domain.UserID]*domain.User
-	emails map[string]domain.UserID // Email -> ID (index)
+	emails map[string]domain.UserID
 }
 
 func NewUserRepo() ports.UserRepository {
@@ -64,12 +64,21 @@ func (r *InMemoryUserRepo) FindAll(_ context.Context, limit, offset int) ([]*dom
 	var result []*domain.User
 	i := 0
 	for _, u := range r.users {
-		if i >= offset && len(result) < limit {
+		if i >= offset {
+			if limit > 0 && len(result) >= limit {
+				break
+			}
 			result = append(result, u)
 		}
 		i++
 	}
 	return result, nil
+}
+
+func (r *InMemoryUserRepo) Count(_ context.Context) (int64, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return int64(len(r.users)), nil
 }
 
 func (r *InMemoryUserRepo) IncrementUsage(_ context.Context, userID domain.UserID, delta int) error {

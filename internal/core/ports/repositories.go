@@ -14,6 +14,7 @@ type UserRepository interface {
 	FindByID(ctx context.Context, id domain.UserID) (*domain.User, error)
 	FindByEmail(ctx context.Context, email string) (*domain.User, error)
 	FindAll(ctx context.Context, limit, offset int) ([]*domain.User, error)
+	Count(ctx context.Context) (int64, error)
 
 	IncrementUsage(ctx context.Context, userID domain.UserID, delta int) error
 	ResetUsage(ctx context.Context, userID domain.UserID) error
@@ -22,7 +23,8 @@ type UserRepository interface {
 type CampaignRepository interface {
 	Save(ctx context.Context, campaign *domain.Campaign) error
 	FindByID(ctx context.Context, id string) (*domain.Campaign, error)
-	FindAllByUserID(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error)
+	FindAll(ctx context.Context, filter domain.CampaignFilter) ([]*domain.Campaign, error)
+	Count(ctx context.Context, filter domain.CampaignFilter) (int64, error)
 	Delete(ctx context.Context, userID domain.UserID, id string) error
 }
 
@@ -38,7 +40,7 @@ type LinkRepository interface {
 	FindBySlug(ctx context.Context, slug string) (*domain.Link, error)
 	FindByID(ctx context.Context, id domain.LinkID) (*domain.Link, error)
 	FindAll(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error)
-	CountByUserID(ctx context.Context, userID domain.UserID) (int64, error)
+	Count(ctx context.Context, filter domain.LinkFilter) (int64, error)
 	Delete(ctx context.Context, userID domain.UserID, id domain.LinkID) error
 }
 

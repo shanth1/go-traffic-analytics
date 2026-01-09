@@ -26,12 +26,13 @@ func TestLinkHandler_GetLinks(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		userID := domain.UserID("user123")
 		expectedLinks := []*domain.Link{
-			{ID: "link1", Slug: "abc", TargetURL: "http://example.com"},
+			{ID: "link1", UserID: userID, Slug: "abc", TargetURL: "http://example.com"},
 		}
+		expectedLinksCount := int64(len(expectedLinks))
 
 		mockLinkService.EXPECT().
 			GetLinkList(gomock.Any(), gomock.Any()).
-			Return(expectedLinks, nil).
+			Return(expectedLinks, expectedLinksCount, nil).
 			Times(1)
 
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/links", nil)
@@ -57,10 +58,11 @@ func TestLinkHandler_GetLinks(t *testing.T) {
 
 	t.Run("service error", func(t *testing.T) {
 		userID := domain.UserID("user123")
+		expectedLinksCount := int64(0)
 
 		mockLinkService.EXPECT().
 			GetLinkList(gomock.Any(), gomock.Any()).
-			Return(nil, errors.New("service error")).
+			Return(nil, expectedLinksCount, errors.New("service error")).
 			Times(1)
 
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/links", nil)

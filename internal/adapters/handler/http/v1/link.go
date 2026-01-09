@@ -72,7 +72,7 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 		Offset:     offset,
 	}
 
-	links, err := h.linkSvc.GetLinkList(r.Context(), filter)
+	links, total, err := h.linkSvc.GetLinkList(r.Context(), filter)
 	if err != nil {
 		response.ServerError(w, r, err)
 		return
@@ -82,7 +82,14 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 		links = []*domain.Link{}
 	}
 
-	response.Success(w, r, links)
+	response.Success(w, r, LinksListResponse{
+		Data: links,
+		Meta: domain.PaginationMeta{
+			Total:  total,
+			Limit:  limit,
+			Offset: offset,
+		},
+	})
 }
 
 // CreateLink godoc

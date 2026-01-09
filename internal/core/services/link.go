@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
+	"golang.org/x/sync/errgroup"
 )
 
 var ErrLimitReached = errors.New("plan limit reached: upgrade your plan to create more links")
@@ -26,8 +27,6 @@ func NewLinkService(lr ports.LinkRepository, ur ports.UserRepository, pr ports.P
 	}
 }
 
-// --- Links ---
-
 func (s *LinkService) CreateLink(ctx context.Context, cmd domain.CreateLinkCmd) (*domain.Link, error) {
 	user, err := s.userRepo.FindByID(ctx, cmd.UserID)
 	if err != nil {
@@ -40,11 +39,11 @@ func (s *LinkService) CreateLink(ctx context.Context, cmd domain.CreateLinkCmd) 
 	}
 
 	if plan.MaxLinks != -1 {
-		currentCount, err := s.linkRepo.CountByUserID(ctx, cmd.UserID)
+		count, err := s.linkRepo.Count(ctx, domain.LinkFilter{UserID: cmd.UserID})
 		if err != nil {
 			return nil, err
 		}
-		if int(currentCount) >= plan.MaxLinks {
+		if int(count) >= plan.MaxLinks {
 			return nil, ErrLimitReached
 		}
 	}
@@ -72,8 +71,31 @@ func (s *LinkService) CreateLink(ctx context.Context, cmd domain.CreateLinkCmd) 
 	return link, nil
 }
 
-func (s *LinkService) GetLinkList(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
-	return s.linkRepo.FindAll(ctx, filter)
+func (s *LinkService) GetLinkList(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, int64, error) {
+	var (
+		links []*domain.Link
+		total int64
+	)
+
+	g, gCtx := errgroup.WithContext(ctx)
+
+	g.Go(func() error {
+		var err error
+		links, err = s.linkRepo.FindAll(gCtx, filter)
+		return err
+	})
+
+	g.Go(func() error {
+		var err error
+		total, err = s.linkRepo.Count(gCtx, filter)
+		return err
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, 0, err
+	}
+
+	return links, total, nil
 }
 
 // TODO:

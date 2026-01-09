@@ -255,12 +255,13 @@ func (mr *MockLinkServiceMockRecorder) DeleteLink(ctx, userID, id any) *gomock.C
 }
 
 // GetLinkList mocks base method.
-func (m *MockLinkService) GetLinkList(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
+func (m *MockLinkService) GetLinkList(ctx context.Context, filter domain.LinkFilter) ([]*domain.Link, int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLinkList", ctx, filter)
 	ret0, _ := ret[0].([]*domain.Link)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetLinkList indicates an expected call of GetLinkList.
@@ -323,18 +324,19 @@ func (mr *MockCampaignServiceMockRecorder) DeleteCampaign(ctx, userID, id any) *
 }
 
 // GetCampaigns mocks base method.
-func (m *MockCampaignService) GetCampaigns(ctx context.Context, userID domain.UserID) ([]*domain.Campaign, error) {
+func (m *MockCampaignService) GetCampaigns(ctx context.Context, filter domain.CampaignFilter) ([]*domain.Campaign, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCampaigns", ctx, userID)
+	ret := m.ctrl.Call(m, "GetCampaigns", ctx, filter)
 	ret0, _ := ret[0].([]*domain.Campaign)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetCampaigns indicates an expected call of GetCampaigns.
-func (mr *MockCampaignServiceMockRecorder) GetCampaigns(ctx, userID any) *gomock.Call {
+func (mr *MockCampaignServiceMockRecorder) GetCampaigns(ctx, filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCampaigns", reflect.TypeOf((*MockCampaignService)(nil).GetCampaigns), ctx, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCampaigns", reflect.TypeOf((*MockCampaignService)(nil).GetCampaigns), ctx, filter)
 }
 
 // MockRedirectService is a mock of RedirectService interface.
@@ -415,12 +417,13 @@ func (mr *MockUserServiceMockRecorder) ChangePlan(ctx, userID, planID any) *gomo
 }
 
 // GetAll mocks base method.
-func (m *MockUserService) GetAll(ctx context.Context, page, limit int) ([]*domain.User, error) {
+func (m *MockUserService) GetAll(ctx context.Context, page, limit int) ([]*domain.User, int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll", ctx, page, limit)
 	ret0, _ := ret[0].([]*domain.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetAll indicates an expected call of GetAll.

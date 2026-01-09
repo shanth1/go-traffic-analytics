@@ -107,7 +107,8 @@ type RegisterResponse struct {
 
 // Users
 type UsersListResponse struct {
-	Data []domain.UserPublic `json:"data"`
+	Data []domain.UserPublic   `json:"data"`
+	Meta domain.PaginationMeta `json:"meta"`
 }
 
 type ProfileTreeResponse struct {
@@ -121,7 +122,8 @@ type PlansListResponse struct {
 
 // Campaigns
 type CampaignsListResponse struct {
-	Data []*domain.Campaign `json:"data"`
+	Data []*domain.Campaign    `json:"data"`
+	Meta domain.PaginationMeta `json:"meta"`
 }
 
 type CampaignResponse struct {
@@ -130,7 +132,8 @@ type CampaignResponse struct {
 
 // Links
 type LinksListResponse struct {
-	Data []*domain.Link `json:"data"`
+	Data []*domain.Link        `json:"data"`
+	Meta domain.PaginationMeta `json:"meta"`
 }
 
 type LinkResponse struct {

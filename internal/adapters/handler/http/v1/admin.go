@@ -24,11 +24,12 @@ func NewAdminHandler(u ports.UserService) *AdminHandler {
 
 // GetUsers godoc
 // @Summary List users
-// @Description Get paginated users list (Admin). Returns array wrapped in data.
+// @Description Get paginated users list (Admin). Returns array wrapped in data with metadata.
 // @Tags Admin
 // @Security BearerAuth
 // @Produce json
 // @Param page query int false "Page number" default(1)
+// @Param limit query int false "Limit" default(20)
 // @Success 200 {object} UsersListResponse
 // @Failure 401 {object} response.ErrorResponse "Unauthorized"
 // @Failure 403 {object} response.ErrorResponse "Forbidden"
@@ -40,9 +41,14 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	if page < 1 {
 		page = 1
 	}
-	limit := 20
 
-	users, err := h.userService.GetAll(r.Context(), page, limit)
+	limitStr := r.URL.Query().Get("limit")
+	limit, _ := strconv.Atoi(limitStr)
+	if limit <= 0 {
+		limit = 20
+	}
+
+	users, total, err := h.userService.GetAll(r.Context(), page, limit)
 	if err != nil {
 		response.ServerError(w, r, err)
 		return
@@ -57,9 +63,16 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		publicUsers[i] = user.ToPublic()
 	}
 
-	log.FromContext(r.Context()).Info().Int("page", page).Int("limit", limit).Msg("admin_users_listed")
+	log.FromContext(r.Context()).Info().Int("page", page).Int("limit", limit).Int64("total", total).Msg("admin_users_listed")
 
-	response.Success(w, r, publicUsers)
+	response.Success(w, r, UsersListResponse{
+		Data: publicUsers,
+		Meta: domain.PaginationMeta{
+			Total:  total,
+			Limit:  limit,
+			Offset: (page - 1) * limit,
+		},
+	})
 }
 
 // UpdateUserStatus godoc
