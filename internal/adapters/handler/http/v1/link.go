@@ -74,7 +74,7 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 
 	links, total, err := h.linkSvc.GetLinkList(r.Context(), filter)
 	if err != nil {
-		response.ServerError(w, r, err)
+		response.RespondWithError(w, r, err)
 		return
 	}
 
@@ -131,7 +131,7 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 			response.ClientError(w, r, http.StatusForbidden, err.Error())
 			return
 		}
-		response.ServerError(w, r, err)
+		response.RespondWithError(w, r, err)
 		return
 	}
 
@@ -156,7 +156,7 @@ func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
 
 	if err := h.linkSvc.DeleteLink(r.Context(), userID, id); err != nil {
-		response.ServerError(w, r, err)
+		response.RespondWithError(w, r, err)
 		return
 	}
 

@@ -55,7 +55,7 @@ func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 
 	campaigns, total, err := h.campSvc.GetCampaigns(r.Context(), filter)
 	if err != nil {
-		response.ServerError(w, r, err)
+		response.RespondWithError(w, r, err)
 		return
 	}
 
@@ -102,7 +102,7 @@ func (h *CampaignHandler) CreateCampaign(w http.ResponseWriter, r *http.Request)
 
 	camp, err := h.campSvc.CreateCampaign(r.Context(), userID, req.Name)
 	if err != nil {
-		response.ServerError(w, r, err)
+		response.RespondWithError(w, r, err)
 		return
 	}
 

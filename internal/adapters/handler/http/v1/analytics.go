@@ -64,7 +64,7 @@ func (h *AnalyticsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 
 	summary, err := h.service.GetSummary(r.Context(), filter)
 	if err != nil {
-		response.ServerError(w, r, err)
+		response.RespondWithError(w, r, err)
 		return
 	}
 
@@ -99,7 +99,7 @@ func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request
 
 	data, err := h.service.GetStreamGraphData(r.Context(), filter, groupBy)
 	if err != nil {
-		response.ServerError(w, r, err)
+		response.RespondWithError(w, r, err)
 		return
 	}
 
@@ -133,7 +133,7 @@ func (h *AnalyticsHandler) GetSankeyFlow(w http.ResponseWriter, r *http.Request)
 
 	data, err := h.service.GetSankeyData(r.Context(), filter, stages)
 	if err != nil {
-		response.ServerError(w, r, err)
+		response.RespondWithError(w, r, err)
 		return
 	}
 
@@ -162,7 +162,7 @@ func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
 
 	data, err := h.service.GetGeoDistribution(r.Context(), filter)
 	if err != nil {
-		response.ServerError(w, r, err)
+		response.RespondWithError(w, r, err)
 		return
 	}
 
@@ -195,7 +195,7 @@ func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Reques
 
 	data, err := h.service.GetTrafficQuality(r.Context(), filter)
 	if err != nil {
-		response.ServerError(w, r, err)
+		response.RespondWithError(w, r, err)
 		return
 	}
 
@@ -222,7 +222,7 @@ func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 	data, err := h.service.GetHeatmapData(r.Context(), filter)
 	if err != nil {
-		response.ServerError(w, r, err)
+		response.RespondWithError(w, r, err)
 		return
 	}
 
@@ -259,7 +259,7 @@ func (h *AnalyticsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 
 	data, err := h.service.GetCategoryStats(r.Context(), filter, dim)
 	if err != nil {
-		response.ServerError(w, r, err)
+		response.RespondWithError(w, r, err)
 		return
 	}
 

@@ -34,7 +34,7 @@ func (h *UserHandler) GetProfileTree(w http.ResponseWriter, r *http.Request) {
 
 	tree, err := h.userSvc.GetHierarchy(r.Context(), userID)
 	if err != nil {
-		response.ServerError(w, r, err)
+		response.RespondWithError(w, r, err)
 		return
 	}
 

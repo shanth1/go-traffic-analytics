@@ -28,7 +28,7 @@ func NewBillingHandler(s ports.BillingService) *BillingHandler {
 func (h *BillingHandler) GetPlans(w http.ResponseWriter, r *http.Request) {
 	plans, err := h.service.GetAllPlans(r.Context())
 	if err != nil {
-		response.ServerError(w, r, err)
+		response.RespondWithError(w, r, err)
 		return
 	}
 
