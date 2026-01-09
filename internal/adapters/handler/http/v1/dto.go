@@ -154,7 +154,7 @@ type SankeyResponse struct {
 	Data domain.SankeyData `json:"data"`
 }
 
-type GeoResponse struct { // Исправлена опечатка GeoRespons -> GeoResponse
+type GeoResponse struct {
 	Data []domain.GeoStat `json:"data"`
 }
 
