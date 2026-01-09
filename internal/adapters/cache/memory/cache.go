@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
 
@@ -13,18 +14,20 @@ type item struct {
 	expiresAt time.Time
 }
 
-type InMemoryCache struct {
+type MemoryCache struct {
 	mu    sync.RWMutex
 	items map[string]item
 }
 
 func NewCache() ports.Cache {
-	return &InMemoryCache{
+	return &MemoryCache{
 		items: make(map[string]item),
 	}
 }
 
-func (c *InMemoryCache) Set(_ context.Context, key string, value interface{}, ttl time.Duration) error {
+func (c *MemoryCache) Set(_ context.Context, key string, value interface{}, ttl time.Duration) error {
+	const op = "cachememory.MemoryCache.Set"
+
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -36,24 +39,26 @@ func (c *InMemoryCache) Set(_ context.Context, key string, value interface{}, tt
 	return nil
 }
 
-func (c *InMemoryCache) Get(_ context.Context, key string) (interface{}, error) {
+func (c *MemoryCache) Get(_ context.Context, key string) (interface{}, error) {
+	const op = "cachememory.MemoryCache.Get"
+
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	item, found := c.items[key]
 	if !found {
-		return nil, ports.ErrCacheMiss
+		return nil, ops.E(op, ports.ErrCacheMiss)
 	}
 
 	if time.Now().After(item.expiresAt) {
 		delete(c.items, key)
-		return nil, ports.ErrCacheMiss
+		return nil, ops.E(op, ports.ErrCacheMiss)
 	}
 
 	return item.value, nil
 }
 
-func (c *InMemoryCache) Delete(_ context.Context, key string) error {
+func (c *MemoryCache) Delete(_ context.Context, key string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
