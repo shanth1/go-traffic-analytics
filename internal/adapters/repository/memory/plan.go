@@ -11,21 +11,21 @@ import (
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
 
-type InMemoryPlanRepo struct {
+type MemoryPlanRepo struct {
 	mu    sync.RWMutex
 	plans map[string]*domain.Plan
 }
 
 func NewPlanRepo() ports.PlanRepository {
-	repo := &InMemoryPlanRepo{
+	repo := &MemoryPlanRepo{
 		plans: make(map[string]*domain.Plan),
 	}
 
 	return repo
 }
 
-func (r *InMemoryPlanRepo) FindByID(_ context.Context, id string) (*domain.Plan, error) {
-	const op = "memoryrepo.InMemoryPlanRepo.FindByID"
+func (r *MemoryPlanRepo) FindByID(_ context.Context, id string) (*domain.Plan, error) {
+	const op = "memoryrepo.MemoryPlanRepo.FindByID"
 
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -37,11 +37,11 @@ func (r *InMemoryPlanRepo) FindByID(_ context.Context, id string) (*domain.Plan,
 	return p, nil
 }
 
-func (r *InMemoryPlanRepo) FindDefault(ctx context.Context) (*domain.Plan, error) {
+func (r *MemoryPlanRepo) FindDefault(ctx context.Context) (*domain.Plan, error) {
 	return r.FindByID(ctx, "free")
 }
 
-func (r *InMemoryPlanRepo) FindAll(_ context.Context) ([]*domain.Plan, error) {
+func (r *MemoryPlanRepo) FindAll(_ context.Context) ([]*domain.Plan, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	res := make([]*domain.Plan, 0, len(r.plans))
@@ -51,7 +51,7 @@ func (r *InMemoryPlanRepo) FindAll(_ context.Context) ([]*domain.Plan, error) {
 	return res, nil
 }
 
-func (r *InMemoryPlanRepo) Save(_ context.Context, plan *domain.Plan) error {
+func (r *MemoryPlanRepo) Save(_ context.Context, plan *domain.Plan) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.plans[plan.ID] = plan

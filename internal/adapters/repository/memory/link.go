@@ -13,21 +13,21 @@ import (
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
 
-type InMemoryLinkRepo struct {
+type MemoryLinkRepo struct {
 	mu    sync.RWMutex
 	links map[domain.LinkID]*domain.Link
 	slugs map[string]domain.LinkID // slug -> linkID (index)
 }
 
 func NewLinkRepo() ports.LinkRepository {
-	return &InMemoryLinkRepo{
+	return &MemoryLinkRepo{
 		links: make(map[domain.LinkID]*domain.Link),
 		slugs: make(map[string]domain.LinkID),
 	}
 }
 
-func (r *InMemoryLinkRepo) Save(_ context.Context, link *domain.Link) error {
-	const op = "memoryrepo.InMemoryLinkRepo.Save"
+func (r *MemoryLinkRepo) Save(_ context.Context, link *domain.Link) error {
+	const op = "memoryrepo.MemoryLinkRepo.Save"
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -39,8 +39,8 @@ func (r *InMemoryLinkRepo) Save(_ context.Context, link *domain.Link) error {
 	return nil
 }
 
-func (r *InMemoryLinkRepo) FindByID(_ context.Context, id domain.LinkID) (*domain.Link, error) {
-	const op = "memoryrepo.InMemoryLinkRepo.FindByID"
+func (r *MemoryLinkRepo) FindByID(_ context.Context, id domain.LinkID) (*domain.Link, error) {
+	const op = "memoryrepo.MemoryLinkRepo.FindByID"
 
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -53,8 +53,8 @@ func (r *InMemoryLinkRepo) FindByID(_ context.Context, id domain.LinkID) (*domai
 	return link, nil
 }
 
-func (r *InMemoryLinkRepo) FindBySlug(_ context.Context, slug string) (*domain.Link, error) {
-	const op = "memoryrepo.InMemoryLinkRepo.FindBySlug"
+func (r *MemoryLinkRepo) FindBySlug(_ context.Context, slug string) (*domain.Link, error) {
+	const op = "memoryrepo.MemoryLinkRepo.FindBySlug"
 
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -66,7 +66,7 @@ func (r *InMemoryLinkRepo) FindBySlug(_ context.Context, slug string) (*domain.L
 	return r.links[id], nil
 }
 
-func (r *InMemoryLinkRepo) matchesFilter(link *domain.Link, filter domain.LinkFilter) bool {
+func (r *MemoryLinkRepo) matchesFilter(link *domain.Link, filter domain.LinkFilter) bool {
 	if filter.UserID != "" && link.UserID != filter.UserID {
 		return false
 	}
@@ -87,7 +87,7 @@ func (r *InMemoryLinkRepo) matchesFilter(link *domain.Link, filter domain.LinkFi
 	return true
 }
 
-func (r *InMemoryLinkRepo) FindAll(_ context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
+func (r *MemoryLinkRepo) FindAll(_ context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -114,7 +114,7 @@ func (r *InMemoryLinkRepo) FindAll(_ context.Context, filter domain.LinkFilter) 
 	return res, nil
 }
 
-func (r *InMemoryLinkRepo) Count(_ context.Context, filter domain.LinkFilter) (int64, error) {
+func (r *MemoryLinkRepo) Count(_ context.Context, filter domain.LinkFilter) (int64, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var count int64
@@ -126,8 +126,8 @@ func (r *InMemoryLinkRepo) Count(_ context.Context, filter domain.LinkFilter) (i
 	return count, nil
 }
 
-func (r *InMemoryLinkRepo) Delete(_ context.Context, userID domain.UserID, id domain.LinkID) error {
-	const op = "memoryrepo.InMemoryLinkRepo.Delete"
+func (r *MemoryLinkRepo) Delete(_ context.Context, userID domain.UserID, id domain.LinkID) error {
+	const op = "memoryrepo.MemoryLinkRepo.Delete"
 
 	r.mu.Lock()
 	defer r.mu.Unlock()

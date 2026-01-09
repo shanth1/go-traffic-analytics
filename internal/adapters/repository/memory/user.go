@@ -11,21 +11,21 @@ import (
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
 
-type InMemoryUserRepo struct {
+type MemoryUserRepo struct {
 	mu     sync.RWMutex
 	users  map[domain.UserID]*domain.User
 	emails map[string]domain.UserID
 }
 
 func NewUserRepo() ports.UserRepository {
-	return &InMemoryUserRepo{
+	return &MemoryUserRepo{
 		users:  make(map[domain.UserID]*domain.User),
 		emails: make(map[string]domain.UserID),
 	}
 }
 
-func (r *InMemoryUserRepo) Save(_ context.Context, user *domain.User) error {
-	const op = "memoryrepo.InMemoryUserRepo.Save"
+func (r *MemoryUserRepo) Save(_ context.Context, user *domain.User) error {
+	const op = "memoryrepo.MemoryUserRepo.Save"
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -42,8 +42,8 @@ func (r *InMemoryUserRepo) Save(_ context.Context, user *domain.User) error {
 	return nil
 }
 
-func (r *InMemoryUserRepo) FindByID(_ context.Context, id domain.UserID) (*domain.User, error) {
-	const op = "memoryrepo.InMemoryUserRepo.FindByID"
+func (r *MemoryUserRepo) FindByID(_ context.Context, id domain.UserID) (*domain.User, error) {
+	const op = "memoryrepo.MemoryUserRepo.FindByID"
 
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -56,8 +56,8 @@ func (r *InMemoryUserRepo) FindByID(_ context.Context, id domain.UserID) (*domai
 	return u, nil
 }
 
-func (r *InMemoryUserRepo) FindByEmail(_ context.Context, email string) (*domain.User, error) {
-	const op = "memoryrepo.InMemoryUserRepo.FindByEmail"
+func (r *MemoryUserRepo) FindByEmail(_ context.Context, email string) (*domain.User, error) {
+	const op = "memoryrepo.MemoryUserRepo.FindByEmail"
 
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -69,7 +69,7 @@ func (r *InMemoryUserRepo) FindByEmail(_ context.Context, email string) (*domain
 	return r.users[id], nil
 }
 
-func (r *InMemoryUserRepo) FindAll(_ context.Context, limit, offset int) ([]*domain.User, error) {
+func (r *MemoryUserRepo) FindAll(_ context.Context, limit, offset int) ([]*domain.User, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var result []*domain.User
@@ -86,14 +86,14 @@ func (r *InMemoryUserRepo) FindAll(_ context.Context, limit, offset int) ([]*dom
 	return result, nil
 }
 
-func (r *InMemoryUserRepo) Count(_ context.Context) (int64, error) {
+func (r *MemoryUserRepo) Count(_ context.Context) (int64, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return int64(len(r.users)), nil
 }
 
-func (r *InMemoryUserRepo) IncrementUsage(_ context.Context, userID domain.UserID, delta int) error {
-	const op = "memoryrepo.InMemoryUserRepo.IncrementUsage"
+func (r *MemoryUserRepo) IncrementUsage(_ context.Context, userID domain.UserID, delta int) error {
+	const op = "memoryrepo.MemoryUserRepo.IncrementUsage"
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -107,8 +107,8 @@ func (r *InMemoryUserRepo) IncrementUsage(_ context.Context, userID domain.UserI
 	return nil
 }
 
-func (r *InMemoryUserRepo) ResetUsage(_ context.Context, userID domain.UserID) error {
-	const op = "memoryrepo.InMemoryUserRepo.ResetUsage"
+func (r *MemoryUserRepo) ResetUsage(_ context.Context, userID domain.UserID) error {
+	const op = "memoryrepo.MemoryUserRepo.ResetUsage"
 
 	r.mu.Lock()
 	defer r.mu.Unlock()

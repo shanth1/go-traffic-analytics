@@ -12,26 +12,26 @@ import (
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
 
-type InMemoryCampaignRepo struct {
+type MemoryCampaignRepo struct {
 	mu        sync.RWMutex
 	campaigns map[string]*domain.Campaign
 }
 
 func NewCampaignRepo() ports.CampaignRepository {
-	return &InMemoryCampaignRepo{
+	return &MemoryCampaignRepo{
 		campaigns: make(map[string]*domain.Campaign),
 	}
 }
 
-func (r *InMemoryCampaignRepo) Save(_ context.Context, camp *domain.Campaign) error {
+func (r *MemoryCampaignRepo) Save(_ context.Context, camp *domain.Campaign) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.campaigns[camp.ID] = camp
 	return nil
 }
 
-func (r *InMemoryCampaignRepo) FindByID(_ context.Context, id string) (*domain.Campaign, error) {
-	const op = "memoryrepo.InMemoryCampaignRepo.FindByID"
+func (r *MemoryCampaignRepo) FindByID(_ context.Context, id string) (*domain.Campaign, error) {
+	const op = "memoryrepo.MemoryCampaignRepo.FindByID"
 
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -43,7 +43,7 @@ func (r *InMemoryCampaignRepo) FindByID(_ context.Context, id string) (*domain.C
 	return c, nil
 }
 
-func (r *InMemoryCampaignRepo) FindAll(_ context.Context, filter domain.CampaignFilter) ([]*domain.Campaign, error) {
+func (r *MemoryCampaignRepo) FindAll(_ context.Context, filter domain.CampaignFilter) ([]*domain.Campaign, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var matches []*domain.Campaign
@@ -71,7 +71,7 @@ func (r *InMemoryCampaignRepo) FindAll(_ context.Context, filter domain.Campaign
 	return res, nil
 }
 
-func (r *InMemoryCampaignRepo) Count(_ context.Context, filter domain.CampaignFilter) (int64, error) {
+func (r *MemoryCampaignRepo) Count(_ context.Context, filter domain.CampaignFilter) (int64, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var count int64
@@ -83,8 +83,8 @@ func (r *InMemoryCampaignRepo) Count(_ context.Context, filter domain.CampaignFi
 	return count, nil
 }
 
-func (r *InMemoryCampaignRepo) Delete(_ context.Context, userID domain.UserID, id string) error {
-	const op = "memoryrepo.InMemoryCampaignRepo.Delete"
+func (r *MemoryCampaignRepo) Delete(_ context.Context, userID domain.UserID, id string) error {
+	const op = "memoryrepo.MemoryCampaignRepo.Delete"
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
