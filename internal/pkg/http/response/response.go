@@ -11,14 +11,31 @@ import (
 	"github.com/shanth1/gotools/ops"
 )
 
-// DataResponse wraps a successful payload.
+// --- Structs ---
+
 type DataResponse[T any] struct {
 	Data T `json:"data"`
 }
 
-// ErrorResponse wraps an error message.
 type ErrorResponse struct {
 	Error string `json:"error"`
+}
+
+// friendlyError acts as a container to separate the user-facing message
+// from the technical underlying error.
+type friendlyError struct {
+	UserMsg string
+	Cause   error
+}
+
+// Error returns the user-facing message.
+func (e *friendlyError) Error() string {
+	return e.UserMsg
+}
+
+// Unwrap returns the original technical error.
+func (e *friendlyError) Unwrap() error {
+	return e.Cause
 }
 
 // --- Success Responses ---
@@ -78,6 +95,7 @@ func RespondWithError(w http.ResponseWriter, r *http.Request, err error) {
 
 	logRequestError(r, err, status, level)
 
+	// Do not write response if client disconnected
 	if status == 499 {
 		return
 	}
@@ -85,30 +103,32 @@ func RespondWithError(w http.ResponseWriter, r *http.Request, err error) {
 	ClientError(w, r, status, msg)
 }
 
-// BadRequest is a helper for handler-level validation errors (e.g. invalid JSON body)
+// BadRequest handles client-side validation errors.
+// It ensures that BOTH the sanitized user message AND the original technical error are preserved.
 func BadRequest(w http.ResponseWriter, r *http.Request, msg string, err error) {
-	detailedErr := ops.E("http.decode", ops.KindInvalid, err)
+	var finalErr error
 
+	// If a custom message is provided ("Invalid request"), we wrap the original error
+	// so the logger can see 'err', but the client sees 'msg'.
 	if msg != "" {
-		detailedErr = ops.E("http.decode", ops.KindInvalid, errors.New(msg))
+		finalErr = &friendlyError{UserMsg: msg, Cause: err}
+	} else {
+		finalErr = err
 	}
+
+	// We treat this as an Invalid operation in the domain
+	detailedErr := ops.E("http.decode", ops.KindInvalid, finalErr)
 
 	RespondWithError(w, r, detailedErr)
 }
 
-// ClientError sends a JSON error response.
-// Note: It is generally better to use RespondWithError, but this is useful for
-// static errors where no `error` object exists.
+// ClientError sends a raw JSON error response without internal logging.
 func ClientError(w http.ResponseWriter, r *http.Request, status int, message string) {
 	JSON(w, r, status, ErrorResponse{Error: message})
 }
 
 // --- Internal Logic ---
 
-// prepareError analyzes the error and returns:
-// 1. HTTP Status Code
-// 2. Safe Error Message (for the client)
-// 3. Log Level (for the server)
 func prepareError(err error) (int, string, log.Level) {
 	if errors.Is(err, context.Canceled) {
 		return 499, "Request Canceled", log.LevelInfo
@@ -118,12 +138,17 @@ func prepareError(err error) (int, string, log.Level) {
 	if errors.As(err, &e) {
 		code := kindToStatus(e.Kind)
 
+		// 1. Server Errors (5xx): Always Mask
 		if code >= 500 {
 			return code, "Internal Server Error", log.LevelError
 		}
 
+		// 2. Client Errors (4xx): Show Safe Message
+		// If it's a friendlyError (wrapped in ops.Error), this returns UserMsg.
+		// If it's a standard error, it returns err.Error().
 		clientMsg := getSafeMessage(e)
 
+		// 3. Determine Log Level
 		level := log.LevelInfo
 		if code == http.StatusUnauthorized || code == http.StatusForbidden {
 			level = log.LevelWarn
@@ -132,6 +157,7 @@ func prepareError(err error) (int, string, log.Level) {
 		return code, clientMsg, level
 	}
 
+	// Fallback for unknown errors
 	return http.StatusInternalServerError, "Internal Server Error", log.LevelError
 }
 
@@ -139,10 +165,28 @@ func logRequestError(r *http.Request, err error, status int, level log.Level) {
 	logger := log.FromContext(r.Context())
 
 	eventLogger := logger.With(
-		log.Err(err),
 		log.Int(logkeys.HTTPStatus, status),
 		log.Str(logkeys.HTTPPath, r.URL.Path),
 	)
+
+	// INTELLIGENT ERROR LOGGING:
+	// If the error is our friendlyError (or wrapped in ops), we want to make sure
+	// we log the *Cause* (technical details), not just the "User Message".
+
+	// Standard log.Err(err) calls err.Error(). For friendlyError, that is just "Invalid Request".
+	// We want to see: "json: syntax error at offset 5".
+
+	// We create a helper to find the deepest relevant error text or object
+	cause := getDeepCause(err)
+	if cause != nil {
+		eventLogger = eventLogger.With(log.Err(cause))
+	} else {
+		eventLogger = eventLogger.With(log.Err(err))
+	}
+
+	if fe := new(friendlyError); errors.As(err, &fe) {
+		eventLogger = eventLogger.With(log.Str("client_msg", fe.UserMsg))
+	}
 
 	msg := "http_request_error"
 
@@ -156,6 +200,29 @@ func logRequestError(r *http.Request, err error, status int, level log.Level) {
 	default:
 		eventLogger.Error().Msg(msg)
 	}
+}
+
+func getDeepCause(err error) error {
+	var opsErr *ops.Error
+	if errors.As(err, &opsErr) {
+		if opsErr.Err != nil {
+			return getDeepCause(opsErr.Err)
+		}
+	}
+
+	var fe *friendlyError
+	if errors.As(err, &fe) {
+		return getDeepCause(fe.Cause)
+	}
+
+	return err
+}
+
+func getSafeMessage(e *ops.Error) string {
+	if e.Err != nil {
+		return e.Err.Error()
+	}
+	return e.Kind.String()
 }
 
 func kindToStatus(k ops.Kind) int {
@@ -179,13 +246,4 @@ func kindToStatus(k ops.Kind) int {
 	default:
 		return http.StatusInternalServerError
 	}
-}
-
-// getSafeMessage extracts the user-facing message from ops.Error.
-func getSafeMessage(e *ops.Error) string {
-	if e.Err != nil {
-		return e.Err.Error()
-	}
-
-	return e.Kind.String()
 }
