@@ -118,18 +118,18 @@ func prepareError(err error) (int, string, log.Level) {
 	if errors.As(err, &e) {
 		code := kindToStatus(e.Kind)
 
-		// Case 1: Server Side Error (5xx)
 		if code >= 500 {
 			return code, "Internal Server Error", log.LevelError
 		}
 
-		// Case 2: Security Issues (401, 403)
+		clientMsg := getSafeMessage(e)
+
+		level := log.LevelInfo
 		if code == http.StatusUnauthorized || code == http.StatusForbidden {
-			return code, e.Error(), log.LevelWarn
+			level = log.LevelWarn
 		}
 
-		// Case 3: Client Errors (400, 404, 409, etc)
-		return code, e.Error(), log.LevelInfo
+		return code, clientMsg, level
 	}
 
 	return http.StatusInternalServerError, "Internal Server Error", log.LevelError
@@ -179,4 +179,13 @@ func kindToStatus(k ops.Kind) int {
 	default:
 		return http.StatusInternalServerError
 	}
+}
+
+// getSafeMessage extracts the user-facing message from ops.Error.
+func getSafeMessage(e *ops.Error) string {
+	if e.Err != nil {
+		return e.Err.Error()
+	}
+
+	return e.Kind.String()
 }
