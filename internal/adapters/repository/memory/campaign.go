@@ -1,4 +1,4 @@
-package memoryrepo
+package memory
 
 import (
 	"context"
@@ -12,38 +12,38 @@ import (
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
 
-type MemoryCampaignRepo struct {
+type CampaignRepo struct {
 	mu        sync.RWMutex
 	campaigns map[string]*domain.Campaign
 }
 
 func NewCampaignRepo() ports.CampaignRepository {
-	return &MemoryCampaignRepo{
+	return &CampaignRepo{
 		campaigns: make(map[string]*domain.Campaign),
 	}
 }
 
-func (r *MemoryCampaignRepo) Save(_ context.Context, camp *domain.Campaign) error {
+func (r *CampaignRepo) Save(_ context.Context, camp *domain.Campaign) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.campaigns[camp.ID] = camp
 	return nil
 }
 
-func (r *MemoryCampaignRepo) FindByID(_ context.Context, id string) (*domain.Campaign, error) {
-	const op = "memoryrepo.MemoryCampaignRepo.FindByID"
+func (r *CampaignRepo) FindByID(_ context.Context, id string) (*domain.Campaign, error) {
+	const op = "memory.CampaignRepo.FindByID"
 
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	c, ok := r.campaigns[id]
 	if !ok {
-		return nil, ops.E(op, ops.KindNotFound, fmt.Errorf("campaign with id %q: %w", id, errs.ErrNotFound))
+		return nil, ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("%q campaign not found", id))
 	}
 
 	return c, nil
 }
 
-func (r *MemoryCampaignRepo) FindAll(_ context.Context, filter domain.CampaignFilter) ([]*domain.Campaign, error) {
+func (r *CampaignRepo) FindAll(_ context.Context, filter domain.CampaignFilter) ([]*domain.Campaign, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var matches []*domain.Campaign
@@ -71,7 +71,7 @@ func (r *MemoryCampaignRepo) FindAll(_ context.Context, filter domain.CampaignFi
 	return res, nil
 }
 
-func (r *MemoryCampaignRepo) Count(_ context.Context, filter domain.CampaignFilter) (int64, error) {
+func (r *CampaignRepo) Count(_ context.Context, filter domain.CampaignFilter) (int64, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var count int64
@@ -83,19 +83,21 @@ func (r *MemoryCampaignRepo) Count(_ context.Context, filter domain.CampaignFilt
 	return count, nil
 }
 
-func (r *MemoryCampaignRepo) Delete(_ context.Context, userID domain.UserID, id string) error {
-	const op = "memoryrepo.MemoryCampaignRepo.Delete"
+func (r *CampaignRepo) Delete(_ context.Context, userID domain.UserID, id string) error {
+	const op = "memory.CampaignRepo.Delete"
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	c, ok := r.campaigns[id]
 	if !ok {
-		return ops.E(op, ops.KindNotFound, fmt.Errorf("campaign with id %q: %w", id, errs.ErrNotFound))
+		return ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("%q campaign not found", id))
 	}
 
 	if c.UserID != userID {
-		return ops.E(op, ops.KindUnauthorized, fmt.Errorf("expected user with id %q, got %q: %w", userID, c.UserID, errs.ErrUnauthorized))
+		techErr := fmt.Errorf("user %q attempted to access campaign %q owned by %q: %w",
+			userID, id, c.UserID, errs.ErrForbidden)
+		return ops.WrapMsg(op, ops.KindPermission, techErr, "access denied")
 	}
 
 	delete(r.campaigns, id)

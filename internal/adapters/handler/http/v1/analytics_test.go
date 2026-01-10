@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports/mocks"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
@@ -41,7 +42,7 @@ func TestAnalyticsHandler_GetSummary(t *testing.T) {
 			t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
 		}
 
-		var resp response.DataResponse[domain.Summary]
+		var resp response.ResponseWrapper[domain.Summary]
 		err := json.Unmarshal(w.Body.Bytes(), &resp)
 		if err != nil {
 			t.Errorf("failed to unmarshal response: %v", err)
@@ -56,7 +57,7 @@ func TestAnalyticsHandler_GetSummary(t *testing.T) {
 	t.Run("service error", func(t *testing.T) {
 		mockService.EXPECT().
 			GetSummary(gomock.Any(), gomock.Any()).
-			Return(nil, errors.New("service error")).
+			Return(nil, ops.Wrap("test", ops.KindInternal, errors.New("service error"))).
 			Times(1)
 
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/analytics/summary", nil)

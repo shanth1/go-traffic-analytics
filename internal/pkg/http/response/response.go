@@ -11,220 +11,124 @@ import (
 	"github.com/shanth1/gotools/ops"
 )
 
-// --- Structs ---
+// --- Internal Wrappers ---
 
-type DataResponse[T any] struct {
+// ResponseWrapper standarizes the JSON structure for success responses.
+type ResponseWrapper[T any] struct {
 	Data T `json:"data"`
 }
 
-type ErrorResponse struct {
+// ErrorWrapper standarizes the JSON structure for error responses.
+type ErrorWrapper struct {
 	Error string `json:"error"`
 }
 
-// friendlyError acts as a container to separate the user-facing message
-// from the technical underlying error.
-type friendlyError struct {
-	UserMsg string
-	Cause   error
-}
+// --- Success Handlers ---
 
-// Error returns the user-facing message.
-func (e *friendlyError) Error() string {
-	return e.UserMsg
-}
-
-// Unwrap returns the original technical error.
-func (e *friendlyError) Unwrap() error {
-	return e.Cause
-}
-
-// --- Success Responses ---
-
-// JSON writes a JSON response with a specific status code.
-func JSON(w http.ResponseWriter, r *http.Request, status int, data any) {
-	w.Header().Set("Content-Type", "application/json")
-
+// JSON writes a standardized JSON response with status code and data.
+func JSON[T any](w http.ResponseWriter, r *http.Request, status int, data T) {
 	if err := r.Context().Err(); err != nil {
-		log.FromContext(r.Context()).Warn().Err(err).Msg("response_write_aborted_context_canceled")
+		log.FromContext(r.Context()).
+			Warn().
+			Err(err).
+			Msg("response_write_aborted_client_disconnected")
 		return
 	}
 
-	if data == nil {
-		w.WriteHeader(status)
-		return
-	}
-
-	buf, err := json.Marshal(data)
-	if err != nil {
-		log.FromContext(r.Context()).Error().Err(err).Msg("response_marshal_failure")
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	if _, err := w.Write(buf); err != nil {
-		log.FromContext(r.Context()).Error().Err(err).Msg("response_write_failure")
-	}
-}
 
-func Success(w http.ResponseWriter, r *http.Request, data any) {
-	JSON(w, r, http.StatusOK, data)
-}
-
-func SuccessData[T any](w http.ResponseWriter, r *http.Request, data T) {
-	JSON(w, r, http.StatusOK, DataResponse[T]{Data: data})
-}
-
-func Created(w http.ResponseWriter, r *http.Request, data any) {
-	JSON(w, r, http.StatusCreated, data)
-}
-
-func CreatedData[T any](w http.ResponseWriter, r *http.Request, data T) {
-	JSON(w, r, http.StatusCreated, DataResponse[T]{Data: data})
-}
-
-func NoContent(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusNoContent)
-}
-
-// --- Error Handling ---
-
-// RespondWithError is the primary entry point for handling errors
-func RespondWithError(w http.ResponseWriter, r *http.Request, err error) {
-	status, msg, level := prepareError(err)
-
-	logRequestError(r, err, status, level)
-
-	// Do not write response if client disconnected
-	if status == 499 {
+	if status == http.StatusNoContent {
 		return
 	}
 
-	ClientError(w, r, status, msg)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		log.FromContext(r.Context()).Error().Err(err).Msg("response_json_encode_failed")
+	}
 }
 
-// BadRequest handles client-side validation errors.
-// It ensures that BOTH the sanitized user message AND the original technical error are preserved.
-func BadRequest(w http.ResponseWriter, r *http.Request, msg string, err error) {
-	var finalErr error
+// OK sends a 200 OK response.
+func OK[T any](w http.ResponseWriter, r *http.Request, data T) {
+	JSON(w, r, http.StatusOK, ResponseWrapper[T]{Data: data})
+}
 
-	// If a custom message is provided ("Invalid request"), we wrap the original error
-	// so the logger can see 'err', but the client sees 'msg'.
-	if msg != "" {
-		finalErr = &friendlyError{UserMsg: msg, Cause: err}
-	} else {
-		finalErr = err
+// Created sends a 201 Created response wrapped in {"data": ...}.
+func Created[T any](w http.ResponseWriter, r *http.Request, data T) {
+	JSON(w, r, http.StatusCreated, ResponseWrapper[T]{Data: data})
+}
+
+// NoContent sends a 204 No Content response.
+func NoContent(w http.ResponseWriter, r *http.Request) {
+	JSON(w, r, http.StatusNoContent, struct{}{})
+}
+
+// --- Error Handlers ---
+
+// Error translates an error into a proper HTTP status and JSON response.
+// It handles logging automatically using the request context.
+func Error(w http.ResponseWriter, r *http.Request, err error) {
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		log.FromContext(r.Context()).
+			Info().
+			Str(logkeys.Reason, "client_canceled_request").
+			Msg("request_terminated")
+		return
 	}
 
-	// We treat this as an Invalid operation in the domain
-	detailedErr := ops.E("http.decode", ops.KindInvalid, finalErr)
+	status, userMsg, logLevel := analyzeError(err)
 
-	RespondWithError(w, r, detailedErr)
-}
+	log.FromContext(r.Context()).
+		WithLevel(logLevel).
+		Err(err). // ops.Error.Error() provides "op: kind: inner_err" trace
+		Int(logkeys.HTTPStatus, status).
+		Str(logkeys.HTTPPath, r.URL.Path).
+		Msg("http_request_error")
 
-// ClientError sends a raw JSON error response without internal logging.
-func ClientError(w http.ResponseWriter, r *http.Request, status int, message string) {
-	JSON(w, r, status, ErrorResponse{Error: message})
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+
+	if encodeErr := json.NewEncoder(w).Encode(ErrorWrapper{Error: userMsg}); encodeErr != nil {
+		log.FromContext(r.Context()).
+			Error().
+			Err(encodeErr).
+			Msg("response_error_encode_failed")
+	}
 }
 
 // --- Internal Logic ---
 
-func prepareError(err error) (int, string, log.Level) {
-	if errors.Is(err, context.Canceled) {
-		return 499, "Request Canceled", log.LevelInfo
-	}
+// analyzeError extracts HTTP metadata from the error.
+// Returns: HTTP Status, Safe User Message, Log Level.
+func analyzeError(err error) (int, string, log.Level) {
+	// Default: Internal Server Error (500)
+	status := http.StatusInternalServerError
+	msg := "Internal Server Error"
+	level := log.LevelError
 
-	var e *ops.Error
-	if errors.As(err, &e) {
-		code := kindToStatus(e.Kind)
+	// Unwrap ops.Error
+	var opErr *ops.Error
+	if errors.As(err, &opErr) {
+		status = kindToStatus(opErr.Kind)
 
-		// 1. Server Errors (5xx): Always Mask
-		if code >= 500 {
-			return code, "Internal Server Error", log.LevelError
+		// Determine User Message
+		if opErr.Message != "" {
+			// Explicit safe message provided by domain logic
+			msg = opErr.Message
+		} else if status < 500 {
+			// For client errors (4xx) without explicit message,
+			// it is safe to show the Kind string (e.g. "not_found", "invalid_input").
+			msg = opErr.Kind.String()
 		}
+		// For 5xx, we keep "Internal Server Error" to avoid leaking stack traces/SQL errors.
 
-		// 2. Client Errors (4xx): Show Safe Message
-		// If it's a friendlyError (wrapped in ops.Error), this returns UserMsg.
-		// If it's a standard error, it returns err.Error().
-		clientMsg := getSafeMessage(e)
-
-		// 3. Determine Log Level
-		level := log.LevelInfo
-		if code == http.StatusUnauthorized || code == http.StatusForbidden {
-			level = log.LevelWarn
-		}
-
-		return code, clientMsg, level
+		// Determine Log Level
+		level = statusToLevel(status)
 	}
 
-	// Fallback for unknown errors
-	return http.StatusInternalServerError, "Internal Server Error", log.LevelError
+	return status, msg, level
 }
 
-func logRequestError(r *http.Request, err error, status int, level log.Level) {
-	logger := log.FromContext(r.Context())
-
-	eventLogger := logger.With(
-		log.Int(logkeys.HTTPStatus, status),
-		log.Str(logkeys.HTTPPath, r.URL.Path),
-	)
-
-	// INTELLIGENT ERROR LOGGING:
-	// If the error is our friendlyError (or wrapped in ops), we want to make sure
-	// we log the *Cause* (technical details), not just the "User Message".
-
-	// Standard log.Err(err) calls err.Error(). For friendlyError, that is just "Invalid Request".
-	// We want to see: "json: syntax error at offset 5".
-
-	// We create a helper to find the deepest relevant error text or object
-	cause := getDeepCause(err)
-	if cause != nil {
-		eventLogger = eventLogger.With(log.Err(cause))
-	} else {
-		eventLogger = eventLogger.With(log.Err(err))
-	}
-
-	if fe := new(friendlyError); errors.As(err, &fe) {
-		eventLogger = eventLogger.With(log.Str("client_msg", fe.UserMsg))
-	}
-
-	msg := "http_request_error"
-
-	switch level {
-	case log.LevelInfo:
-		eventLogger.Info().Msg(msg)
-	case log.LevelWarn:
-		eventLogger.Warn().Msg(msg)
-	case log.LevelError:
-		eventLogger.Error().Msg(msg)
-	default:
-		eventLogger.Error().Msg(msg)
-	}
-}
-
-func getDeepCause(err error) error {
-	var opsErr *ops.Error
-	if errors.As(err, &opsErr) {
-		if opsErr.Err != nil {
-			return getDeepCause(opsErr.Err)
-		}
-	}
-
-	var fe *friendlyError
-	if errors.As(err, &fe) {
-		return getDeepCause(fe.Cause)
-	}
-
-	return err
-}
-
-func getSafeMessage(e *ops.Error) string {
-	if e.Err != nil {
-		return e.Err.Error()
-	}
-	return e.Kind.String()
-}
-
+// kindToStatus maps domain error Kinds to HTTP status codes.
 func kindToStatus(k ops.Kind) int {
 	switch k {
 	case ops.KindInvalid:
@@ -243,7 +147,26 @@ func kindToStatus(k ops.Kind) int {
 		return http.StatusGatewayTimeout
 	case ops.KindNotImplemented:
 		return http.StatusNotImplemented
+	case ops.KindInternal:
+		return http.StatusInternalServerError
 	default:
 		return http.StatusInternalServerError
+	}
+}
+
+// statusToLevel determines the appropriate log level based on the status code.
+func statusToLevel(status int) log.Level {
+	switch {
+	case status >= 500:
+		// Server faults are always Errors
+		return log.LevelError
+	case status == http.StatusNotFound:
+		// 404 is usually not an "error" in the system sense, just traffic.
+		return log.LevelInfo
+	case status >= 400:
+		// Other 4xx (400, 401, 403, 409) are Warnings (client faults).
+		return log.LevelWarn
+	default:
+		return log.LevelInfo
 	}
 }

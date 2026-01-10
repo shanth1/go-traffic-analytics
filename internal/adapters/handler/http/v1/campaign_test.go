@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports/mocks"
 	"go.uber.org/mock/gomock"
@@ -69,7 +70,7 @@ func TestCampaignHandler_GetCampaigns(t *testing.T) {
 				UserID: userID,
 				Limit:  limit,
 			}).
-			Return(nil, expectedCampaignCount, errors.New("service error")).
+			Return(nil, expectedCampaignCount, ops.Wrap("test", ops.KindInternal, errors.New("service error"))).
 			Times(1)
 
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/campaigns?limit="+fmt.Sprintf("%d", limit), nil)
@@ -154,7 +155,7 @@ func TestCampaignHandler_CreateCampaign(t *testing.T) {
 
 		mockCampaignService.EXPECT().
 			CreateCampaign(gomock.Any(), userID, "New Campaign").
-			Return(nil, errors.New("service error")).
+			Return(nil, ops.Wrap("test", ops.KindInternal, errors.New("service error"))).
 			Times(1)
 
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/campaigns", bytes.NewReader(body))

@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports/mocks"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
@@ -176,7 +177,7 @@ func TestAdminHandler_UpdateUserPlan(t *testing.T) {
 			t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
 		}
 
-		var resp response.DataResponse[struct{ Status string }]
+		var resp response.ResponseWrapper[struct{ Status string }]
 		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 			t.Errorf("failed to unmarshal response: %v", err)
 		}
@@ -205,7 +206,7 @@ func TestAdminHandler_UpdateUserPlan(t *testing.T) {
 
 		mockUserService.EXPECT().
 			ChangePlan(gomock.Any(), userID, "pro").
-			Return(errors.New("service error")).
+			Return(ops.Wrap("test", ops.KindInternal, errors.New("service error"))).
 			Times(1)
 
 		req := httptest.NewRequest(http.MethodPatch, "/api/v1/admin/users/user123/plan", bytes.NewReader(body))

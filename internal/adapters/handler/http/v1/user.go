@@ -34,11 +34,11 @@ func (h *UserHandler) GetProfileTree(w http.ResponseWriter, r *http.Request) {
 
 	tree, err := h.userSvc.GetHierarchy(r.Context(), userID)
 	if err != nil {
-		response.RespondWithError(w, r, err)
+		response.Error(w, r, err)
 		return
 	}
 
 	log.FromContext(r.Context()).Info().Str("user_id", string(userID)).Msg("profile_tree_retrieved")
 
-	response.SuccessData(w, r, tree)
+	response.OK(w, r, tree)
 }

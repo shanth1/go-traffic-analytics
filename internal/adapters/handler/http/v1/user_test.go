@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports/mocks"
 	"go.uber.org/mock/gomock"
@@ -61,7 +62,7 @@ func TestUserHandler_GetProfileTree(t *testing.T) {
 
 		mockUserService.EXPECT().
 			GetHierarchy(gomock.Any(), userID).
-			Return(nil, errors.New("service error")).
+			Return(nil, ops.Wrap("test", ops.KindInternal, errors.New("service error"))).
 			Times(1)
 
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/users/tree", nil)

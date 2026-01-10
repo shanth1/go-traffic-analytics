@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shanth1/gotools/log"
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/request"
@@ -50,7 +51,7 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	users, total, err := h.userService.GetAll(r.Context(), page, limit)
 	if err != nil {
-		response.RespondWithError(w, r, err)
+		response.Error(w, r, err)
 		return
 	}
 
@@ -65,7 +66,7 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	log.FromContext(r.Context()).Info().Int("page", page).Int("limit", limit).Int64("total", total).Msg("admin_users_listed")
 
-	response.Success(w, r, UsersListResponse{
+	response.JSON(w, r, http.StatusOK, UsersListResponse{
 		Data: publicUsers,
 		Meta: domain.PaginationMeta{
 			Total:  total,
@@ -91,22 +92,25 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} response.ErrorResponse
 // @Router /api/v1/admin/users/{id}/status [patch]
 func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) {
+	const op = "v1.AdminHandler.UpdateUserStatus"
+
 	id := domain.UserID(chi.URLParam(r, "id"))
 
 	var req UpdateUserStatusReq
 	if err := request.DecodeJSON(w, r, &req); err != nil {
-		response.ClientError(w, r, http.StatusBadRequest, err.Error())
+		err := ops.WrapMsg(op, ops.KindInvalid, err, err.Error())
+		response.Error(w, r, err)
 		return
 	}
 
 	if err := h.userService.SetStatus(r.Context(), id, req.IsActive); err != nil {
-		response.RespondWithError(w, r, err)
+		response.Error(w, r, err)
 		return
 	}
 
 	log.FromContext(r.Context()).Info().Str("user_id", string(id)).Bool("is_active", req.IsActive).Msg("user_status_updated")
 
-	response.SuccessData(w, r, StatusData{Status: "updated"})
+	response.OK(w, r, StatusData{Status: "updated"})
 }
 
 // UpdateUserPlan godoc
@@ -125,20 +129,23 @@ func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) 
 // @Failure 500 {object} response.ErrorResponse
 // @Router /api/v1/admin/users/{id}/plan [patch]
 func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
+	const op = "v1.AdminHandler.UpdateUserPlan"
+
 	id := domain.UserID(chi.URLParam(r, "id"))
 
 	var req UpdateUserPlanReq
 	if err := request.DecodeJSON(w, r, &req); err != nil {
-		response.ClientError(w, r, http.StatusBadRequest, err.Error())
+		err := ops.WrapMsg(op, ops.KindInvalid, err, err.Error())
+		response.Error(w, r, err)
 		return
 	}
 
 	if err := h.userService.ChangePlan(r.Context(), id, req.PlanID); err != nil {
-		response.RespondWithError(w, r, err)
+		response.Error(w, r, err)
 		return
 	}
 
 	log.FromContext(r.Context()).Info().Str("user_id", string(id)).Str("plan_id", req.PlanID).Msg("user_plan_updated")
 
-	response.SuccessData(w, r, StatusData{Status: "updated"})
+	response.OK(w, r, StatusData{Status: "updated"})
 }

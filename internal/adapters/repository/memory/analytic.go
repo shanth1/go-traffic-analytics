@@ -1,4 +1,4 @@
-package memoryrepo
+package memory
 
 import (
 	"context"
@@ -13,25 +13,25 @@ import (
 	"github.com/shanth1/gotrace/internal/pkg/consts"
 )
 
-type MemoryAnalyticRepo struct {
+type AnalyticRepo struct {
 	mu     sync.RWMutex
 	events []*domain.ClickEvent
 }
 
 func NewAnalyticRepo() ports.AnalyticsRepository {
-	return &MemoryAnalyticRepo{
+	return &AnalyticRepo{
 		events: make([]*domain.ClickEvent, 0),
 	}
 }
 
-func (r *MemoryAnalyticRepo) SaveBatch(_ context.Context, events []*domain.ClickEvent) error {
+func (r *AnalyticRepo) SaveBatch(_ context.Context, events []*domain.ClickEvent) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.events = append(r.events, events...)
 	return nil
 }
 
-func (r *MemoryAnalyticRepo) filterClicks(filter domain.AnalyticsFilter) []*domain.ClickEvent {
+func (r *AnalyticRepo) filterClicks(filter domain.AnalyticsFilter) []*domain.ClickEvent {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -54,13 +54,13 @@ func (r *MemoryAnalyticRepo) filterClicks(filter domain.AnalyticsFilter) []*doma
 	return filtered
 }
 
-func (r *MemoryAnalyticRepo) CountTotal(_ context.Context, filter domain.AnalyticsFilter) (int64, error) {
+func (r *AnalyticRepo) CountTotal(_ context.Context, filter domain.AnalyticsFilter) (int64, error) {
 	res := r.filterClicks(filter)
 	return int64(len(res)), nil
 }
 
 // GetTimeSeriesGrouped needed for Streamgraph (Bucket by Time + Group by Dimension)
-func (r *MemoryAnalyticRepo) GetTimeSeriesGrouped(_ context.Context, filter domain.AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error) {
+func (r *AnalyticRepo) GetTimeSeriesGrouped(_ context.Context, filter domain.AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error) {
 	events := r.filterClicks(filter)
 
 	// Map: TimeBucket -> Category -> Count
@@ -113,7 +113,7 @@ type linkKey struct {
 // Transitions between stages:
 // Referer -> OS (Layer 0 -> Layer 1)
 // OS -> Country (Layer 1 -> Layer 2)
-func (r *MemoryAnalyticRepo) GetFlowData(_ context.Context, filter domain.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
+func (r *AnalyticRepo) GetFlowData(_ context.Context, filter domain.AnalyticsFilter, stages []string) (*domain.SankeyData, error) {
 	events := r.filterClicks(filter)
 
 	nodesMap := make(map[string]domain.SankeyNode) // Key: "LayerIndex:Value"
@@ -162,7 +162,7 @@ func (r *MemoryAnalyticRepo) GetFlowData(_ context.Context, filter domain.Analyt
 	return data, nil
 }
 
-func (r *MemoryAnalyticRepo) GetHeatmapData(_ context.Context, filter domain.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
+func (r *AnalyticRepo) GetHeatmapData(_ context.Context, filter domain.AnalyticsFilter) ([]domain.HeatmapPoint, error) {
 	events := r.filterClicks(filter)
 
 	// Matrix [DayOfWeek][Hour]
@@ -199,8 +199,8 @@ func (r *MemoryAnalyticRepo) GetHeatmapData(_ context.Context, filter domain.Ana
 	return result, nil
 }
 
-func (r *MemoryAnalyticRepo) GetTopStats(_ context.Context, filter domain.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error) {
-	const op = "memoryrepo.MemoryAnalyticRepo.GetTopStats"
+func (r *AnalyticRepo) GetTopStats(_ context.Context, filter domain.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error) {
+	const op = "memory.AnalyticRepo.GetTopStats"
 
 	events := r.filterClicks(filter)
 	if len(events) == 0 {
@@ -244,7 +244,7 @@ func (r *MemoryAnalyticRepo) GetTopStats(_ context.Context, filter domain.Analyt
 				key = ValueDirect
 			}
 		default:
-			return nil, ops.E(op, ops.KindInvalid, fmt.Errorf("unsupported dimension for stats: %s", dimension))
+			return nil, ops.Wrap(op, ops.KindInvalid, fmt.Errorf("unsupported dimension for stats: %s", dimension))
 		}
 
 		counts[key]++

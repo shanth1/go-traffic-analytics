@@ -1,4 +1,4 @@
-package memoryrepo
+package memory
 
 import (
 	"context"
@@ -13,60 +13,60 @@ import (
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
 
-type MemoryLinkRepo struct {
+type LinkRepo struct {
 	mu    sync.RWMutex
 	links map[domain.LinkID]*domain.Link
 	slugs map[string]domain.LinkID // slug -> linkID (index)
 }
 
 func NewLinkRepo() ports.LinkRepository {
-	return &MemoryLinkRepo{
+	return &LinkRepo{
 		links: make(map[domain.LinkID]*domain.Link),
 		slugs: make(map[string]domain.LinkID),
 	}
 }
 
-func (r *MemoryLinkRepo) Save(_ context.Context, link *domain.Link) error {
-	const op = "memoryrepo.MemoryLinkRepo.Save"
+func (r *LinkRepo) Save(_ context.Context, link *domain.Link) error {
+	const op = "memory.LinkRepo.Save"
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if _, exists := r.slugs[link.Slug]; exists {
-		return ops.E(op, ops.KindExist, fmt.Errorf("link with slug %q: %w", link.Slug, errs.ErrAlreadyExists))
+		return ops.WrapMsg(op, ops.KindExist, errs.ErrAlreadyExists, fmt.Sprintf("link with slug %q already exists", link.Slug))
 	}
 	r.links[link.ID] = link
 	r.slugs[link.Slug] = link.ID
 	return nil
 }
 
-func (r *MemoryLinkRepo) FindByID(_ context.Context, id domain.LinkID) (*domain.Link, error) {
-	const op = "memoryrepo.MemoryLinkRepo.FindByID"
+func (r *LinkRepo) FindByID(_ context.Context, id domain.LinkID) (*domain.Link, error) {
+	const op = "memory.LinkRepo.FindByID"
 
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
 	link, ok := r.links[id]
 	if !ok {
-		return nil, ops.E(op, ops.KindNotFound, fmt.Errorf("link with id %q: %w", id, errs.ErrNotFound))
+		return nil, ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("%q link not found", id))
 	}
 
 	return link, nil
 }
 
-func (r *MemoryLinkRepo) FindBySlug(_ context.Context, slug string) (*domain.Link, error) {
-	const op = "memoryrepo.MemoryLinkRepo.FindBySlug"
+func (r *LinkRepo) FindBySlug(_ context.Context, slug string) (*domain.Link, error) {
+	const op = "memory.LinkRepo.FindBySlug"
 
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	id, ok := r.slugs[slug]
 	if !ok {
-		return nil, ops.E(op, ops.KindNotFound, fmt.Errorf("link with slug %q: %w", slug, errs.ErrNotFound))
+		return nil, ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("link with slug %q not found", slug))
 	}
 
 	return r.links[id], nil
 }
 
-func (r *MemoryLinkRepo) matchesFilter(link *domain.Link, filter domain.LinkFilter) bool {
+func (r *LinkRepo) matchesFilter(link *domain.Link, filter domain.LinkFilter) bool {
 	if filter.UserID != "" && link.UserID != filter.UserID {
 		return false
 	}
@@ -87,7 +87,7 @@ func (r *MemoryLinkRepo) matchesFilter(link *domain.Link, filter domain.LinkFilt
 	return true
 }
 
-func (r *MemoryLinkRepo) FindAll(_ context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
+func (r *LinkRepo) FindAll(_ context.Context, filter domain.LinkFilter) ([]*domain.Link, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -114,7 +114,7 @@ func (r *MemoryLinkRepo) FindAll(_ context.Context, filter domain.LinkFilter) ([
 	return res, nil
 }
 
-func (r *MemoryLinkRepo) Count(_ context.Context, filter domain.LinkFilter) (int64, error) {
+func (r *LinkRepo) Count(_ context.Context, filter domain.LinkFilter) (int64, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var count int64
@@ -126,19 +126,21 @@ func (r *MemoryLinkRepo) Count(_ context.Context, filter domain.LinkFilter) (int
 	return count, nil
 }
 
-func (r *MemoryLinkRepo) Delete(_ context.Context, userID domain.UserID, id domain.LinkID) error {
-	const op = "memoryrepo.MemoryLinkRepo.Delete"
+func (r *LinkRepo) Delete(_ context.Context, userID domain.UserID, id domain.LinkID) error {
+	const op = "memory.LinkRepo.Delete"
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	link, ok := r.links[id]
 	if !ok {
-		return ops.E(op, ops.KindNotFound, fmt.Errorf("link with id %q: %w", id, errs.ErrNotFound))
+		return ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("%q link not found", id))
 	}
 
 	if link.UserID != userID {
-		return ops.E(op, ops.KindUnauthorized, fmt.Errorf("expected user with id %q, got %q: %w", userID, link.UserID, errs.ErrUnauthorized))
+		techErr := fmt.Errorf("user %q attempted to access campaign %q owned by %q: %w",
+			userID, id, link.UserID, errs.ErrForbidden)
+		return ops.WrapMsg(op, ops.KindPermission, techErr, "access denied")
 	}
 
 	delete(r.slugs, link.Slug)

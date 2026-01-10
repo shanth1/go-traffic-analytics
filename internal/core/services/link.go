@@ -6,12 +6,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"golang.org/x/sync/errgroup"
 )
-
-var ErrLimitReached = errors.New("plan limit reached: upgrade your plan to create more links")
 
 type LinkService struct {
 	linkRepo ports.LinkRepository
@@ -28,6 +27,8 @@ func NewLinkService(lr ports.LinkRepository, ur ports.UserRepository, pr ports.P
 }
 
 func (s *LinkService) CreateLink(ctx context.Context, cmd domain.CreateLinkCmd) (*domain.Link, error) {
+	const op = "services.LinkService.CreateLink"
+
 	user, err := s.userRepo.FindByID(ctx, cmd.UserID)
 	if err != nil {
 		return nil, err
@@ -44,7 +45,7 @@ func (s *LinkService) CreateLink(ctx context.Context, cmd domain.CreateLinkCmd) 
 			return nil, err
 		}
 		if int(count) >= plan.MaxLinks {
-			return nil, ErrLimitReached
+			return nil, ops.Wrap(op, ops.KindPermission, errors.New("plan limit reached"))
 		}
 	}
 

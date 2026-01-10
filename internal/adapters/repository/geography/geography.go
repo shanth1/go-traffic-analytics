@@ -26,7 +26,7 @@ func NewGeoProvider(cfg *config.Config) (ports.GeoProvider, error) {
 	if cfg.GeoIP.Enabled {
 		db, err = geoip2.Open(cfg.GeoIP.DBPath)
 		if err != nil {
-			return nil, ops.E(op, ops.KindInternal, fmt.Errorf("open geoip2 database with path %q: %w", cfg.GeoIP.DBPath, err))
+			return nil, ops.Wrap(op, ops.KindInternal, fmt.Errorf("open geoip2 database with path %q: %w", cfg.GeoIP.DBPath, err))
 		}
 	}
 
@@ -46,17 +46,17 @@ func (g *GeoProvider) Lookup(_ context.Context, ipStr string) (*domain.GeoLocati
 	}
 
 	if g.geoDB == nil {
-		return nil, ops.E(op, ops.KindInternal, errors.New("geo db is nil"))
+		return nil, ops.Wrap(op, ops.KindInternal, errors.New("geo db is nil"))
 	}
 
 	ip := net.ParseIP(ipStr)
 	if ip == nil {
-		return nil, ops.E(op, ops.KindInvalid, fmt.Errorf("parse ip: %q", ipStr))
+		return nil, ops.Wrap(op, ops.KindInvalid, fmt.Errorf("parse ip: %q", ipStr))
 	}
 
 	record, err := g.geoDB.City(ip)
 	if err != nil {
-		return nil, ops.E(op, ops.KindInternal, fmt.Errorf("get geoip2 record with ip %q: %w", ip.String(), err))
+		return nil, ops.Wrap(op, ops.KindInternal, fmt.Errorf("get geoip2 record with ip %q: %w", ip.String(), err))
 	}
 
 	country := record.Country.IsoCode

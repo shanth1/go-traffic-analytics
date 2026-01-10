@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/shanth1/gotools/log"
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/request"
@@ -55,7 +56,7 @@ func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 
 	campaigns, total, err := h.campSvc.GetCampaigns(r.Context(), filter)
 	if err != nil {
-		response.RespondWithError(w, r, err)
+		response.Error(w, r, err)
 		return
 	}
 
@@ -63,7 +64,7 @@ func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 		campaigns = []*domain.Campaign{}
 	}
 
-	response.Success(w, r, CampaignsListResponse{
+	response.JSON(w, r, http.StatusOK, CampaignsListResponse{
 		Data: campaigns,
 		Meta: domain.PaginationMeta{
 			Total:  total,
@@ -87,26 +88,24 @@ func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} response.ErrorResponse
 // @Router /api/v1/campaigns [post]
 func (h *CampaignHandler) CreateCampaign(w http.ResponseWriter, r *http.Request) {
+	const op = "v1.CampaignHandler.CreateCampaign"
+
 	userID := request.GetUserID(r)
 
 	var req CreateCampaignRequest
 	if err := request.DecodeJSON(w, r, &req); err != nil {
-		response.ClientError(w, r, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if req.Name == "" {
-		response.ClientError(w, r, http.StatusBadRequest, "name is required")
+		err := ops.WrapMsg(op, ops.KindInvalid, err, err.Error())
+		response.Error(w, r, err)
 		return
 	}
 
 	camp, err := h.campSvc.CreateCampaign(r.Context(), userID, req.Name)
 	if err != nil {
-		response.RespondWithError(w, r, err)
+		response.Error(w, r, err)
 		return
 	}
 
 	log.FromContext(r.Context()).Info().Str("campaign_id", string(camp.ID)).Str("user_id", string(userID)).Str("name", camp.Name).Msg("campaign_created")
 
-	response.CreatedData(w, r, camp)
+	response.Created(w, r, camp)
 }

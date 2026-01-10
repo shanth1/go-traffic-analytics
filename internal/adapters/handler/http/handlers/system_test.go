@@ -19,7 +19,9 @@ func TestHealthCheck(t *testing.T) {
 		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
 	}
 
-	var resp response.DataResponse[struct{ Status string }]
+	var resp response.ResponseWrapper[struct {
+		Status string `json:"status"`
+	}]
 	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 		t.Errorf("failed to unmarshal response: %v", err)
 	}

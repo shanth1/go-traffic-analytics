@@ -6,9 +6,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shanth1/gotools/log"
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
-	"github.com/shanth1/gotrace/internal/core/services"
 	"github.com/shanth1/gotrace/internal/pkg/http/request"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 )
@@ -74,7 +74,7 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 
 	links, total, err := h.linkSvc.GetLinkList(r.Context(), filter)
 	if err != nil {
-		response.RespondWithError(w, r, err)
+		response.Error(w, r, err)
 		return
 	}
 
@@ -82,7 +82,7 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 		links = []*domain.Link{}
 	}
 
-	response.Success(w, r, LinksListResponse{
+	response.JSON(w, r, http.StatusOK, LinksListResponse{
 		Data: links,
 		Meta: domain.PaginationMeta{
 			Total:  total,
@@ -107,16 +107,14 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} response.ErrorResponse
 // @Router /api/v1/links [post]
 func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
+	const op = "v1.AuthHandler.Login"
+
 	userID := request.GetUserID(r)
 
 	var req CreateLinkRequest
 	if err := request.DecodeJSON(w, r, &req); err != nil {
-		response.ClientError(w, r, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if req.TargetURL == "" {
-		response.ClientError(w, r, http.StatusBadRequest, "target_url is required")
+		err := ops.WrapMsg(op, ops.KindInvalid, err, err.Error())
+		response.Error(w, r, err)
 		return
 	}
 
@@ -127,17 +125,13 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 		CustomSlug: "",
 	})
 	if err != nil {
-		if err == services.ErrLimitReached {
-			response.ClientError(w, r, http.StatusForbidden, err.Error())
-			return
-		}
-		response.RespondWithError(w, r, err)
+		response.Error(w, r, err)
 		return
 	}
 
 	log.FromContext(r.Context()).Info().Str("link_id", string(link.ID)).Str("user_id", string(userID)).Msg("link_created")
 
-	response.CreatedData(w, r, link)
+	response.Created(w, r, link)
 }
 
 // DeleteLink godoc
@@ -156,11 +150,11 @@ func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
 
 	if err := h.linkSvc.DeleteLink(r.Context(), userID, id); err != nil {
-		response.RespondWithError(w, r, err)
+		response.Error(w, r, err)
 		return
 	}
 
 	log.FromContext(r.Context()).Info().Str("link_id", string(id)).Str("user_id", string(userID)).Msg("link_deleted")
 
-	response.NoContent(w)
+	response.NoContent(w, r)
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/shanth1/gotools/log"
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/config"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
@@ -17,15 +18,19 @@ import (
 func JWTAuth(cfg *config.Config) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			const op = "middleware.JWTAuth"
+
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
-				response.ClientError(w, r, http.StatusUnauthorized, "Missing authorization header")
+				err := ops.New(op, ops.KindUnauthorized, "missing authorization header")
+				response.Error(w, r, err)
 				return
 			}
 
 			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 			if tokenString == authHeader {
-				response.ClientError(w, r, http.StatusUnauthorized, "Invalid token format")
+				err := ops.New(op, ops.KindUnauthorized, "invalid token format")
+				response.Error(w, r, err)
 				return
 			}
 
@@ -36,11 +41,17 @@ func JWTAuth(cfg *config.Config) func(http.Handler) http.Handler {
 				}
 				return []byte(cfg.Auth.JWTSecret), nil
 			})
-
-			if err != nil || !token.Valid {
-				response.ClientError(w, r, http.StatusUnauthorized, "Invalid or expired token")
+			if err != nil {
+				err := ops.WrapMsg(op, ops.KindUnauthorized, err, "invalid or expired token")
+				response.Error(w, r, err)
 				return
 			}
+			if !token.Valid {
+				response.Error(w, r, ops.New(op, ops.KindUnauthorized, "token is invalid"))
+				response.Error(w, r, err)
+				return
+			}
+
 			userID := claims.UserID
 
 			logger := log.FromContext(r.Context())
@@ -54,14 +65,18 @@ func JWTAuth(cfg *config.Config) func(http.Handler) http.Handler {
 
 func AdminOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		const op = "middleware.AdminOnly"
+
 		claims, ok := r.Context().Value(domain.CtxKeyUser).(*domain.JwtCustomClaims)
 		if !ok {
-			response.ClientError(w, r, http.StatusUnauthorized, "User not authorized")
+			err := ops.New(op, ops.KindUnauthorized, "user not authorized")
+			response.Error(w, r, err)
 			return
 		}
 
 		if claims.Role != domain.RoleAdmin {
-			response.ClientError(w, r, http.StatusForbidden, "Access denied: admins only")
+			err := ops.New(op, ops.KindPermission, "access denied")
+			response.Error(w, r, err)
 			return
 		}
 
@@ -72,14 +87,18 @@ func AdminOnly(next http.Handler) http.Handler {
 func APIKeyAuth(cfg *config.Config) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			const op = "middleware.AdminOnly"
+
 			apiKey := r.Header.Get("X-API-Key")
 			if apiKey == "" {
-				response.ClientError(w, r, http.StatusUnauthorized, "Missing authorization header")
+				err := ops.New(op, ops.KindUnauthorized, "missing authorization header")
+				response.Error(w, r, err)
 				return
 			}
 
 			if subtle.ConstantTimeCompare([]byte(apiKey), []byte(cfg.Auth.APIKey)) != 1 {
-				response.ClientError(w, r, http.StatusUnauthorized, "Invalid API token")
+				err := ops.New(op, ops.KindUnauthorized, "invalid api token")
+				response.Error(w, r, err)
 				return
 			}
 
@@ -111,6 +130,9 @@ func BasicAuth(user, pass string) func(http.Handler) http.Handler {
 }
 
 func basicAuthFailed(w http.ResponseWriter, r *http.Request) {
+	const op = "middleware.basicAuthFailed"
+
 	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
-	response.ClientError(w, r, http.StatusUnauthorized, "unauthorized")
+	err := ops.New(op, ops.KindUnauthorized, "unauthorized")
+	response.Error(w, r, err)
 }

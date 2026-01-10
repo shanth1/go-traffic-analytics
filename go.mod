@@ -11,7 +11,7 @@ require (
 	github.com/mssola/user_agent v0.6.0
 	github.com/oschwald/geoip2-golang v1.13.0
 	github.com/prometheus/client_golang v1.23.2
-	github.com/shanth1/gotools v1.11.0
+	github.com/shanth1/gotools v1.12.0
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.6
 	go.uber.org/mock v0.6.0

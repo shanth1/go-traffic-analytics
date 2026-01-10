@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports/mocks"
 	"go.uber.org/mock/gomock"
@@ -62,7 +63,7 @@ func TestLinkHandler_GetLinks(t *testing.T) {
 
 		mockLinkService.EXPECT().
 			GetLinkList(gomock.Any(), gomock.Any()).
-			Return(nil, expectedLinksCount, errors.New("service error")).
+			Return(nil, expectedLinksCount, ops.Wrap("test", ops.KindInternal, errors.New("service error"))).
 			Times(1)
 
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/links", nil)
@@ -155,7 +156,7 @@ func TestLinkHandler_CreateLink(t *testing.T) {
 
 		mockLinkService.EXPECT().
 			CreateLink(gomock.Any(), gomock.Any()).
-			Return(nil, errors.New("service error")).
+			Return(nil, ops.Wrap("test", ops.KindInternal, errors.New("service error"))).
 			Times(1)
 
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/links", bytes.NewReader(body))
@@ -211,7 +212,7 @@ func TestLinkHandler_DeleteLink(t *testing.T) {
 
 		mockLinkService.EXPECT().
 			DeleteLink(gomock.Any(), userID, linkID).
-			Return(errors.New("service error")).
+			Return(ops.Wrap("test", ops.KindInternal, errors.New("service error"))).
 			Times(1)
 
 		req := httptest.NewRequest(http.MethodDelete, "/api/v1/links/link123", nil)

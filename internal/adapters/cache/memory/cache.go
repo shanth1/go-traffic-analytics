@@ -1,4 +1,4 @@
-package cachememory
+package memory
 
 import (
 	"context"
@@ -14,19 +14,19 @@ type item struct {
 	expiresAt time.Time
 }
 
-type MemoryCache struct {
+type Cache struct {
 	mu    sync.RWMutex
 	items map[string]item
 }
 
 func NewCache() ports.Cache {
-	return &MemoryCache{
+	return &Cache{
 		items: make(map[string]item),
 	}
 }
 
-func (c *MemoryCache) Set(_ context.Context, key string, value interface{}, ttl time.Duration) error {
-	const op = "cachememory.MemoryCache.Set"
+func (c *Cache) Set(_ context.Context, key string, value interface{}, ttl time.Duration) error {
+	const op = "memory.Cache.Set"
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -39,26 +39,26 @@ func (c *MemoryCache) Set(_ context.Context, key string, value interface{}, ttl 
 	return nil
 }
 
-func (c *MemoryCache) Get(_ context.Context, key string) (interface{}, error) {
-	const op = "cachememory.MemoryCache.Get"
+func (c *Cache) Get(_ context.Context, key string) (interface{}, error) {
+	const op = "memory.Cache.Get"
 
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	item, found := c.items[key]
 	if !found {
-		return nil, ops.E(op, ports.ErrCacheMiss)
+		return nil, ops.Wrap(op, ops.KindNotFound, ports.ErrCacheMiss)
 	}
 
 	if time.Now().After(item.expiresAt) {
 		delete(c.items, key)
-		return nil, ops.E(op, ports.ErrCacheMiss)
+		return nil, ops.Wrap(op, ops.KindOther, ports.ErrCacheMiss)
 	}
 
 	return item.value, nil
 }
 
-func (c *MemoryCache) Delete(_ context.Context, key string) error {
+func (c *Cache) Delete(_ context.Context, key string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 

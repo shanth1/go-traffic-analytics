@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/ports/mocks"
 	"go.uber.org/mock/gomock"
 )
@@ -49,7 +50,7 @@ func TestRedirectHandler_Redirect(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		mockRedirectService.EXPECT().
 			Process(gomock.Any(), slug, gomock.Any()).
-			Return("", errors.New("not found")).
+			Return("", ops.Wrap("test", ops.KindNotFound, errors.New("not found"))).
 			Times(1)
 
 		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s", slug), nil)

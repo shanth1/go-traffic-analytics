@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports/mocks"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
@@ -49,7 +50,7 @@ func TestAuthHandler_Register(t *testing.T) {
 			t.Errorf("expected status %d, got %d", http.StatusCreated, w.Code)
 		}
 
-		var resp response.DataResponse[domain.User]
+		var resp response.ResponseWrapper[domain.User]
 		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 			t.Errorf("failed to unmarshal response: %v", err)
 		}
@@ -69,7 +70,7 @@ func TestAuthHandler_Register(t *testing.T) {
 
 		mockAuthService.EXPECT().
 			Register(gomock.Any(), "test@example.com", "password123").
-			Return(nil, errors.New("registration failed")).
+			Return(nil, ops.Wrap("test", ops.KindInternal, errors.New("registration failed"))).
 			Times(1)
 
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewReader(body))
@@ -78,8 +79,8 @@ func TestAuthHandler_Register(t *testing.T) {
 
 		handler.Register(w, req)
 
-		if w.Code != http.StatusConflict {
-			t.Errorf("expected status %d, got %d", http.StatusConflict, w.Code)
+		if w.Code != http.StatusInternalServerError {
+			t.Errorf("expected status %d, got %d", http.StatusInternalServerError, w.Code)
 		}
 	})
 
@@ -135,7 +136,7 @@ func TestAuthHandler_Login(t *testing.T) {
 			t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
 		}
 
-		var resp response.DataResponse[struct {
+		var resp response.ResponseWrapper[struct {
 			Token string
 			User  domain.User
 		}]
@@ -161,7 +162,7 @@ func TestAuthHandler_Login(t *testing.T) {
 
 		mockAuthService.EXPECT().
 			Login(gomock.Any(), "test@example.com", "password123").
-			Return("", nil, errors.New("invalid credentials")).
+			Return("", nil, ops.Wrap("test", ops.KindInternal, errors.New("login failed"))).
 			Times(1)
 
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(body))
@@ -169,8 +170,8 @@ func TestAuthHandler_Login(t *testing.T) {
 
 		handler.Login(w, req)
 
-		if w.Code != http.StatusUnauthorized {
-			t.Errorf("expected status %d, got %d", http.StatusUnauthorized, w.Code)
+		if w.Code != http.StatusInternalServerError {
+			t.Errorf("expected status %d, got %d", http.StatusInternalServerError, w.Code)
 		}
 	})
 

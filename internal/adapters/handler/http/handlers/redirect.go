@@ -41,7 +41,7 @@ func (h *RedirectHandler) Redirect(w http.ResponseWriter, r *http.Request) {
 		Referer:   referer,
 	})
 	if err != nil {
-		response.ClientError(w, r, http.StatusNotFound, "Link not found or inactive")
+		response.Error(w, r, err)
 		return
 	}
 
@@ -66,5 +66,6 @@ func getRealIP(r *http.Request) string {
 	if err != nil {
 		return r.RemoteAddr
 	}
+
 	return ip
 }
