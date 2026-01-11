@@ -27,10 +27,10 @@ func NewAuthHandler(s ports.AuthService) *AuthHandler {
 // @Produce json
 // @Param request body RegisterReq true "Registration info"
 // @Success 201 {object} RegisterResponse "Created user data"
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse "Missing authorization header"
-// @Failure 409 {object} response.ErrorResponse "Email already taken"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 400 {object} response.ErrorWrapper
+// @Failure 401 {object} response.ErrorWrapper "Missing authorization header"
+// @Failure 409 {object} response.ErrorWrapper "Email already taken"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/auth/register [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	const op = "v1.AuthHandler.Register"
@@ -62,9 +62,9 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param request body LoginReq true "Credentials"
 // @Success 200 {object} LoginResponse "Token and User info"
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse "Invalid credentials"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 400 {object} response.ErrorWrapper
+// @Failure 401 {object} response.ErrorWrapper "Invalid credentials"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	const op = "v1.AuthHandler.Login"

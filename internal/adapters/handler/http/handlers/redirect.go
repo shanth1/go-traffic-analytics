@@ -26,7 +26,7 @@ func NewRedirectHandler(s ports.RedirectService) *RedirectHandler {
 // @Tags         Redirect
 // @Param        slug  path  string  true  "Short Link Slug"
 // @Success      307   {string}  string  "Temporary Redirect"
-// @Failure      404   {object}  response.ErrorResponse "Link not found"
+// @Failure      404   {object}  response.ErrorWrapper "Link not found"
 // @Router       /{slug} [get]
 func (h *RedirectHandler) Redirect(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")

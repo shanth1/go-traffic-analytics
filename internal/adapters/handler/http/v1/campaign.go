@@ -31,8 +31,8 @@ func NewCampaignHandler(cs ports.CampaignService) *CampaignHandler {
 // @Param limit query int false "Limit (default 10)"
 // @Param offset query int false "Offset (default 0)"
 // @Success 200 {object} CampaignsListResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/campaigns [get]
 func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
@@ -85,9 +85,9 @@ func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param request body CreateCampaignRequest true "Campaign Name"
 // @Success 201 {object} CampaignResponse
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 400 {object} response.ErrorWrapper
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/campaigns [post]
 func (h *CampaignHandler) CreateCampaign(w http.ResponseWriter, r *http.Request) {
 	const op = "v1.CampaignHandler.CreateCampaign"

@@ -23,7 +23,7 @@ func NewBillingHandler(s ports.BillingService) *BillingHandler {
 // @Tags Billing
 // @Produce json
 // @Success 200 {object} PlansListResponse
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/billing/plans [get]
 func (h *BillingHandler) GetPlans(w http.ResponseWriter, r *http.Request) {
 	plans, err := h.service.GetAllPlans(r.Context())

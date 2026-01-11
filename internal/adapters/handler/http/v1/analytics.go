@@ -55,9 +55,9 @@ func (h *AnalyticsHandler) parseFilter(r *http.Request) domain.AnalyticsFilter {
 // @Param from query string false "Date From (RFC3339)"
 // @Param to query string false "Date To (RFC3339)"
 // @Success 200 {object} AnalyticsSummaryResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 403 {object} response.ErrorResponse "Forbidden"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 403 {object} response.ErrorWrapper "Forbidden"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/analytics/summary [get]
 func (h *AnalyticsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
@@ -85,9 +85,9 @@ func (h *AnalyticsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 // @Param from query string false "Date From (RFC3339)"
 // @Param to query string false "Date To (RFC3339)"
 // @Success 200 {object} StreamGraphResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 403 {object} response.ErrorResponse "Forbidden"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 403 {object} response.ErrorWrapper "Forbidden"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/analytics/stream [get]
 func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
@@ -123,9 +123,9 @@ func (h *AnalyticsHandler) GetStreamGraph(w http.ResponseWriter, r *http.Request
 // @Param from query string false "Date From (RFC3339)"
 // @Param to query string false "Date To (RFC3339)"
 // @Success 200 {object} SankeyResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 403 {object} response.ErrorResponse "Forbidden"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 403 {object} response.ErrorWrapper "Forbidden"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/analytics/flow [get]
 func (h *AnalyticsHandler) GetSankeyFlow(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
@@ -153,9 +153,9 @@ func (h *AnalyticsHandler) GetSankeyFlow(w http.ResponseWriter, r *http.Request)
 // @Param from query string false "Date From (RFC3339)"
 // @Param to query string false "Date To (RFC3339)"
 // @Success 200 {object} GeoResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 403 {object} response.ErrorResponse "Forbidden"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 403 {object} response.ErrorWrapper "Forbidden"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/analytics/geo [get]
 func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
@@ -186,9 +186,9 @@ func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
 // @Param from query string false "Date From (RFC3339)"
 // @Param to query string false "Date To (RFC3339)"
 // @Success 200 {object} QualityResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 403 {object} response.ErrorResponse "Forbidden"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 403 {object} response.ErrorWrapper "Forbidden"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/analytics/quality [get]
 func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
@@ -215,8 +215,8 @@ func (h *AnalyticsHandler) GetQualityRadar(w http.ResponseWriter, r *http.Reques
 // @Param from query string false "Date From (RFC3339)"
 // @Param to query string false "Date To (RFC3339)"
 // @Success 200 {object} HeatmapResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/analytics/heatmap [get]
 func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
@@ -247,8 +247,8 @@ func (h *AnalyticsHandler) GetHeatmap(w http.ResponseWriter, r *http.Request) {
 // @Param from query string false "Date From (RFC3339)"
 // @Param to query string false "Date To (RFC3339)"
 // @Success 200 {object} StatsResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/analytics/stats [get]
 func (h *AnalyticsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)

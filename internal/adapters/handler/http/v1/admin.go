@@ -33,9 +33,9 @@ func NewAdminHandler(u ports.UserService) *AdminHandler {
 // @Param page query int false "Page number" default(1)
 // @Param limit query int false "Limit" default(20)
 // @Success 200 {object} UsersListResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 403 {object} response.ErrorResponse "Forbidden"
-// @Failure 500 {object} response.ErrorResponse "Internal Server Error"
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 403 {object} response.ErrorWrapper "Forbidden"
+// @Failure 500 {object} response.ErrorWrapper "Internal Server Error"
 // @Router /api/v1/admin/users [get]
 func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	pageStr := r.URL.Query().Get("page")
@@ -87,10 +87,10 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 // @Param id path string true "User ID"
 // @Param request body UpdateUserStatusReq true "Status Request"
 // @Success 200 {object} StatusResponse "Status: updated"
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 403 {object} response.ErrorResponse "Forbidden"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 400 {object} response.ErrorWrapper
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 403 {object} response.ErrorWrapper "Forbidden"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/admin/users/{id}/status [patch]
 func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) {
 	const op = "v1.AdminHandler.UpdateUserStatus"
@@ -124,10 +124,10 @@ func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) 
 // @Param id path string true "User ID"
 // @Param request body UpdateUserPlanReq true "Plan Request"
 // @Success 200 {object} StatusResponse "Status: updated"
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 403 {object} response.ErrorResponse "Forbidden"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 400 {object} response.ErrorWrapper
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 403 {object} response.ErrorWrapper "Forbidden"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/admin/users/{id}/plan [patch]
 func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
 	const op = "v1.AdminHandler.UpdateUserPlan"

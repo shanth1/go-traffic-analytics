@@ -37,8 +37,8 @@ func NewLinkHandler(ls ports.LinkService, cs ports.CampaignService) *LinkHandler
 // @Param limit query int false "Limit (default 10)"
 // @Param offset query int false "Offset (default 0)"
 // @Success 200 {object} LinksListResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/links [get]
 func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
@@ -103,10 +103,10 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param request body CreateLinkRequest true "Link Info"
 // @Success 201 {object} LinkResponse
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 403 {object} response.ErrorResponse "Limit reached or Forbidden"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 400 {object} response.ErrorWrapper
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 403 {object} response.ErrorWrapper "Limit reached or Forbidden"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/links [post]
 func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 	const op = "v1.LinkHandler.CreateLink"
@@ -143,9 +143,9 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 // @Security BearerAuth
 // @Param id path string true "Link ID"
 // @Success 204 {string} string "No Content"
-// @Failure 400  {object}  response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 400  {object}  response.ErrorWrapper
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/links/{id} [delete]
 func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 	id := domain.LinkID(chi.URLParam(r, "id"))

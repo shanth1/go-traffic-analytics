@@ -26,8 +26,8 @@ func NewUserHandler(us ports.UserService) *UserHandler {
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {object} ProfileTreeResponse
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 500 {object} response.ErrorWrapper
 // @Router /api/v1/users/tree [get]
 func (h *UserHandler) GetProfileTree(w http.ResponseWriter, r *http.Request) {
 	userID := request.GetUserID(r)
