@@ -82,6 +82,8 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 		links = []*domain.Link{}
 	}
 
+	log.FromContext(r.Context()).Info().Int("count", len(links)).Int("offset", offset).Int("limit", limit).Int64("total", total).Msg("user_links_listed")
+
 	response.JSON(w, r, http.StatusOK, LinksListResponse{
 		Data: links,
 		Meta: domain.PaginationMeta{
@@ -107,7 +109,7 @@ func (h *LinkHandler) GetLinks(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} response.ErrorResponse
 // @Router /api/v1/links [post]
 func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
-	const op = "v1.AuthHandler.Login"
+	const op = "v1.LinkHandler.CreateLink"
 
 	userID := request.GetUserID(r)
 
@@ -129,7 +131,7 @@ func (h *LinkHandler) CreateLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.FromContext(r.Context()).Info().Str("link_id", string(link.ID)).Str("user_id", string(userID)).Msg("link_created")
+	log.FromContext(r.Context()).Info().Str("link_id", string(link.ID)).Msg("link_created")
 
 	response.Created(w, r, link)
 }
@@ -154,7 +156,7 @@ func (h *LinkHandler) DeleteLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.FromContext(r.Context()).Info().Str("link_id", string(id)).Str("user_id", string(userID)).Msg("link_deleted")
+	log.FromContext(r.Context()).Info().Str("link_id", string(id)).Msg("link_deleted")
 
 	response.NoContent(w, r)
 }

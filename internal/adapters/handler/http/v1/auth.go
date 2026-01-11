@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/shanth1/gotools/log"
+	"github.com/shanth1/gotools/logkeys"
 	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/http/request"
@@ -48,7 +49,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.FromContext(r.Context()).Info().Str("user_id", string(user.ID)).Str("email", user.Email).Msg("user_registered")
+	log.FromContext(r.Context()).Info().Str(logkeys.UserID, string(user.ID)).Str("email", user.Email).Msg("user_registered")
 
 	response.Created(w, r, user.ToPublic())
 }
@@ -81,7 +82,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.FromContext(r.Context()).Info().Str("user_id", string(user.ID)).Str("email", user.Email).Msg("user_logged_in")
+	log.FromContext(r.Context()).Info().Str(logkeys.UserID, string(user.ID)).Str("email", user.Email).Msg("user_logged_in")
 
 	response.OK(w, r, LoginData{
 		Token: token,

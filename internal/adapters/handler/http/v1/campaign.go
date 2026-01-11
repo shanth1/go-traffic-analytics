@@ -64,6 +64,8 @@ func (h *CampaignHandler) GetCampaigns(w http.ResponseWriter, r *http.Request) {
 		campaigns = []*domain.Campaign{}
 	}
 
+	log.FromContext(r.Context()).Info().Int("count", len(campaigns)).Int("offset", offset).Int("limit", limit).Int64("total", total).Msg("user_campaigns_listed")
+
 	response.JSON(w, r, http.StatusOK, CampaignsListResponse{
 		Data: campaigns,
 		Meta: domain.PaginationMeta{
@@ -105,7 +107,7 @@ func (h *CampaignHandler) CreateCampaign(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	log.FromContext(r.Context()).Info().Str("campaign_id", string(camp.ID)).Str("user_id", string(userID)).Str("name", camp.Name).Msg("campaign_created")
+	log.FromContext(r.Context()).Info().Str("campaign_id", string(camp.ID)).Str("name", camp.Name).Msg("campaign_created")
 
 	response.Created(w, r, camp)
 }

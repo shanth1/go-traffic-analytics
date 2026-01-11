@@ -9,6 +9,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/shanth1/gotools/log"
+	"github.com/shanth1/gotools/logkeys"
 	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/config"
 	"github.com/shanth1/gotrace/internal/core/domain"
@@ -55,7 +56,7 @@ func JWTAuth(cfg *config.Config) func(http.Handler) http.Handler {
 			userID := claims.UserID
 
 			logger := log.FromContext(r.Context())
-			enrichedLogger := logger.With(log.Str("user_id", string(userID)))
+			enrichedLogger := logger.With(log.Str(logkeys.UserID, string(userID)))
 			ctx := log.NewContext(r.Context(), enrichedLogger)
 			ctx = context.WithValue(ctx, domain.CtxKeyUser, claims)
 			next.ServeHTTP(w, r.WithContext(ctx))

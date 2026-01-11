@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shanth1/gotools/log"
+	"github.com/shanth1/gotools/logkeys"
 	"github.com/shanth1/gotools/ops"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
@@ -108,7 +109,7 @@ func (h *AdminHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	log.FromContext(r.Context()).Info().Str("user_id", string(id)).Bool("is_active", req.IsActive).Msg("user_status_updated")
+	log.FromContext(r.Context()).Info().Str(logkeys.UserID, string(id)).Bool("is_active", req.IsActive).Msg("user_status_updated")
 
 	response.OK(w, r, StatusData{Status: "updated"})
 }
@@ -145,7 +146,7 @@ func (h *AdminHandler) UpdateUserPlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.FromContext(r.Context()).Info().Str("user_id", string(id)).Str("plan_id", req.PlanID).Msg("user_plan_updated")
+	log.FromContext(r.Context()).Info().Str(logkeys.UserID, string(id)).Str("plan_id", req.PlanID).Msg("user_plan_updated")
 
 	response.OK(w, r, StatusData{Status: "updated"})
 }
