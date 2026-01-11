@@ -10,11 +10,11 @@ import type {
   HeatmapResponse,
 } from '@/shared/api/types';
 
-interface AnalyticsParams {
+export interface AnalyticsParams {
   campaign_id?: string;
   link_id?: string;
-  from?: string;
-  to?: string;
+  from?: string; // RFC3339
+  to?: string; // RFC3339
   [key: string]: unknown;
 }
 
@@ -29,43 +29,48 @@ export const analyticsApi = {
     return data.data;
   },
 
-  getStats: async (dimension: 'browser' | 'os' | 'device') => {
+  getStats: async (
+    dimension: 'browser' | 'os' | 'device',
+    params?: AnalyticsParams
+  ) => {
     const { data } = await api.get<StatsResponse>('/analytics/stats', {
-      params: { dimension },
+      params: { dimension, ...params },
     });
     return data.data;
   },
 
-  getSummary: async () => {
-    const { data } =
-      await api.get<AnalyticsSummaryResponse>('/analytics/summary');
+  getSummary: async (params?: AnalyticsParams) => {
+    const { data } = await api.get<AnalyticsSummaryResponse>(
+      '/analytics/summary',
+      { params }
+    );
     return data.data;
   },
 
-  getFlow: async (linkId: string) => {
+  getFlow: async (linkId?: string, params?: AnalyticsParams) => {
     const { data } = await api.get<SankeyResponse>('/analytics/flow', {
-      params: { link_id: linkId },
+      params: { link_id: linkId, ...params },
     });
     return data.data;
   },
 
-  getStream: async (linkId: string) => {
+  getStream: async (linkId?: string, params?: AnalyticsParams) => {
     const { data } = await api.get<StreamGraphResponse>('/analytics/stream', {
-      params: { link_id: linkId },
+      params: { link_id: linkId, ...params },
     });
     return data.data;
   },
 
-  getHeatmap: async (linkId: string) => {
+  getHeatmap: async (linkId?: string, params?: AnalyticsParams) => {
     const { data } = await api.get<HeatmapResponse>('/analytics/heatmap', {
-      params: { link_id: linkId },
+      params: { link_id: linkId, ...params },
     });
     return data.data;
   },
 
-  getQuality: async (linkId: string) => {
+  getQuality: async (linkId?: string, params?: AnalyticsParams) => {
     const { data } = await api.get<QualityResponse>('/analytics/quality', {
-      params: { link_id: linkId },
+      params: { link_id: linkId, ...params },
     });
     return data.data;
   },
