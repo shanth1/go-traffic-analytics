@@ -43,3 +43,18 @@ export const isAfter = (date: Date, compare: Date): boolean => {
 export const formatDateInput = (date: Date): string => {
   return date.toISOString().split('T')[0];
 };
+
+export const startOfMonth = (date: Date): string => {
+  const d = new Date(date);
+  d.setDate(1);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+};
+
+export const endOfMonth = (date: Date): string => {
+  const d = new Date(date);
+  d.setMonth(d.getMonth() + 1);
+  d.setDate(0); // Last day of previous month (which is current month relative to +1)
+  d.setHours(23, 59, 59, 999);
+  return d.toISOString();
+};

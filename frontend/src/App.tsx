@@ -7,6 +7,7 @@ import {
 } from 'react-router-dom';
 import { MainLayout } from '@/widgets/layouts/MainLayout';
 import { LoginPage } from '@/pages/login/LoginPage';
+import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { CampaignsPage } from '@/pages/campaigns/CampaignsPage';
 import { LinksPage } from '@/pages/links/LinksPage';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
@@ -42,11 +43,13 @@ export const App = () => {
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<ProfilePage />} />
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/campaigns" element={<CampaignsPage />} />
           <Route path="/links" element={<LinksPage />} />
 
           <Route path="/links/:id" element={<AnalyticsPage />} />
+          {/* Campaign Analytics will go here later: /campaigns/:id */}
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
