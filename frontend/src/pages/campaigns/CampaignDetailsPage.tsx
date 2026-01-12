@@ -446,7 +446,14 @@ export const CampaignDetailsPage = () => {
 };
 
 // --- Utils ---
-const KpiCard = ({ title, value, icon, isText = false }: any) => (
+interface KpiCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ReactElement;
+  isText?: boolean;
+}
+
+const KpiCard = ({ title, value, icon, isText = false }: KpiCardProps) => (
   <Card>
     <CardContent className="p-6 flex flex-col justify-between h-full">
       <div className="flex items-center justify-between mb-2">
@@ -459,7 +466,7 @@ const KpiCard = ({ title, value, icon, isText = false }: any) => (
         {isText
           ? value
           : new Intl.NumberFormat('en-US', { notation: 'compact' }).format(
-              value
+              value as number
             )}
       </div>
     </CardContent>
