@@ -9,6 +9,7 @@ import { MainLayout } from '@/widgets/layouts/MainLayout';
 import { LoginPage } from '@/pages/login/LoginPage';
 import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { CampaignsPage } from '@/pages/campaigns/CampaignsPage';
+import { CampaignDetailsPage } from '@/pages/campaigns/CampaignDetailsPage';
 import { LinksPage } from '@/pages/links/LinksPage';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { AnalyticsPage } from '@/pages/analytics/AnalyticsPage';
@@ -46,10 +47,9 @@ export const App = () => {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/campaigns" element={<CampaignsPage />} />
+          <Route path="/campaigns/:id" element={<CampaignDetailsPage />} />
           <Route path="/links" element={<LinksPage />} />
-
           <Route path="/links/:id" element={<AnalyticsPage />} />
-          {/* Campaign Analytics will go here later: /campaigns/:id */}
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
