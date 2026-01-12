@@ -9,7 +9,6 @@ import { useCampaignStore } from '@/entities/campaign/model/store';
 export const CreateLinkFeature = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [url, setUrl] = useState('');
-  const [slug, setSlug] = useState('');
   const [campaignId, setCampaignId] = useState('');
 
   const addLink = useLinkStore((s) => s.addLink);
@@ -17,8 +16,6 @@ export const CreateLinkFeature = () => {
 
   useEffect(() => {
     if (isOpen) {
-      // Fetch list for dropdown (fetching page 1 usually enough for dropdown in simple cases,
-      // ideally should have specific endpoint for dropdowns or infinite scroll)
       fetchCampaigns(100, 0);
     }
   }, [isOpen, fetchCampaigns]);
@@ -26,14 +23,15 @@ export const CreateLinkFeature = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url) return;
+
     const targetCampaign = campaignId || (campaigns[0]?.id ?? 'default');
-    await addLink(targetCampaign, url, slug);
+
+    // Slug is now handled purely by backend
+    await addLink(targetCampaign, url);
+
     setUrl('');
-    setSlug('');
     setIsOpen(false);
   };
-
-  // ... (rest of the component remains similar, ensure Select uses campaigns array)
 
   return (
     <>
@@ -51,7 +49,7 @@ export const CreateLinkFeature = () => {
         onClose={() => setIsOpen(false)}
         title="New Link"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium">Target URL</label>
             <div className="relative">
@@ -66,24 +64,12 @@ export const CreateLinkFeature = () => {
                 onChange={(e) => setUrl(e.target.value)}
                 type="url"
                 required
+                autoFocus
               />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Custom Alias (optional)
-            </label>
-            <div className="flex items-center gap-2">
-              <span className="text-slate-400 text-sm bg-slate-100 px-2 py-2 rounded-md border border-slate-200">
-                /
-              </span>
-              <Input
-                placeholder="my-super-link"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-              />
-            </div>
+            <p className="text-xs text-slate-500">
+              Paste the long URL you want to shorten.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -106,7 +92,7 @@ export const CreateLinkFeature = () => {
             type="submit"
             className="w-full bg-indigo-600 text-white mt-4"
           >
-            Create Link
+            Create Short Link
           </Button>
         </form>
       </ResponsiveSheet>
