@@ -74,26 +74,16 @@ export const AnalyticsPage = () => {
   const topReferrers = useMemo<CategoryStat[]>(() => {
     if (!flowData.nodes.length) return [];
 
-    // Filter nodes that are sources (typically layer 0 in Sankey logic from API)
-    // or we check nodes that are source of links but never target.
-    // Based on API desc: Referer -> Device -> Country. Referer is Layer 0.
-    return (
-      flowData.nodes
-        .filter((n) => n.layer === 0)
-        // We might not have 'value' directly on node in some sankey impls,
-        // but usually API provides it or we sum links.
-        // Assuming API nodes have value or we map links.
-        // Let's rely on node value if present, else calculate from outgoing links.
-        .map((n) => {
-          // Calculate value from outgoing links if node.value is missing/0
-          const val = flowData.links
-            .filter((l) => l.source === n.id)
-            .reduce((acc, curr) => acc + curr.value, 0);
-          return { name: n.id, value: val || 0, share: 0 };
-        })
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 8)
-    );
+    return flowData.nodes
+      .filter((n) => n.layer === 0)
+      .map((n) => {
+        const val = flowData.links
+          .filter((l) => l.source === n.id)
+          .reduce((acc, curr) => acc + curr.value, 0);
+        return { name: n.id, value: val || 0, share: 0 };
+      })
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
   }, [flowData]);
 
   // --- Fetching ---
@@ -109,10 +99,8 @@ export const AnalyticsPage = () => {
           link_id: id,
         };
 
-        // 1. Fetch Link Metadata (Parallel with analytics is fine)
         const metaPromise = linkApi.getLinkById(id);
 
-        // 2. Fetch Analytics
         const analyticsPromise = Promise.all([
           analyticsApi.getSummary(params),
           analyticsApi.getStream(id, params),
@@ -136,7 +124,6 @@ export const AnalyticsPage = () => {
 
         setSummary(sum);
 
-        // Process Stream
         const allKeysSet = new Set<string>();
         stream.forEach((item) => {
           if (item.values)
@@ -173,8 +160,9 @@ export const AnalyticsPage = () => {
 
   if (loading) {
     return (
-      <div className="p-20 text-center text-slate-500 animate-pulse">
-        Loading Analytics Data...
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-slate-500 animate-pulse">
+        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="font-medium">Aggregating analytics data...</p>
       </div>
     );
   }
@@ -204,7 +192,7 @@ export const AnalyticsPage = () => {
                 className="gap-2"
                 onClick={() => {
                   navigator.clipboard.writeText(
-                    window.location.origin + '/' + linkMeta.slug
+                    window.location.host + '/' + linkMeta.slug
                   );
                 }}
               >
@@ -366,11 +354,7 @@ export const AnalyticsPage = () => {
             <CardTitle>Quality Score</CardTitle>
           </CardHeader>
           <CardContent className="h-[350px]">
-            {qualityData ? (
-              <QualityRadar data={qualityData as TrafficQuality} />
-            ) : (
-              <NoData />
-            )}
+            {qualityData ? <QualityRadar data={qualityData} /> : <NoData />}
           </CardContent>
         </Card>
       </div>
