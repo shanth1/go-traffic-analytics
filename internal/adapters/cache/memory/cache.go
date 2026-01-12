@@ -43,15 +43,15 @@ func (c *Cache) Get(_ context.Context, key string) (interface{}, error) {
 	const op = "memory.Cache.Get"
 
 	c.mu.RLock()
-	defer c.mu.RUnlock()
-
 	item, found := c.items[key]
+	c.mu.RUnlock()
+
 	if !found {
 		return nil, ops.Wrap(op, ops.KindNotFound, ports.ErrCacheMiss)
 	}
 
 	if time.Now().After(item.expiresAt) {
-		delete(c.items, key)
+		go c.Delete(context.Background(), key)
 		return nil, ops.Wrap(op, ops.KindOther, ports.ErrCacheMiss)
 	}
 
