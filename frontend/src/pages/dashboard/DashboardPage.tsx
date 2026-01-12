@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   ActivityIcon,
   MousePointerClick,
@@ -337,7 +337,21 @@ export const DashboardPage = () => {
 
 // --- Sub-components ---
 
-const KpiCard = ({ title, value, icon, trend, isText = false }: any) => (
+interface KpiCardProps {
+  title: string;
+  value: number | string;
+  icon: React.ReactNode;
+  trend: string;
+  isText?: boolean;
+}
+
+const KpiCard = ({
+  title,
+  value,
+  icon,
+  trend,
+  isText = false,
+}: KpiCardProps) => (
   <Card className="hover:border-indigo-200 dark:hover:border-indigo-900 transition-colors">
     <CardContent className="p-6">
       <div className="flex items-center justify-between mb-4">
