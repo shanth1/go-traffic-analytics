@@ -1,13 +1,17 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   MousePointerClick,
   GlobeIcon,
-  SmartphoneIcon,
   MonitorIcon,
+  ArrowLeft,
+  ExternalLinkIcon,
+  LayersIcon,
+  CopyIcon,
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Button } from '@/shared/ui/button';
 import { StreamGraph } from '@/widgets/charts/StreamGraph';
 import { HeatmapChart } from '@/widgets/charts/HeatmapChart';
 import { QualityRadar } from '@/widgets/charts/QualityRadar';
@@ -17,8 +21,10 @@ import { GeoMap } from '@/widgets/charts/GeoMap';
 import { DateRangePicker } from '@/features/analytics-filters/DateRangePicker';
 
 import { useAnalyticsFilter } from '@/entities/analytics/model/filters';
-import { toRFC3339 } from '@/shared/lib/date';
 import { analyticsApi } from '@/entities/analytics/api';
+import { linkApi } from '@/entities/link/api';
+import { toRFC3339 } from '@/shared/lib/date';
+import { cn } from '@/shared/lib/utils';
 
 import type {
   StreamChartData,
@@ -28,14 +34,17 @@ import type {
   CategoryStat,
   GeoPoint,
   AnalyticsSummary,
+  Link,
 } from '@/shared/api/types';
 
 export const AnalyticsPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { startDate, endDate } = useAnalyticsFilter();
 
-  // --- State ---
+  // --- Data State ---
   const [loading, setLoading] = useState(true);
+  const [linkMeta, setLinkMeta] = useState<Link | null>(null);
 
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [streamData, setStreamData] = useState<StreamChartData[]>([]);
@@ -48,23 +57,46 @@ export const AnalyticsPage = () => {
   });
   const [geoData, setGeoData] = useState<GeoPoint[]>([]);
 
-  // Categorical Stats
   const [statsOS, setStatsOS] = useState<CategoryStat[]>([]);
   const [statsBrowser, setStatsBrowser] = useState<CategoryStat[]>([]);
   const [statsDevice, setStatsDevice] = useState<CategoryStat[]>([]);
 
-  // --- Derived State for Top Lists ---
+  // --- Derived Metrics ---
+
   const topCountries = useMemo<CategoryStat[]>(() => {
-    // Convert GeoPoints to CategoryStat for the BarList component
     return geoData
       .sort((a, b) => b.value - a.value)
-      .slice(0, 8) // Top 8
+      .slice(0, 8)
       .map((g) => ({ name: g.country, value: g.value, share: 0 }));
   }, [geoData]);
 
-  const topCountryName = topCountries[0]?.name || '-';
+  // Extract Top Referrers from Sankey Nodes (Layer 0)
+  const topReferrers = useMemo<CategoryStat[]>(() => {
+    if (!flowData.nodes.length) return [];
 
-  // --- Data Fetching ---
+    // Filter nodes that are sources (typically layer 0 in Sankey logic from API)
+    // or we check nodes that are source of links but never target.
+    // Based on API desc: Referer -> Device -> Country. Referer is Layer 0.
+    return (
+      flowData.nodes
+        .filter((n) => n.layer === 0)
+        // We might not have 'value' directly on node in some sankey impls,
+        // but usually API provides it or we sum links.
+        // Assuming API nodes have value or we map links.
+        // Let's rely on node value if present, else calculate from outgoing links.
+        .map((n) => {
+          // Calculate value from outgoing links if node.value is missing/0
+          const val = flowData.links
+            .filter((l) => l.source === n.id)
+            .reduce((acc, curr) => acc + curr.value, 0);
+          return { name: n.id, value: val || 0, share: 0 };
+        })
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 8)
+    );
+  }, [flowData]);
+
+  // --- Fetching ---
   useEffect(() => {
     if (!id) return;
 
@@ -74,20 +106,14 @@ export const AnalyticsPage = () => {
         const params = {
           from: toRFC3339(startDate),
           to: toRFC3339(endDate),
-          link_id: id, // Ensure we filter by this link
+          link_id: id,
         };
 
-        const [
-          sumRes,
-          streamRes,
-          heatmapRes,
-          qualityRes,
-          flowRes,
-          geoRes,
-          osRes,
-          browserRes,
-          deviceRes,
-        ] = await Promise.all([
+        // 1. Fetch Link Metadata (Parallel with analytics is fine)
+        const metaPromise = linkApi.getLinkById(id);
+
+        // 2. Fetch Analytics
+        const analyticsPromise = Promise.all([
           analyticsApi.getSummary(params),
           analyticsApi.getStream(id, params),
           analyticsApi.getHeatmap(id, params),
@@ -99,39 +125,44 @@ export const AnalyticsPage = () => {
           analyticsApi.getStats('device', params),
         ]);
 
-        // Process Summary
-        setSummary(sumRes);
+        const [meta, analyticsRes] = await Promise.all([
+          metaPromise,
+          analyticsPromise,
+        ]);
+        const [sum, stream, heatmap, quality, flow, geo, os, browser, device] =
+          analyticsRes;
+
+        if (meta) setLinkMeta(meta);
+
+        setSummary(sum);
 
         // Process Stream
         const allKeysSet = new Set<string>();
-        streamRes.forEach((item) => {
-          if (item.values) {
+        stream.forEach((item) => {
+          if (item.values)
             Object.keys(item.values).forEach((k) => allKeysSet.add(k));
-          }
         });
         const collectedKeys = Array.from(allKeysSet);
-        const processedStream = streamRes
-          .map((d) => {
-            const point: StreamChartData = { time: new Date(d.time) };
-            collectedKeys.forEach((key) => {
-              point[key] = d.values?.[key] ?? 0;
-            });
-            return point;
-          })
-          .sort((a, b) => a.time.getTime() - b.time.getTime());
-
-        setStreamData(processedStream);
         setStreamKeys(collectedKeys);
+        setStreamData(
+          stream
+            .map((d) => {
+              const p: StreamChartData = { time: new Date(d.time) };
+              collectedKeys.forEach((k) => (p[k] = d.values?.[k] ?? 0));
+              return p;
+            })
+            .sort((a, b) => a.time.getTime() - b.time.getTime())
+        );
 
-        setHeatmapData(heatmapRes);
-        setQualityData(qualityRes);
-        setFlowData(flowRes);
-        setGeoData(geoRes);
-        setStatsOS(osRes);
-        setStatsBrowser(browserRes);
-        setStatsDevice(deviceRes);
+        setHeatmapData(heatmap);
+        setQualityData(quality);
+        setFlowData(flow);
+        setGeoData(geo);
+        setStatsOS(os);
+        setStatsBrowser(browser);
+        setStatsDevice(device);
       } catch (e) {
-        console.error('Failed to load analytics data', e);
+        console.error('Failed to load data', e);
       } finally {
         setLoading(false);
       }
@@ -142,34 +173,100 @@ export const AnalyticsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-slate-500 animate-pulse">
-        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="font-medium">Aggregating analytics data...</p>
+      <div className="p-20 text-center text-slate-500 animate-pulse">
+        Loading Analytics Data...
       </div>
     );
   }
 
+  const topCountryName = topCountries[0]?.name || '-';
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-      {/* 1. Page Header & Filters */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
-        <div>
-          <div className="flex items-center gap-2 text-slate-500 mb-1">
-            <span className="text-xs font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 px-2 py-0.5 rounded uppercase tracking-wider">
-              Link Analytics
-            </span>
-          </div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
-            /{id}
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Detailed performance report.
-          </p>
+    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+      {/* --- 1. RICH HEADER --- */}
+      <div className="flex flex-col gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+        {/* Breadcrumbs & Actions */}
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2 text-slate-500 pl-0 hover:text-indigo-600"
+            onClick={() => navigate('/links')}
+          >
+            <ArrowLeft size={16} /> Back to Links
+          </Button>
+
+          {linkMeta && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    window.location.origin + '/' + linkMeta.slug
+                  );
+                }}
+              >
+                <CopyIcon size={14} /> Copy Short Link
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="gap-2"
+                onClick={() => {
+                  if (linkMeta.campaign_id)
+                    navigate(`/campaigns/${linkMeta.campaign_id}`);
+                  else navigate('/campaigns');
+                }}
+              >
+                <LayersIcon size={14} /> Campaign
+              </Button>
+            </div>
+          )}
         </div>
-        <DateRangePicker />
+
+        {/* Title & Target */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+                /{linkMeta?.slug || id}
+              </h1>
+              {linkMeta && (
+                <span
+                  className={cn(
+                    'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider',
+                    linkMeta.is_active
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : 'bg-red-100 text-red-700'
+                  )}
+                >
+                  {linkMeta.is_active ? 'Active' : 'Inactive'}
+                </span>
+              )}
+            </div>
+
+            {linkMeta && (
+              <div className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors">
+                <ExternalLinkIcon size={14} />
+                <a
+                  href={linkMeta.target_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm truncate max-w-[300px] md:max-w-[500px] underline underline-offset-4"
+                >
+                  {linkMeta.target_url}
+                </a>
+              </div>
+            )}
+          </div>
+
+          <DateRangePicker />
+        </div>
       </div>
 
-      {/* 2. KPI Cards Row */}
+      {/* --- 2. KPI --- */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           title="Total Clicks"
@@ -189,17 +286,17 @@ export const AnalyticsPage = () => {
           isText
         />
         <KpiCard
-          title="Top Device"
-          value={statsDevice[0]?.name || '-'}
-          icon={<SmartphoneIcon size={18} />}
+          title="Top Source"
+          value={topReferrers[0]?.name || 'Direct'}
+          icon={<ExternalLinkIcon size={18} />}
           isText
         />
       </div>
 
-      {/* 3. Main Stream Graph (Volume) */}
+      {/* --- 3. VOLUME --- */}
       <Card>
         <CardHeader>
-          <CardTitle>Traffic Volume & Dynamics</CardTitle>
+          <CardTitle>Traffic Dynamics</CardTitle>
         </CardHeader>
         <CardContent className="h-[400px]">
           {streamData.length > 0 ? (
@@ -210,31 +307,30 @@ export const AnalyticsPage = () => {
         </CardContent>
       </Card>
 
-      {/* 4. Geography Section (Map + List) */}
+      {/* --- 4. REFERRERS & GEO --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* New Referrers Widget */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Referrers</CardTitle>
+            <p className="text-sm text-slate-400">Where traffic comes from</p>
+          </CardHeader>
+          <CardContent>
+            <BarListChart data={topReferrers} color="bg-violet-500" />
+          </CardContent>
+        </Card>
+
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Global Reach</CardTitle>
-            <p className="text-sm text-slate-400">
-              Click distribution by country
-            </p>
           </CardHeader>
           <CardContent className="h-[400px] w-full overflow-hidden p-0">
             {geoData.length > 0 ? <GeoMap data={geoData} /> : <NoData />}
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Countries</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <BarListChart data={topCountries} color="bg-blue-500" />
-          </CardContent>
-        </Card>
       </div>
 
-      {/* 5. Tech Stack (3 cols) */}
+      {/* --- 5. TECH STACK --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatsCard
           title="Device Type"
@@ -249,12 +345,12 @@ export const AnalyticsPage = () => {
         <StatsCard title="Browser" data={statsBrowser} color="bg-amber-500" />
       </div>
 
-      {/* 6. Behavior Section (Flow + Quality) */}
+      {/* --- 6. FLOW & QUALITY --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>User Journey Flow</CardTitle>
-            <p className="text-sm text-slate-400">Source → Device → Country</p>
+            <CardTitle>Traffic Flow</CardTitle>
+            <p className="text-sm text-slate-400">Referer → Device → Country</p>
           </CardHeader>
           <CardContent className="h-[350px]">
             {flowData.nodes.length > 0 ? (
@@ -267,19 +363,22 @@ export const AnalyticsPage = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Traffic Quality Score</CardTitle>
+            <CardTitle>Quality Score</CardTitle>
           </CardHeader>
           <CardContent className="h-[350px]">
-            {qualityData ? <QualityRadar data={qualityData} /> : <NoData />}
+            {qualityData ? (
+              <QualityRadar data={qualityData as TrafficQuality} />
+            ) : (
+              <NoData />
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* 7. Timing (Heatmap) */}
+      {/* --- 7. HEATMAP --- */}
       <Card>
         <CardHeader>
           <CardTitle>Engagement Heatmap</CardTitle>
-          <p className="text-sm text-slate-400">Best performing times (UTC)</p>
         </CardHeader>
         <CardContent className="h-[300px]">
           {heatmapData.length > 0 ? (
@@ -293,7 +392,7 @@ export const AnalyticsPage = () => {
   );
 };
 
-// --- Sub-components ---
+// --- Reusable Components ---
 
 const KpiCard = ({
   title,
@@ -346,7 +445,7 @@ const StatsCard = ({
 );
 
 const NoData = () => (
-  <div className="h-full w-full flex items-center justify-center text-slate-400 text-sm italic bg-slate-50/50 dark:bg-slate-900/50 rounded-lg border border-dashed border-slate-200 dark:border-slate-800">
-    No data available for this period
+  <div className="h-full w-full flex items-center justify-center text-slate-400 text-sm italic bg-slate-50/50 dark:bg-slate-900/50 rounded-lg">
+    No data available
   </div>
 );
