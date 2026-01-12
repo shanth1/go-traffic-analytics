@@ -62,7 +62,6 @@ export const AnalyticsPage = () => {
   const [statsDevice, setStatsDevice] = useState<CategoryStat[]>([]);
 
   // --- Derived Metrics ---
-
   const topCountries = useMemo<CategoryStat[]>(() => {
     return geoData
       .sort((a, b) => b.value - a.value)
@@ -70,7 +69,6 @@ export const AnalyticsPage = () => {
       .map((g) => ({ name: g.country, value: g.value, share: 0 }));
   }, [geoData]);
 
-  // Extract Top Referrers from Sankey Nodes (Layer 0)
   const topReferrers = useMemo<CategoryStat[]>(() => {
     if (!flowData.nodes.length) return [];
 
@@ -124,22 +122,32 @@ export const AnalyticsPage = () => {
 
         setSummary(sum);
 
-        const allKeysSet = new Set<string>();
+        // --- Process Stream (Sorting Logic) ---
+        const keyTotals: Record<string, number> = {};
         stream.forEach((item) => {
-          if (item.values)
-            Object.keys(item.values).forEach((k) => allKeysSet.add(k));
+          if (item.values) {
+            Object.entries(item.values).forEach(([key, val]) => {
+              keyTotals[key] = (keyTotals[key] || 0) + val;
+            });
+          }
         });
-        const collectedKeys = Array.from(allKeysSet);
-        setStreamKeys(collectedKeys);
+
+        // Sort descending: largest values first -> rendered at bottom
+        const sortedKeys = Object.keys(keyTotals).sort(
+          (a, b) => keyTotals[b] - keyTotals[a]
+        );
+        setStreamKeys(sortedKeys);
+
         setStreamData(
           stream
             .map((d) => {
               const p: StreamChartData = { time: new Date(d.time) };
-              collectedKeys.forEach((k) => (p[k] = d.values?.[k] ?? 0));
+              sortedKeys.forEach((k) => (p[k] = d.values?.[k] ?? 0));
               return p;
             })
             .sort((a, b) => a.time.getTime() - b.time.getTime())
         );
+        // ---------------------------------------
 
         setHeatmapData(heatmap);
         setQualityData(quality);
@@ -297,7 +305,6 @@ export const AnalyticsPage = () => {
 
       {/* --- 4. REFERRERS & GEO --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* New Referrers Widget */}
         <Card>
           <CardHeader>
             <CardTitle>Top Referrers</CardTitle>
@@ -375,8 +382,6 @@ export const AnalyticsPage = () => {
     </div>
   );
 };
-
-// --- Reusable Components ---
 
 const KpiCard = ({
   title,
