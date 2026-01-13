@@ -8,6 +8,7 @@ import {
   ExternalLinkIcon,
   LayersIcon,
   CopyIcon,
+  QrCodeIcon, // [ADDED]
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -19,12 +20,14 @@ import { SankeyChart } from '@/widgets/charts/SankeyChart';
 import { BarListChart } from '@/widgets/charts/BarListChart';
 import { GeoMap } from '@/widgets/charts/GeoMap';
 import { DateRangePicker } from '@/features/analytics-filters/DateRangePicker';
+import { QrCodeModal } from '@/widgets/qr/QrCodeModal'; // [ADDED]
 
 import { useAnalyticsFilter } from '@/entities/analytics/model/filters';
 import { analyticsApi } from '@/entities/analytics/api';
 import { linkApi } from '@/entities/link/api';
 import { toRFC3339 } from '@/shared/lib/date';
 import { cn } from '@/shared/lib/utils';
+import { getShortLink } from '@/shared/config'; // [ADDED]
 
 import type {
   StreamChartData,
@@ -45,6 +48,9 @@ export const AnalyticsPage = () => {
   // --- Data State ---
   const [loading, setLoading] = useState(true);
   const [linkMeta, setLinkMeta] = useState<Link | null>(null);
+
+  // [ADDED] QR State
+  const [isQrOpen, setIsQrOpen] = useState(false);
 
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [streamData, setStreamData] = useState<StreamChartData[]>([]);
@@ -132,7 +138,6 @@ export const AnalyticsPage = () => {
           }
         });
 
-        // Sort descending: largest values first -> rendered at bottom
         const sortedKeys = Object.keys(keyTotals).sort(
           (a, b) => keyTotals[b] - keyTotals[a]
         );
@@ -147,7 +152,6 @@ export const AnalyticsPage = () => {
             })
             .sort((a, b) => a.time.getTime() - b.time.getTime())
         );
-        // ---------------------------------------
 
         setHeatmapData(heatmap);
         setQualityData(quality);
@@ -194,14 +198,22 @@ export const AnalyticsPage = () => {
 
           {linkMeta && (
             <div className="flex items-center gap-2">
+              {/* [ADDED] QR Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => setIsQrOpen(true)}
+              >
+                <QrCodeIcon size={14} /> QR Code
+              </Button>
+
               <Button
                 variant="outline"
                 size="sm"
                 className="gap-2"
                 onClick={() => {
-                  navigator.clipboard.writeText(
-                    window.location.host + '/' + linkMeta.slug
-                  );
+                  navigator.clipboard.writeText(getShortLink(linkMeta.slug));
                 }}
               >
                 <CopyIcon size={14} /> Copy Short Link
@@ -379,6 +391,15 @@ export const AnalyticsPage = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* [ADDED] QR Modal */}
+      {linkMeta && (
+        <QrCodeModal
+          isOpen={isQrOpen}
+          onClose={() => setIsQrOpen(false)}
+          slug={linkMeta.slug}
+        />
+      )}
     </div>
   );
 };

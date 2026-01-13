@@ -6,6 +6,7 @@ import {
   TrashIcon,
   SearchIcon,
   FilterIcon,
+  QrCodeIcon, // [ADDED]
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CreateLinkFeature } from '@/features/create-link/CreateLinkFeature';
@@ -17,6 +18,8 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Pagination } from '@/shared/ui/pagination';
 import type { Link as LinkType } from '@/shared/api/types';
+import { QrCodeModal } from '@/widgets/qr/QrCodeModal'; // [ADDED]
+import { getShortLink } from '@/shared/config'; // [ADDED]
 
 interface LinkCardProps {
   data: LinkType;
@@ -26,72 +29,88 @@ const LinkCard = ({ data }: LinkCardProps) => {
   const { deleteLink } = useLinkStore();
   const [copied, setCopied] = useState(false);
 
+  // [ADDED] State for QR Modal
+  const [isQrOpen, setIsQrOpen] = useState(false);
+
   const copyToClipboard = () => {
-    // В реальном проекте домен берется из конфига
-    const domain = window.location.host;
-    navigator.clipboard.writeText(`http://${domain}/${data.slug}`);
+    navigator.clipboard.writeText(getShortLink(data.slug));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <Card className="p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-white dark:bg-slate-950 hover:border-indigo-300 transition-colors">
-      <div
-        className={cn(
-          'w-12 h-12 rounded-full flex items-center justify-center shrink-0',
-          data.is_active
-            ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-            : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-        )}
-      >
-        <ExternalLinkIcon size={20} />
-      </div>
-
-      <div className="flex-1 min-w-0 grid gap-1">
-        <div className="flex items-center gap-2">
-          <h4 className="font-bold text-lg truncate text-slate-900 dark:text-slate-100">
-            /{data.slug}
-          </h4>
-          {!data.is_active && (
-            <span className="px-2 py-0.5 rounded text-[10px] bg-red-100 text-red-600 font-bold uppercase">
-              Inactive
-            </span>
+    <>
+      <Card className="p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-white dark:bg-slate-950 hover:border-indigo-300 transition-colors">
+        <div
+          className={cn(
+            'w-12 h-12 rounded-full flex items-center justify-center shrink-0',
+            data.is_active
+              ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+              : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
           )}
+        >
+          <ExternalLinkIcon size={20} />
         </div>
-        <p className="text-sm text-slate-500 truncate">{data.target_url}</p>
-        <div className="flex items-center gap-4 mt-1 text-xs text-slate-400">
-          <span>{new Date(data.created_at).toLocaleDateString()}</span>
-          {/* Mock data for clicks, as real count comes from analytics API */}
-          {/* <span className="flex items-center gap-1">
-            <BarChart2Icon size={12} /> -- clicks
-          </span> */}
-        </div>
-      </div>
 
-      <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 border-t sm:border-t-0 pt-3 sm:pt-0">
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1 sm:flex-none gap-2"
-          onClick={copyToClipboard}
-        >
-          <CopyIcon size={14} /> {copied ? 'Copied!' : 'Copy'}
-        </Button>
-        <Link to={`/links/${data.id}`} className="flex-1 sm:flex-none">
-          <Button variant="secondary" size="sm" className="w-full gap-2">
-            <BarChart2Icon size={14} /> Analytics
+        <div className="flex-1 min-w-0 grid gap-1">
+          <div className="flex items-center gap-2">
+            <h4 className="font-bold text-lg truncate text-slate-900 dark:text-slate-100">
+              /{data.slug}
+            </h4>
+            {!data.is_active && (
+              <span className="px-2 py-0.5 rounded text-[10px] bg-red-100 text-red-600 font-bold uppercase">
+                Inactive
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-slate-500 truncate">{data.target_url}</p>
+          <div className="flex items-center gap-4 mt-1 text-xs text-slate-400">
+            <span>{new Date(data.created_at).toLocaleDateString()}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 border-t sm:border-t-0 pt-3 sm:pt-0">
+          {/* [ADDED] QR Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsQrOpen(true)}
+            title="Show QR Code"
+          >
+            <QrCodeIcon size={16} />
           </Button>
-        </Link>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-          onClick={() => deleteLink(data.id)}
-        >
-          <TrashIcon size={16} />
-        </Button>
-      </div>
-    </Card>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 sm:flex-none gap-2"
+            onClick={copyToClipboard}
+          >
+            <CopyIcon size={14} /> {copied ? 'Copied!' : 'Copy'}
+          </Button>
+          <Link to={`/links/${data.id}`} className="flex-1 sm:flex-none">
+            <Button variant="secondary" size="sm" className="w-full gap-2">
+              <BarChart2Icon size={14} /> Analytics
+            </Button>
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+            onClick={() => deleteLink(data.id)}
+          >
+            <TrashIcon size={16} />
+          </Button>
+        </div>
+      </Card>
+
+      {/* [ADDED] Modal */}
+      <QrCodeModal
+        isOpen={isQrOpen}
+        onClose={() => setIsQrOpen(false)}
+        slug={data.slug}
+      />
+    </>
   );
 };
 
@@ -111,7 +130,6 @@ export const LinksPage = () => {
       campaign_id: campaignIdParam || undefined,
       search: searchTerm,
     });
-    // We only want to run this when URL params change distinctly, logic handled in store
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignIdParam]);
 

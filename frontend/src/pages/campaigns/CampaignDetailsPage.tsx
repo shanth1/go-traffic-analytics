@@ -15,21 +15,24 @@ import {
   SmartphoneIcon,
   ExternalLinkIcon,
   LayersIcon,
+  QrCodeIcon, // [ADDED]
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
-import { Pagination } from '@/shared/ui/pagination'; // Import Pagination
+import { Pagination } from '@/shared/ui/pagination';
 import { StreamGraph } from '@/widgets/charts/StreamGraph';
 import { HeatmapChart } from '@/widgets/charts/HeatmapChart';
 import { GeoMap } from '@/widgets/charts/GeoMap';
 import { DateRangePicker } from '@/features/analytics-filters/DateRangePicker';
+import { QrCodeModal } from '@/widgets/qr/QrCodeModal'; // [ADDED]
 
 import { useAnalyticsFilter } from '@/entities/analytics/model/filters';
 import { analyticsApi } from '@/entities/analytics/api';
 import { api } from '@/shared/api/base';
 import { toRFC3339 } from '@/shared/lib/date';
 import { cn } from '@/shared/lib/utils';
+import { getShortLink } from '@/shared/config';
 
 import type {
   Campaign,
@@ -57,13 +60,9 @@ export const CampaignDetailsPage = () => {
 
   const { startDate, endDate } = useAnalyticsFilter();
 
-  // --- Global Loading State ---
   const [loading, setLoading] = useState(true);
-
-  // --- Campaign Data ---
   const [campaign, setCampaign] = useState<Campaign | null>(null);
 
-  // --- Links Data (Paginated) ---
   const [links, setLinks] = useState<Link[]>([]);
   const [linksMeta, setLinksMeta] = useState<PaginationMeta>({
     limit: 10,
@@ -72,7 +71,9 @@ export const CampaignDetailsPage = () => {
   });
   const [linksLoading, setLinksLoading] = useState(false);
 
-  // --- Analytics Data ---
+  // [ADDED] QR State
+  const [qrSlug, setQrSlug] = useState<string | null>(null);
+
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [streamData, setStreamData] = useState<StreamChartData[]>([]);
   const [streamKeys, setStreamKeys] = useState<string[]>([]);
@@ -88,7 +89,7 @@ export const CampaignDetailsPage = () => {
       .map((g) => ({ name: g.country, value: g.value, share: 0 }));
   }, [geoData]);
 
-  // --- Fetch Analytics & Metadata (Depends on Date) ---
+  // --- Fetch Analytics ---
   useEffect(() => {
     if (!id) return;
 
@@ -101,13 +102,10 @@ export const CampaignDetailsPage = () => {
           campaign_id: id,
         };
 
-        // 1. Get Campaign Info
-        // Note: Ideally backend has GET /campaigns/:id. Using list search as fallback.
         const metaReq = api.get<CampaignsListResponse>('/campaigns', {
           params: { limit: 100 },
         });
 
-        // 2. Get Analytics
         const analyticsReq = Promise.all([
           analyticsApi.getSummary(params),
           analyticsApi.getStream(undefined, params),
@@ -130,7 +128,6 @@ export const CampaignDetailsPage = () => {
         setHeatmapData(heatmap);
         setStatsDevice(dev);
 
-        // Process Stream
         const keyTotals: Record<string, number> = {};
         stream.forEach((item) => {
           if (item.values)
@@ -162,7 +159,7 @@ export const CampaignDetailsPage = () => {
     loadAnalytics();
   }, [id, startDate, endDate]);
 
-  // --- Fetch Links (Depends on Offset) ---
+  // --- Fetch Links ---
   const fetchLinks = async (offset: number) => {
     if (!id) return;
     setLinksLoading(true);
@@ -183,7 +180,6 @@ export const CampaignDetailsPage = () => {
     }
   };
 
-  // Initial Links Load or Page Change
   useEffect(() => {
     fetchLinks(linksMeta.offset);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -191,7 +187,6 @@ export const CampaignDetailsPage = () => {
 
   const handlePageChange = (newOffset: number) => {
     setLinksMeta((prev) => ({ ...prev, offset: newOffset }));
-    // Scroll to top of list if needed, or just let it update
   };
 
   if (loading && !campaign) {
@@ -405,6 +400,16 @@ export const CampaignDetailsPage = () => {
                         {new Date(link.created_at).toLocaleDateString()}
                       </span>
 
+                      {/* [ADDED] QR Button */}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setQrSlug(link.slug)}
+                        title="QR Code"
+                      >
+                        <QrCodeIcon size={16} />
+                      </Button>
+
                       <RouterLink to={`/links/${link.id}`}>
                         <Button variant="secondary" size="sm" className="gap-2">
                           <BarChart2Icon size={14} /> Analytics
@@ -415,10 +420,7 @@ export const CampaignDetailsPage = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => {
-                          window.open(
-                            `http://${window.location.host}/${link.slug}`,
-                            '_blank'
-                          );
+                          window.open(getShortLink(link.slug), '_blank');
                         }}
                       >
                         <ExternalLinkIcon size={16} />
@@ -440,6 +442,15 @@ export const CampaignDetailsPage = () => {
             </>
           )}
         </div>
+      )}
+
+      {/* [ADDED] QR Modal */}
+      {qrSlug && (
+        <QrCodeModal
+          isOpen={!!qrSlug}
+          onClose={() => setQrSlug(null)}
+          slug={qrSlug}
+        />
       )}
     </div>
   );
