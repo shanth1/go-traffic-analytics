@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import QRCodeLib from 'react-qr-code';
+import { QRCodeSVG } from 'qrcode.react';
 import {
   Download,
   ChevronLeft,
@@ -9,8 +9,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { getShortLink } from '@/shared/config';
-
-const QRCode = QRCodeLib;
 
 // --- Styles Definition ---
 const QR_STYLES = [
@@ -62,18 +60,18 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
     const svg = svgRef.current?.querySelector('svg');
     if (!svg) return;
 
-    // Serialize SVG XML
+    // Сериализация SVG в строку
     const svgData = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
 
-    // Add size (QR usually 256x256, let's scale up for quality)
-    const size = 512;
+    // Размер итоговой картинки (1024x1024 для хорошего качества)
+    const size = 1024;
     canvas.width = size;
     canvas.height = size;
 
-    // Create Blob URL
+    // Создаем Blob URL
     const svgBlob = new Blob([svgData], {
       type: 'image/svg+xml;charset=utf-8',
     });
@@ -81,12 +79,14 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
 
     img.onload = () => {
       if (ctx) {
-        // Draw background manually to ensure non-transparent PNG
+        // Рисуем фон (обязательно для PNG, чтобы не был прозрачным)
         ctx.fillStyle = currentStyle.bg;
         ctx.fillRect(0, 0, size, size);
+
+        // Рисуем QR код
         ctx.drawImage(img, 0, 0, size, size);
 
-        // Trigger Download
+        // Скачивание
         const pngUrl = canvas.toDataURL('image/png');
         const downloadLink = document.createElement('a');
         downloadLink.href = pngUrl;
@@ -110,7 +110,7 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
       />
 
       <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col items-center animate-in fade-in zoom-in-95 duration-200">
-        {/* Header */}
+        {/* Заголовок */}
         <div className="w-full flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-800">
           <h3 className="font-semibold text-lg flex items-center gap-2 text-slate-900 dark:text-slate-100">
             <QrCodeIcon size={18} className="text-indigo-600" />
@@ -124,7 +124,7 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
           </button>
         </div>
 
-        {/* Preview Area */}
+        {/* Область предпросмотра */}
         <div className="p-8 w-full flex flex-col items-center gap-6">
           <div className="flex items-center gap-4 w-full justify-between">
             <Button
@@ -140,12 +140,13 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
               ref={svgRef}
               className={`p-4 rounded-xl shadow-inner transition-colors duration-300 ${currentStyle.wrapperClass}`}
             >
-              <QRCode
+              <QRCodeSVG
                 value={linkUrl}
                 size={180}
                 bgColor={currentStyle.bg}
                 fgColor={currentStyle.fg}
                 level="M"
+                includeMargin={false}
               />
             </div>
 
@@ -169,7 +170,7 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
           </div>
         </div>
 
-        {/* Footer */}
+        {/* Футер */}
         <div className="w-full p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50">
           <Button
             onClick={handleDownload}
