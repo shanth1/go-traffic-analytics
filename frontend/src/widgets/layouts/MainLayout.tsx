@@ -1,114 +1,273 @@
 import { Outlet, useLocation, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   LayoutDashboardIcon,
   LayersIcon,
   LinkIcon,
-  LogOutIcon,
   UserIcon,
+  LogOutIcon,
+  CreditCardIcon,
+  SparklesIcon,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { useAuthStore } from '@/entities/session/store';
 import { APP_TITLE } from '@/shared/config';
 
-const NAV_ITEMS = [
+const MAIN_NAV = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboardIcon },
   { label: 'Campaigns', path: '/campaigns', icon: LayersIcon },
   { label: 'Links', path: '/links', icon: LinkIcon },
-  { label: 'Profile', path: '/profile', icon: UserIcon },
+];
+
+const SECONDARY_NAV = [
+  { label: 'Plans & Billing', path: '/pricing', icon: CreditCardIcon },
 ];
 
 export const MainLayout = () => {
-  const logout = useAuthStore((state) => state.logout);
+  const { user, logout } = useAuthStore();
   const location = useLocation();
 
-  const isObjActive = (path: string) => {
+  const isPathActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
     return location.pathname.startsWith(path);
   };
 
+  if (!user) return null;
+
+  const avatarUrl = `https://api.dicebear.com/7.x/notionists/svg?seed=${user.email}&backgroundColor=e0e7ff`;
+
   return (
-    <div className="flex min-h-screen bg-muted/20 text-foreground overflow-hidden">
-      {/* --- Desktop Sidebar --- */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card fixed inset-y-0 left-0 z-40 shrink-0">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold tracking-tight text-primary flex items-center gap-2 truncate" title={APP_TITLE}>
-            <LayoutDashboardIcon className="text-primary shrink-0" />
-            {APP_TITLE}
-          </h1>
+    <div className="flex h-screen w-full bg-muted/20 text-foreground overflow-hidden font-sans">
+
+      {/*
+        ========================================
+        DESKTOP SIDEBAR (Floating Glass Island)
+        ========================================
+      */}
+      <aside className="hidden md:flex flex-col w-[260px] h-[calc(100vh-24px)] m-3 mr-0 bg-card/80 backdrop-blur-xl border border-border shadow-2xl shadow-primary/5 rounded-4xl overflow-hidden z-50 relative">
+
+        {/* 1. PROFILE BUTTON (Interactive) */}
+        <div className="p-3">
+          <Link to="/profile">
+            <button className="flex items-center gap-3 w-full p-2 rounded-2xl hover:bg-secondary/80 transition-colors border border-transparent hover:border-border group text-left">
+              <div className="relative shrink-0">
+                <div className="w-10 h-10 rounded-full bg-background border border-border overflow-hidden">
+                  <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                </div>
+                {/* Online/Active Dot */}
+                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-card rounded-full" />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-sm truncate text-foreground group-hover:text-primary transition-colors">
+                  {user.email.split('@')[0]}
+                </div>
+                <div className="text-xs text-muted-foreground truncate">
+                  View Profile
+                </div>
+              </div>
+            </button>
+          </Link>
         </div>
 
-        <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium',
-                isObjActive(item.path)
-                  ? 'bg-primary/10 text-primary'
-                  : 'hover:bg-accent text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <item.icon size={20} />
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="h-px bg-border mx-4 opacity-50" />
 
-        <div className="p-4 border-t border-border">
-          <div className="mb-4 px-4 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground">
-              <UserIcon size={16} />
+        {/* 2. MAIN NAVIGATION */}
+        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6 scrollbar-none">
+
+          {/* Section: Main */}
+          <div className="space-y-1">
+            <div className="px-3 text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-2 opacity-70">
+              Overview
             </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-foreground">My Account</span>
-              <Link
-                to="/profile"
-                className="text-[10px] text-muted-foreground hover:text-primary transition-colors"
-              >
-                View Profile
-              </Link>
-            </div>
+            {MAIN_NAV.map((item) => {
+              const isActive = isPathActive(item.path);
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className="relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 group"
+                >
+                  {/* Liquid Active Background */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="desktop-nav-active"
+                      className="absolute inset-0 bg-primary shadow-lg shadow-primary/20 rounded-xl"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+
+                  {/* Hover Background */}
+                  {!isActive && (
+                    <div className="absolute inset-0 bg-secondary/50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                  )}
+
+                  <item.icon
+                    size={20}
+                    className={cn(
+                      "relative z-10 transition-colors duration-200",
+                      isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
+                    )}
+                  />
+                  <span className={cn(
+                    "relative z-10 font-medium text-sm transition-colors duration-200",
+                    isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
+                  )}>
+                    {item.label}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
+
+          {/* Section: Auxiliary */}
+          <div className="space-y-1">
+            <div className="px-3 text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-2 opacity-70">
+              Other
+            </div>
+            {SECONDARY_NAV.map((item) => {
+              const isActive = isPathActive(item.path);
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className="relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 group"
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="desktop-nav-active"
+                      className="absolute inset-0 bg-primary shadow-lg shadow-primary/20 rounded-xl"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+
+                  {!isActive && (
+                    <div className="absolute inset-0 bg-secondary/50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                  )}
+
+                  <item.icon
+                    size={20}
+                    className={cn(
+                      "relative z-10 transition-colors duration-200",
+                      isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
+                    )}
+                  />
+                  <span className={cn(
+                    "relative z-10 font-medium text-sm transition-colors duration-200",
+                    isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
+                  )}>
+                    {item.label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+
+        </div>
+
+        {/* 3. BOTTOM ACTIONS */}
+        <div className="p-3 border-t border-border mt-auto">
           <button
             onClick={logout}
-            className="flex items-center gap-3 px-4 py-2 w-full text-sm font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+            className="flex w-full items-center gap-3 px-3 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-xl transition-all duration-200 group"
           >
-            <LogOutIcon size={18} />
-            Logout
+            <LogOutIcon size={20} className="opacity-70 group-hover:opacity-100" />
+            <span>Log Out</span>
           </button>
         </div>
       </aside>
 
-      {/* --- Main Content Area --- */}
-      <main className="flex-1 min-w-0 md:ml-64 pb-24 md:pb-8 relative overflow-x-hidden bg-muted/20">
-        <div className="container mx-auto p-4 md:p-8 max-w-7xl">
-          <Outlet />
+      {/*
+        ========================================
+        MAIN CONTENT AREA
+        ========================================
+      */}
+      <main className="flex-1 relative h-full overflow-hidden">
+        {/* Decorative Background Blobs (Using Semantic Colors) */}
+        <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-chart-4/5 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="h-full overflow-y-auto overflow-x-hidden p-4 md:p-6 pb-32 md:pb-6 scroll-smooth">
+          {/* Mobile Header */}
+          <div className="md:hidden flex items-center justify-between mb-6 px-2">
+            <h1 className="text-xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
+                <SparklesIcon size={18} />
+              </div>
+              {APP_TITLE}
+            </h1>
+            <Link to="/profile">
+               <div className="w-9 h-9 rounded-full bg-secondary border border-border overflow-hidden">
+                 <img src={avatarUrl} alt="user" className="w-full h-full object-cover" />
+               </div>
+            </Link>
+          </div>
+
+          <div className="max-w-6xl mx-auto">
+            <Outlet />
+          </div>
         </div>
       </main>
 
-      {/* --- Mobile Bottom Nav --- */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-md border-t border-border z-50 pb-safe shadow-lg">
-        <div className="flex justify-around items-center h-16">
-          {NAV_ITEMS.map((item) => (
-            <Link
+      {/*
+        ========================================
+        MOBILE FLOATING NAVBAR
+        ========================================
+      */}
+      <nav className="md:hidden fixed bottom-6 left-6 right-6 h-[72px] bg-card/90 backdrop-blur-2xl border border-border rounded-4xl shadow-xl z-50 flex items-center justify-between px-2">
+
+        {/* 1. PROFILE (First Item) */}
+        <Link
+          to="/profile"
+          className="relative flex-1 flex flex-col items-center justify-center h-full group"
+        >
+           {isPathActive('/profile') && (
+             <motion.div
+               layoutId="mobile-nav-active"
+               className="absolute w-12 h-12 bg-primary rounded-full shadow-lg shadow-primary/30 -z-10"
+               transition={{ type: "spring", stiffness: 300, damping: 25 }}
+             />
+           )}
+           <UserIcon
+             size={24}
+             className={cn(
+               "transition-all duration-300",
+               isPathActive('/profile') ? "text-primary-foreground scale-110" : "text-muted-foreground group-active:scale-90"
+             )}
+             strokeWidth={isPathActive('/profile') ? 2.5 : 2}
+           />
+        </Link>
+
+        {/* 2. MAIN NAV ITEMS */}
+        {MAIN_NAV.map((item) => {
+          const isActive = isPathActive(item.path);
+          return (
+             <Link
               key={item.path}
               to={item.path}
-              className={cn(
-                'flex flex-col items-center justify-center w-full h-full gap-1 active:scale-95 transition-transform',
-                isObjActive(item.path)
-                  ? 'text-primary'
-                  : 'text-muted-foreground'
-              )}
-            >
-              <item.icon
-                size={24}
-                strokeWidth={isObjActive(item.path) ? 2.5 : 2}
-              />
-              <span className="text-[10px] font-medium">{item.label}</span>
-            </Link>
-          ))}
-        </div>
+              className="relative flex-1 flex flex-col items-center justify-center h-full group"
+             >
+               {isActive && (
+                 <motion.div
+                   layoutId="mobile-nav-active"
+                   className="absolute w-12 h-12 bg-primary rounded-full shadow-lg shadow-primary/30 -z-10"
+                   transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                 />
+               )}
+
+               <item.icon
+                 size={24}
+                 className={cn(
+                   "transition-all duration-300",
+                   isActive ? "text-primary-foreground scale-110" : "text-muted-foreground group-active:scale-90"
+                 )}
+                 strokeWidth={isActive ? 2.5 : 2}
+               />
+             </Link>
+          );
+        })}
       </nav>
     </div>
   );
