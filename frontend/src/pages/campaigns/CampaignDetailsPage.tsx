@@ -18,12 +18,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Pagination } from '@/shared/ui/pagination';
+import { Skeleton } from '@/shared/ui/skeleton'; // New
 import { StreamGraph } from '@/widgets/charts/StreamGraph';
 import { HeatmapChart } from '@/widgets/charts/HeatmapChart';
 import { GeoMap } from '@/widgets/charts/GeoMap';
 import { DateRangePicker } from '@/features/analytics-filters/DateRangePicker';
 import { ConfirmationModal } from '@/shared/ui/confirmation-modal';
-import { LinkCard } from '@/entities/link/ui/LinkCard'; // New Import
+import { LinkCard } from '@/entities/link/ui/LinkCard';
 
 import { useAnalyticsFilter } from '@/entities/analytics/model/filters';
 import { analyticsApi } from '@/entities/analytics/api';
@@ -44,13 +45,13 @@ import type {
   PaginationMeta,
 } from '@/shared/api/types';
 import { CreateLinkFeature } from '@/features/create-link/CreateLinkFeature';
-import { useLinkStore } from '@/entities/link/model/store'; // Import store for delete action
+import { useLinkStore } from '@/entities/link/model/store';
 
 export const CampaignDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const deleteLinkStore = useLinkStore(s => s.deleteLink); // Hook up delete action
+  const deleteLinkStore = useLinkStore(s => s.deleteLink);
 
   const activeTab = searchParams.get('tab') || 'overview';
   const setActiveTab = (tab: string) => {
@@ -58,7 +59,11 @@ export const CampaignDetailsPage = () => {
   };
 
   const { startDate, endDate } = useAnalyticsFilter();
-  const [loading, setLoading] = useState(true);
+
+  // Split loading states
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [metaLoading, setMetaLoading] = useState(true);
+
   const [campaign, setCampaign] = useState<Campaign | null>(null);
 
   const [links, setLinks] = useState<Link[]>([]);
@@ -69,7 +74,6 @@ export const CampaignDetailsPage = () => {
   });
   const [linksLoading, setLinksLoading] = useState(false);
 
-  // Delete Modal State
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -87,32 +91,43 @@ export const CampaignDetailsPage = () => {
       .map((g) => ({ name: g.country, value: g.value, share: 0 }));
   }, [geoData]);
 
-  // --- Analytics Loading ---
+  // 1. Fetch Campaign Meta separately (Fast)
+  useEffect(() => {
+      if (!id) return;
+      const loadMeta = async () => {
+          setMetaLoading(true);
+          try {
+             // Optimization: In real app, stick to /campaigns/:id. Here we filter list.
+             const { data } = await api.get<CampaignsListResponse>('/campaigns', {
+                 params: { limit: 100 },
+             });
+             const found = data.data.find(c => c.id === id);
+             if (found) setCampaign(found);
+          } catch(e) { console.error(e) }
+          finally { setMetaLoading(false); }
+      };
+      loadMeta();
+  }, [id]);
+
+  // 2. Fetch Analytics (Slower)
   useEffect(() => {
     if (!id) return;
     const loadAnalytics = async () => {
-      setLoading(true);
+      setAnalyticsLoading(true);
       try {
         const params = {
           from: toRFC3339(startDate),
           to: toRFC3339(endDate),
           campaign_id: id,
         };
-        const metaReq = api.get<CampaignsListResponse>('/campaigns', {
-          params: { limit: 100 },
-        });
-        const analyticsReq = Promise.all([
+
+        const [sum, stream, heatmap, geo, dev] = await Promise.all([
           analyticsApi.getSummary(params),
           analyticsApi.getStream(undefined, params),
           analyticsApi.getHeatmap(undefined, params),
           analyticsApi.getGeoStats(params),
           analyticsApi.getStats('device', params),
         ]);
-        const [metaRes, analyticsRes] = await Promise.all([metaReq, analyticsReq]);
-        const [sum, stream, heatmap, geo, dev] = analyticsRes;
-
-        const foundCampaign = metaRes.data.data.find((c) => c.id === id);
-        if (foundCampaign) setCampaign(foundCampaign);
 
         setSummary(sum);
         setGeoData(geo);
@@ -143,13 +158,12 @@ export const CampaignDetailsPage = () => {
       } catch (e) {
         console.error('Failed to load campaign analytics', e);
       } finally {
-        setLoading(false);
+        setAnalyticsLoading(false);
       }
     };
     loadAnalytics();
   }, [id, startDate, endDate]);
 
-  // --- Links Loading ---
   const fetchLinks = async (offset: number) => {
     if (!id) return;
     setLinksLoading(true);
@@ -185,7 +199,7 @@ export const CampaignDetailsPage = () => {
     try {
       await deleteLinkStore(deleteId);
       setDeleteId(null);
-      fetchLinks(linksMeta.offset); // Refresh list
+      fetchLinks(linksMeta.offset);
     } catch (e) {
       console.error("Failed to delete link", e);
     } finally {
@@ -193,21 +207,10 @@ export const CampaignDetailsPage = () => {
     }
   };
 
-  // Callback for CreateFeature
   const handleCreateSuccess = () => {
-    // Reset to first page and reload
     setLinksMeta(prev => ({ ...prev, offset: 0 }));
     fetchLinks(0);
   };
-
-  if (loading && !campaign) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-muted-foreground animate-pulse">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        <p className="font-medium">Loading Campaign Intelligence...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
@@ -226,26 +229,35 @@ export const CampaignDetailsPage = () => {
 
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 text-primary rounded-lg">
-                <LayersIcon size={24} />
-              </div>
-              <h1 className="text-3xl font-bold text-foreground">
-                {campaign?.name || 'Campaign Details'}
-              </h1>
-            </div>
+            {metaLoading ? (
+               <div className="space-y-2">
+                   <Skeleton className="h-10 w-64" />
+                   <Skeleton className="h-4 w-48" />
+               </div>
+            ) : (
+                <>
+                    <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 text-primary rounded-lg">
+                        <LayersIcon size={24} />
+                    </div>
+                    <h1 className="text-3xl font-bold text-foreground">
+                        {campaign?.name || 'Campaign Details'}
+                    </h1>
+                    </div>
 
-            <div className="flex items-center gap-4 mt-3 ml-1 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <CalendarIcon size={14} /> Created{' '}
-                {campaign
-                  ? new Date(campaign.created_at).toLocaleDateString()
-                  : '-'}
-              </span>
-              <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-secondary text-secondary-foreground font-medium">
-                <LinkIcon size={12} /> {linksMeta.total} Links
-              </span>
-            </div>
+                    <div className="flex items-center gap-4 mt-3 ml-1 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                        <CalendarIcon size={14} /> Created{' '}
+                        {campaign
+                        ? new Date(campaign.created_at).toLocaleDateString()
+                        : '-'}
+                    </span>
+                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-secondary text-secondary-foreground font-medium">
+                        <LinkIcon size={12} /> {linksMeta.total} Links
+                    </span>
+                    </div>
+                </>
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-row items-end gap-3 w-full sm:w-auto">
@@ -290,24 +302,28 @@ export const CampaignDetailsPage = () => {
               title="Total Clicks"
               value={summary?.total_clicks || 0}
               icon={<MousePointerClick size={18} />}
+              loading={analyticsLoading}
             />
             <KpiCard
               title="Active Links"
               value={linksMeta.total}
               icon={<LinkIcon size={18} />}
               isText
+              loading={metaLoading} // Link count comes from link fetch which is part of flow
             />
             <KpiCard
               title="Top Country"
               value={topCountries[0]?.name || '-'}
               icon={<GlobeIcon size={18} />}
               isText
+              loading={analyticsLoading}
             />
             <KpiCard
               title="Top Device"
               value={statsDevice[0]?.name || '-'}
               icon={<SmartphoneIcon size={18} />}
               isText
+              loading={analyticsLoading}
             />
           </div>
 
@@ -316,7 +332,9 @@ export const CampaignDetailsPage = () => {
               <CardTitle>Performance Trend</CardTitle>
             </CardHeader>
             <CardContent className="h-[400px]">
-              {streamData.length > 0 ? (
+              {analyticsLoading ? (
+                 <Skeleton className="w-full h-full" />
+              ) : streamData.length > 0 ? (
                 <StreamGraph data={streamData} keys={streamKeys} />
               ) : (
                 <NoData />
@@ -330,7 +348,15 @@ export const CampaignDetailsPage = () => {
                 <CardTitle>Global Reach</CardTitle>
               </CardHeader>
               <CardContent className="h-[300px] w-full overflow-hidden p-0">
-                {geoData.length > 0 ? <GeoMap data={geoData} /> : <NoData />}
+                 {analyticsLoading ? (
+                    <div className="p-6 h-full">
+                       <Skeleton className="w-full h-full" />
+                    </div>
+                 ) : geoData.length > 0 ? (
+                    <GeoMap data={geoData} />
+                 ) : (
+                    <NoData />
+                 )}
               </CardContent>
             </Card>
 
@@ -339,11 +365,13 @@ export const CampaignDetailsPage = () => {
                 <CardTitle>Activity Heatmap</CardTitle>
               </CardHeader>
               <CardContent className="h-[300px]">
-                {heatmapData.length > 0 ? (
-                  <HeatmapChart data={heatmapData} />
-                ) : (
-                  <NoData />
-                )}
+                 {analyticsLoading ? (
+                    <Skeleton className="w-full h-full" />
+                 ) : heatmapData.length > 0 ? (
+                    <HeatmapChart data={heatmapData} />
+                 ) : (
+                    <NoData />
+                 )}
               </CardContent>
             </Card>
           </div>
@@ -358,7 +386,6 @@ export const CampaignDetailsPage = () => {
                 <h3 className="text-lg font-bold">Manage Links</h3>
                 <p className="text-sm text-muted-foreground">Create, edit or delete links in this campaign.</p>
              </div>
-             {/* Pass Success Callback */}
              <CreateLinkFeature
                 selectedCampaignId={id}
                 onSuccess={handleCreateSuccess}
@@ -370,7 +397,7 @@ export const CampaignDetailsPage = () => {
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-20 bg-muted/50 rounded-lg animate-pulse"
+                  className="h-24 bg-muted/50 rounded-xl animate-pulse"
                 />
               ))}
             </div>
@@ -384,7 +411,6 @@ export const CampaignDetailsPage = () => {
             <>
               <div className="grid gap-3">
                 {links.map((link) => (
-                   // Use Shared LinkCard
                   <LinkCard
                     key={link.id}
                     link={link}
@@ -425,24 +451,29 @@ interface KpiCardProps {
   value: string | number;
   icon: React.ReactElement;
   isText?: boolean;
+  loading?: boolean;
 }
 
-const KpiCard = ({ title, value, icon, isText = false }: KpiCardProps) => (
+const KpiCard = ({ title, value, icon, isText = false, loading = false }: KpiCardProps) => (
   <Card>
     <CardContent className="p-6 flex flex-col justify-between h-full">
       <div className="flex items-center justify-between mb-2">
         <span className="text-sm font-medium text-muted-foreground">{title}</span>
         <div className="text-muted-foreground">{icon}</div>
       </div>
-      <div
-        className={`font-bold text-foreground ${isText ? 'text-lg truncate' : 'text-3xl'}`}
-      >
-        {isText
-          ? value
-          : new Intl.NumberFormat('en-US', { notation: 'compact' }).format(
-              value as number
-            )}
-      </div>
+      {loading ? (
+         <Skeleton className="h-8 w-24" />
+      ) : (
+        <div
+            className={`font-bold text-foreground ${isText ? 'text-lg truncate' : 'text-3xl'}`}
+        >
+            {isText
+            ? value
+            : new Intl.NumberFormat('en-US', { notation: 'compact' }).format(
+                value as number
+                )}
+        </div>
+      )}
     </CardContent>
   </Card>
 );

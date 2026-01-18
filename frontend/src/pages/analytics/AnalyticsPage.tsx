@@ -13,6 +13,7 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
+import { Skeleton } from '@/shared/ui/skeleton'; // New
 import { StreamGraph } from '@/widgets/charts/StreamGraph';
 import { HeatmapChart } from '@/widgets/charts/HeatmapChart';
 import { QualityRadar } from '@/widgets/charts/QualityRadar';
@@ -46,6 +47,7 @@ export const AnalyticsPage = () => {
   const { startDate, endDate } = useAnalyticsFilter();
 
   const [loading, setLoading] = useState(true);
+  const [metaLoading, setMetaLoading] = useState(true);
   const [linkMeta, setLinkMeta] = useState<Link | null>(null);
   const [isQrOpen, setIsQrOpen] = useState(false);
 
@@ -82,6 +84,21 @@ export const AnalyticsPage = () => {
       .slice(0, 8);
   }, [flowData]);
 
+  // Load Meta separately to show header fast
+  useEffect(() => {
+    if(!id) return;
+    const loadMeta = async () => {
+        setMetaLoading(true);
+        try {
+            const meta = await linkApi.getLinkById(id);
+            if (meta) setLinkMeta(meta);
+        } catch(e) { console.error(e) }
+        finally { setMetaLoading(false); }
+    }
+    loadMeta();
+  }, [id]);
+
+  // Load Heavy Analytics
   useEffect(() => {
     if (!id) return;
 
@@ -94,28 +111,19 @@ export const AnalyticsPage = () => {
           link_id: id,
         };
 
-        const metaPromise = linkApi.getLinkById(id);
-
-        const analyticsPromise = Promise.all([
-          analyticsApi.getSummary(params),
-          analyticsApi.getStream(id, params),
-          analyticsApi.getHeatmap(id, params),
-          analyticsApi.getQuality(id, params),
-          analyticsApi.getFlow(id, params),
-          analyticsApi.getGeoStats(params),
-          analyticsApi.getStats('os', params),
-          analyticsApi.getStats('browser', params),
-          analyticsApi.getStats('device', params),
-        ]);
-
-        const [meta, analyticsRes] = await Promise.all([
-          metaPromise,
-          analyticsPromise,
-        ]);
         const [sum, stream, heatmap, quality, flow, geo, os, browser, device] =
-          analyticsRes;
+          await Promise.all([
+            analyticsApi.getSummary(params),
+            analyticsApi.getStream(id, params),
+            analyticsApi.getHeatmap(id, params),
+            analyticsApi.getQuality(id, params),
+            analyticsApi.getFlow(id, params),
+            analyticsApi.getGeoStats(params),
+            analyticsApi.getStats('os', params),
+            analyticsApi.getStats('browser', params),
+            analyticsApi.getStats('device', params),
+          ]);
 
-        if (meta) setLinkMeta(meta);
         setSummary(sum);
 
         const keyTotals: Record<string, number> = {};
@@ -159,15 +167,6 @@ export const AnalyticsPage = () => {
     loadData();
   }, [id, startDate, endDate]);
 
-  if (loading) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-muted-foreground animate-pulse">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        <p className="font-medium">Aggregating analytics data...</p>
-      </div>
-    );
-  }
-
   const topCountryName = topCountries[0]?.name || '-';
 
   return (
@@ -184,75 +183,88 @@ export const AnalyticsPage = () => {
             <ArrowLeft size={16} /> Back to Links
           </Button>
 
-          {linkMeta && (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={() => setIsQrOpen(true)}
-              >
-                <QrCodeIcon size={14} /> QR Code
-              </Button>
+          <div className="flex items-center gap-2">
+              {metaLoading ? (
+                  <Skeleton className="h-9 w-32" />
+              ) : linkMeta && (
+                  <>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => setIsQrOpen(true)}
+                    >
+                        <QrCodeIcon size={14} /> QR Code
+                    </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={() => {
-                  navigator.clipboard.writeText(getShortLink(linkMeta.slug));
-                }}
-              >
-                <CopyIcon size={14} /> Copy Short Link
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="gap-2"
-                onClick={() => {
-                  if (linkMeta.campaign_id)
-                    navigate(`/campaigns/${linkMeta.campaign_id}`);
-                  else navigate('/campaigns');
-                }}
-              >
-                <LayersIcon size={14} /> Campaign
-              </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => {
+                        navigator.clipboard.writeText(getShortLink(linkMeta.slug));
+                        }}
+                    >
+                        <CopyIcon size={14} /> Copy Short Link
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => {
+                        if (linkMeta.campaign_id)
+                            navigate(`/campaigns/${linkMeta.campaign_id}`);
+                        else navigate('/campaigns');
+                        }}
+                    >
+                        <LayersIcon size={14} /> Campaign
+                    </Button>
+                  </>
+              )}
             </div>
-          )}
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-foreground">
-                /{linkMeta?.slug || id}
-              </h1>
-              {linkMeta && (
-                <span
-                  className={cn(
-                    'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider',
-                    linkMeta.is_active
-                      ? 'bg-chart-2/10 text-chart-2'
-                      : 'bg-destructive/10 text-destructive'
-                  )}
-                >
-                  {linkMeta.is_active ? 'Active' : 'Inactive'}
-                </span>
-              )}
-            </div>
+            {metaLoading ? (
+                <div className="space-y-2">
+                    <Skeleton className="h-10 w-64" />
+                    <Skeleton className="h-4 w-96" />
+                </div>
+            ) : (
+                <>
+                    <div className="flex items-center gap-3 mb-2">
+                    <h1 className="text-3xl font-bold text-foreground">
+                        /{linkMeta?.slug || id}
+                    </h1>
+                    {linkMeta && (
+                        <span
+                        className={cn(
+                            'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider',
+                            linkMeta.is_active
+                            ? 'bg-chart-2/10 text-chart-2'
+                            : 'bg-destructive/10 text-destructive'
+                        )}
+                        >
+                        {linkMeta.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    )}
+                    </div>
 
-            {linkMeta && (
-              <div className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
-                <ExternalLinkIcon size={14} />
-                <a
-                  href={linkMeta.target_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-sm truncate max-w-[300px] md:max-w-[500px] underline underline-offset-4"
-                >
-                  {linkMeta.target_url}
-                </a>
-              </div>
+                    {linkMeta && (
+                    <div className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+                        <ExternalLinkIcon size={14} />
+                        <a
+                        href={linkMeta.target_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm truncate max-w-[300px] md:max-w-[500px] underline underline-offset-4"
+                        >
+                        {linkMeta.target_url}
+                        </a>
+                    </div>
+                    )}
+                </>
             )}
           </div>
 
@@ -266,24 +278,28 @@ export const AnalyticsPage = () => {
           title="Total Clicks"
           value={summary?.total_clicks || 0}
           icon={<MousePointerClick size={18} />}
+          loading={loading}
         />
         <KpiCard
           title="Top Country"
           value={topCountryName}
           icon={<GlobeIcon size={18} />}
           isText
+          loading={loading}
         />
         <KpiCard
           title="Top OS"
           value={statsOS[0]?.name || '-'}
           icon={<MonitorIcon size={18} />}
           isText
+          loading={loading}
         />
         <KpiCard
           title="Top Source"
           value={topReferrers[0]?.name || 'Direct'}
           icon={<ExternalLinkIcon size={18} />}
           isText
+          loading={loading}
         />
       </div>
 
@@ -293,7 +309,9 @@ export const AnalyticsPage = () => {
           <CardTitle>Traffic Dynamics</CardTitle>
         </CardHeader>
         <CardContent className="h-[400px]">
-          {streamData.length > 0 ? (
+          {loading ? (
+             <Skeleton className="w-full h-full" />
+          ) : streamData.length > 0 ? (
             <StreamGraph data={streamData} keys={streamKeys} />
           ) : (
             <NoData />
@@ -309,7 +327,13 @@ export const AnalyticsPage = () => {
             <p className="text-sm text-muted-foreground">Where traffic comes from</p>
           </CardHeader>
           <CardContent>
-            <BarListChart data={topReferrers} color="bg-chart-5" />
+             {loading ? (
+                <div className="space-y-3">
+                   {[1,2,3,4].map(i => <Skeleton key={i} className="h-6 w-full" />)}
+                </div>
+             ) : (
+                <BarListChart data={topReferrers} color="bg-chart-5" />
+             )}
           </CardContent>
         </Card>
 
@@ -318,7 +342,15 @@ export const AnalyticsPage = () => {
             <CardTitle>Global Reach</CardTitle>
           </CardHeader>
           <CardContent className="h-[400px] w-full overflow-hidden p-0">
-            {geoData.length > 0 ? <GeoMap data={geoData} /> : <NoData />}
+             {loading ? (
+                 <div className="p-6 h-full">
+                    <Skeleton className="w-full h-full" />
+                 </div>
+             ) : geoData.length > 0 ? (
+                <GeoMap data={geoData} />
+             ) : (
+                <NoData />
+             )}
           </CardContent>
         </Card>
       </div>
@@ -329,13 +361,15 @@ export const AnalyticsPage = () => {
           title="Device Type"
           data={statsDevice}
           color="bg-chart-1"
+          loading={loading}
         />
         <StatsCard
           title="Operating System"
           data={statsOS}
           color="bg-chart-2"
+          loading={loading}
         />
-        <StatsCard title="Browser" data={statsBrowser} color="bg-chart-3" />
+        <StatsCard title="Browser" data={statsBrowser} color="bg-chart-3" loading={loading} />
       </div>
 
       {/* --- 6. FLOW & QUALITY --- */}
@@ -346,7 +380,9 @@ export const AnalyticsPage = () => {
             <p className="text-sm text-muted-foreground">Referer → Device → Country</p>
           </CardHeader>
           <CardContent className="h-[350px]">
-            {flowData.nodes.length > 0 ? (
+             {loading ? (
+                <Skeleton className="w-full h-full" />
+             ) : flowData.nodes.length > 0 ? (
               <SankeyChart data={flowData} />
             ) : (
               <NoData />
@@ -359,7 +395,13 @@ export const AnalyticsPage = () => {
             <CardTitle>Quality Score</CardTitle>
           </CardHeader>
           <CardContent className="h-[350px]">
-            {qualityData ? <QualityRadar data={qualityData} /> : <NoData />}
+             {loading ? (
+                <Skeleton className="w-full h-full rounded-full" />
+             ) : qualityData ? (
+                <QualityRadar data={qualityData} />
+             ) : (
+                <NoData />
+             )}
           </CardContent>
         </Card>
       </div>
@@ -370,7 +412,9 @@ export const AnalyticsPage = () => {
           <CardTitle>Engagement Heatmap</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px]">
-          {heatmapData.length > 0 ? (
+           {loading ? (
+              <Skeleton className="w-full h-full" />
+           ) : heatmapData.length > 0 ? (
             <HeatmapChart data={heatmapData} />
           ) : (
             <NoData />
@@ -395,11 +439,13 @@ const KpiCard = ({
   value,
   icon,
   isText = false,
+  loading = false,
 }: {
   title: string;
   value: string | number;
   icon: React.ReactNode;
   isText?: boolean;
+  loading?: boolean;
 }) => (
   <Card>
     <CardContent className="p-6 flex flex-col justify-between h-full">
@@ -407,16 +453,20 @@ const KpiCard = ({
         <span className="text-sm font-medium text-muted-foreground">{title}</span>
         <div className="text-muted-foreground">{icon}</div>
       </div>
-      <div
-        className={`font-bold text-foreground ${isText ? 'text-lg truncate' : 'text-3xl'}`}
-        title={String(value)}
-      >
-        {isText
-          ? value
-          : new Intl.NumberFormat('en-US', { notation: 'compact' }).format(
-              Number(value)
-            )}
-      </div>
+      {loading ? (
+         <Skeleton className="h-8 w-24" />
+      ) : (
+        <div
+            className={`font-bold text-foreground ${isText ? 'text-lg truncate' : 'text-3xl'}`}
+            title={String(value)}
+        >
+            {isText
+            ? value
+            : new Intl.NumberFormat('en-US', { notation: 'compact' }).format(
+                Number(value)
+                )}
+        </div>
+      )}
     </CardContent>
   </Card>
 );
@@ -425,17 +475,25 @@ const StatsCard = ({
   title,
   data,
   color,
+  loading,
 }: {
   title: string;
   data: CategoryStat[];
   color: string;
+  loading: boolean;
 }) => (
   <Card>
     <CardHeader className="pb-2">
       <CardTitle className="text-lg">{title}</CardTitle>
     </CardHeader>
     <CardContent>
-      <BarListChart data={data} color={color} />
+       {loading ? (
+          <div className="space-y-3">
+             {[1,2,3].map(i => <Skeleton key={i} className="h-6 w-full" />)}
+          </div>
+       ) : (
+          <BarListChart data={data} color={color} />
+       )}
     </CardContent>
   </Card>
 );

@@ -16,6 +16,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/shared/ui/card';
+import { Skeleton } from '@/shared/ui/skeleton'; // New import
 import { StreamGraph } from '@/widgets/charts/StreamGraph';
 import { HeatmapChart } from '@/widgets/charts/HeatmapChart';
 import { QualityRadar } from '@/widgets/charts/QualityRadar';
@@ -29,7 +30,6 @@ import { useAnalyticsFilter } from '@/entities/analytics/model/filters';
 import { analyticsApi } from '@/entities/analytics/api';
 import { toRFC3339 } from '@/shared/lib/date';
 import { cn } from '@/shared/lib/utils';
-import { CHART_COLORS } from '@/shared/config/theme';
 
 import type {
   HierarchyNode,
@@ -155,20 +155,6 @@ export const DashboardPage = () => {
     loadData();
   }, [startDate, endDate]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-muted-foreground font-medium">
-          Assembling your command center...
-        </p>
-      </div>
-    );
-  }
-
-  const _unusedColors = CHART_COLORS;
-  console.log('Theme active:', _unusedColors.length > 0);
-
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       {/* --- HEADER --- */}
@@ -191,6 +177,7 @@ export const DashboardPage = () => {
           value={summary?.total_clicks || 0}
           icon={<MousePointerClick className="text-primary" />}
           trend="Volumetric"
+          loading={loading}
         />
         <KpiCard
           title="Human Traffic"
@@ -198,18 +185,21 @@ export const DashboardPage = () => {
           icon={<ShieldCheckIcon className="text-chart-2" />}
           trend="Quality Score"
           isText
+          loading={loading}
         />
         <KpiCard
           title="Active Campaigns"
           value={inventoryStats.campaigns}
           icon={<LayersIcon className="text-chart-3" />}
           trend="Inventory"
+          loading={loading}
         />
         <KpiCard
           title="Active Links"
           value={inventoryStats.links}
           icon={<ActivityIcon className="text-chart-4" />}
           trend="Inventory"
+          loading={loading}
         />
       </div>
 
@@ -222,7 +212,9 @@ export const DashboardPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="h-[350px]">
-          {streamData.length > 0 ? (
+          {loading ? (
+            <Skeleton className="w-full h-full" />
+          ) : streamData.length > 0 ? (
             <StreamGraph data={streamData} keys={streamKeys} />
           ) : (
             <NoData />
@@ -236,7 +228,13 @@ export const DashboardPage = () => {
           <CardDescription>Campaigns & Links</CardDescription>
         </CardHeader>
         <CardContent className="h-[300px]">
-          {treeData ? <HierarchyTree data={treeData} /> : <NoData />}
+          {loading ? (
+            <Skeleton className="w-full h-full" />
+          ) : treeData ? (
+            <HierarchyTree data={treeData} />
+          ) : (
+            <NoData />
+          )}
         </CardContent>
       </Card>
 
@@ -248,7 +246,15 @@ export const DashboardPage = () => {
             <CardDescription>Traffic intensity by region</CardDescription>
           </CardHeader>
           <CardContent className="h-[400px] w-full p-0 overflow-hidden">
-            {geoData.length > 0 ? <GeoMap data={geoData} /> : <NoData />}
+             {loading ? (
+                <div className="p-6 h-full">
+                   <Skeleton className="w-full h-full rounded-none" />
+                </div>
+             ) : geoData.length > 0 ? (
+                <GeoMap data={geoData} />
+             ) : (
+                <NoData />
+             )}
           </CardContent>
         </Card>
         <Card>
@@ -256,8 +262,13 @@ export const DashboardPage = () => {
             <CardTitle>Top Countries</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* Using semantic class for color */}
-            <BarListChart data={topCountries} color="bg-primary" />
+            {loading ? (
+               <div className="space-y-3">
+                  {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-6 w-full" />)}
+               </div>
+            ) : (
+               <BarListChart data={topCountries} color="bg-primary" />
+            )}
           </CardContent>
         </Card>
       </div>
@@ -272,7 +283,9 @@ export const DashboardPage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="h-[250px] flex items-center justify-center">
-            {Object.keys(deviceDonutData).length > 0 ? (
+            {loading ? (
+               <Skeleton className="w-48 h-48 rounded-full" />
+            ) : Object.keys(deviceDonutData).length > 0 ? (
               <DonutChart data={deviceDonutData} />
             ) : (
               <NoData />
@@ -288,7 +301,13 @@ export const DashboardPage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <BarListChart data={statsOS} color="bg-chart-2" />
+             {loading ? (
+                <div className="space-y-3">
+                   {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-6 w-full" />)}
+                </div>
+             ) : (
+                <BarListChart data={statsOS} color="bg-chart-2" />
+             )}
           </CardContent>
         </Card>
 
@@ -299,7 +318,13 @@ export const DashboardPage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <BarListChart data={statsBrowser} color="bg-chart-3" />
+             {loading ? (
+                <div className="space-y-3">
+                   {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-6 w-full" />)}
+                </div>
+             ) : (
+                <BarListChart data={statsBrowser} color="bg-chart-3" />
+             )}
           </CardContent>
         </Card>
       </div>
@@ -312,7 +337,9 @@ export const DashboardPage = () => {
             <CardDescription>Engagement heatmap</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
-            {heatmapData.length > 0 ? (
+            {loading ? (
+               <Skeleton className="w-full h-full" />
+            ) : heatmapData.length > 0 ? (
               <HeatmapChart data={heatmapData} />
             ) : (
               <NoData />
@@ -326,7 +353,13 @@ export const DashboardPage = () => {
             <CardDescription>Bot vs Human Analysis</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
-            {qualityData ? <QualityRadar data={qualityData} /> : <NoData />}
+            {loading ? (
+               <Skeleton className="w-full h-full rounded-full" />
+            ) : qualityData ? (
+               <QualityRadar data={qualityData} />
+            ) : (
+               <NoData />
+            )}
           </CardContent>
         </Card>
       </div>
@@ -342,6 +375,7 @@ interface KpiCardProps {
   icon: React.ReactNode;
   trend: string;
   isText?: boolean;
+  loading?: boolean;
 }
 
 const KpiCard = ({
@@ -350,6 +384,7 @@ const KpiCard = ({
   icon,
   trend,
   isText = false,
+  loading = false,
 }: KpiCardProps) => (
   <Card className="hover:border-primary/50 transition-colors">
     <CardContent className="p-6">
@@ -363,18 +398,22 @@ const KpiCard = ({
       </div>
       <div>
         <p className="text-sm font-medium text-muted-foreground">{title}</p>
-        <h3
-          className={cn(
-            'font-bold text-foreground',
-            isText ? 'text-xl' : 'text-3xl'
-          )}
-        >
-          {typeof value === 'number'
-            ? new Intl.NumberFormat('en-US', { notation: 'compact' }).format(
-                value
-              )
-            : value}
-        </h3>
+        {loading ? (
+           <Skeleton className="h-8 w-24 mt-1" />
+        ) : (
+           <h3
+             className={cn(
+               'font-bold text-foreground',
+               isText ? 'text-xl' : 'text-3xl'
+             )}
+           >
+             {typeof value === 'number'
+               ? new Intl.NumberFormat('en-US', { notation: 'compact' }).format(
+                   value
+                 )
+               : value}
+           </h3>
+        )}
       </div>
     </CardContent>
   </Card>
