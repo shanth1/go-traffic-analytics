@@ -4,20 +4,24 @@ type Theme = 'dark' | 'light';
 
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
+    // Check if the inline script in index.html already set the class
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('theme') as Theme;
-      if (saved) return saved;
-      return window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
+      return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
     }
     return 'light';
   });
 
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(theme);
+
+    // Force sync DOM with React state
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+
+    // Persist choice
     localStorage.setItem('theme', theme);
   }, [theme]);
 
