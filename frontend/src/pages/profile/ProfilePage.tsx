@@ -1,187 +1,377 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/entities/session/store';
 import { analyticsApi } from '@/entities/analytics/api';
+import { useTheme } from '@/shared/lib/hooks/useTheme';
 import { startOfMonth, endOfMonth } from '@/shared/lib/date';
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/shared/ui/card';
-import { Button } from '@/shared/ui/button';
-import {
-  UserIcon,
-  CreditCardIcon,
-  SettingsIcon,
-  ShieldIcon,
   LogOutIcon,
+  MoonIcon,
+  SunIcon,
   GlobeIcon,
+  MessageCircleIcon,
+  SparklesIcon,
+  ShieldCheckIcon,
+  CalendarIcon,
+  ZapIcon,
+  LinkIcon,
+  LayersIcon,
+  SendIcon,
+  AlertCircleIcon,
   RefreshCwIcon,
 } from 'lucide-react';
+import { cn } from '@/shared/lib/utils';
+import { Button } from '@/shared/ui/button';
+import { ResponsiveSheet } from '@/shared/ui/responsive-sheet';
+
+// --- UI Components ---
+
+interface ActionTileProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  icon: React.ReactNode;
+  label: string;
+  subLabel?: string;
+  active?: boolean;
+  variant?: 'default' | 'destructive' | 'outline';
+}
+
+const ActionTile = ({
+  icon,
+  label,
+  subLabel,
+  active,
+  variant = 'default',
+  className,
+  ...props
+}: ActionTileProps) => {
+  return (
+    <button
+      className={cn(
+        'group relative flex flex-col justify-between p-5 h-32 w-full rounded-2xl transition-all duration-300 border border-transparent',
+        variant === 'default' && 'bg-secondary hover:bg-primary/10 hover:border-primary/20',
+        variant === 'destructive' && 'bg-destructive/10 hover:bg-destructive/20 text-destructive',
+        variant === 'outline' && 'border-border hover:bg-accent',
+        active && 'bg-primary text-primary-foreground hover:bg-primary',
+        className
+      )}
+      {...props}
+    >
+      <div className={cn(
+        "p-2 rounded-full w-fit transition-colors",
+        active ? "bg-white/20" : "bg-background/50 group-hover:bg-background"
+      )}>
+        {icon}
+      </div>
+      <div className="text-left">
+        <div className={cn("font-bold text-lg", active ? "text-primary-foreground" : "text-foreground")}>
+          {label}
+        </div>
+        {subLabel && (
+          <div className={cn("text-xs font-medium mt-0.5", active ? "text-primary-foreground/80" : "text-muted-foreground")}>
+            {subLabel}
+          </div>
+        )}
+      </div>
+    </button>
+  );
+};
+
+const StatPill = ({
+  label,
+  value,
+  icon
+}: {
+  label: string;
+  value: string | number;
+  icon?: React.ReactNode;
+}) => (
+  <div className="flex flex-col justify-center px-5 py-4 bg-secondary/30 rounded-2xl border border-border hover:border-primary/20 transition-colors">
+    <div className="flex items-center gap-2 mb-1 text-muted-foreground">
+      {icon && <span className="opacity-70">{icon}</span>}
+      <span className="text-[10px] uppercase font-bold tracking-wider">
+        {label}
+      </span>
+    </div>
+    <span className="text-xl font-bold text-foreground">{value}</span>
+  </div>
+);
+
+// --- Modals ---
+
+const FeedbackModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  return (
+    <ResponsiveSheet isOpen={isOpen} onClose={onClose} title="Contact Support">
+      <div className="space-y-6">
+        <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
+          <h4 className="font-semibold flex items-center gap-2 mb-2 text-foreground">
+            <SendIcon size={18} className="text-primary" />
+            Telegram Support
+          </h4>
+          <p className="text-sm text-muted-foreground mb-4">
+            The fastest way to get help is via our Telegram bot.
+          </p>
+          <Button className="w-full gap-2" onClick={() => window.open('https://t.me/your_support_bot', '_blank')}>
+            Open Telegram
+          </Button>
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">Or send email</span>
+          </div>
+        </div>
+
+        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onClose(); alert("Message sent!"); }}>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Message</label>
+            <textarea
+              className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
+              placeholder="Describe your idea or issue..."
+            />
+          </div>
+          <Button variant="outline" type="submit" className="w-full">
+            Send Message
+          </Button>
+        </form>
+      </div>
+    </ResponsiveSheet>
+  );
+};
+
+// --- Page ---
 
 export const ProfilePage = () => {
   const { user, logout } = useAuthStore();
-  const [realtimeClicks, setRealtimeClicks] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
 
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+
+  // Real Data State
+  const [loading, setLoading] = useState(true);
+  const [clicksUsed, setClicksUsed] = useState(0);
+  const [inventory, setInventory] = useState({ campaigns: 0, links: 0 });
+
+  // 1. Fetch Real Data (Clicks & Inventory)
   useEffect(() => {
-    const fetchUsage = async () => {
-      setIsLoading(true);
+    if (!user) return;
+
+    const loadProfileData = async () => {
+      setLoading(true);
       try {
         const now = new Date();
-        const data = await analyticsApi.getSummary({
-          from: startOfMonth(now),
-          to: endOfMonth(now),
-        });
-        setRealtimeClicks(data?.total_clicks || 0);
+
+        // Parallel requests for speed
+        const [summaryData, treeData] = await Promise.all([
+          // Get clicks for current month
+          analyticsApi.getSummary({
+            from: startOfMonth(now),
+            to: endOfMonth(now),
+          }),
+          // Get hierarchy to count campaigns and links
+          analyticsApi.getHierarchy(),
+        ]);
+
+        // Set Clicks
+        setClicksUsed(summaryData?.total_clicks || 0);
+
+        // Calculate Inventory
+        let cCount = 0;
+        let lCount = 0;
+        if (treeData && treeData.children) {
+          cCount = treeData.children.length;
+          treeData.children.forEach(c => {
+            if (c.children) lCount += c.children.length;
+          });
+        }
+        setInventory({ campaigns: cCount, links: lCount });
+
       } catch (e) {
-        console.error('Failed to sync usage', e);
-        if (user) setRealtimeClicks(user.clicks_current_month);
+        console.error("Failed to load profile data", e);
+        // Fallback to session data if API fails
+        setClicksUsed(user.clicks_current_month);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
-    fetchUsage();
+
+    loadProfileData();
   }, [user]);
 
   if (!user) return null;
 
+  // 2. Logic for Limits
   const isPro = user.plan_id === 'pro' || user.plan_id === 'enterprise';
   const maxClicks = isPro ? 100000 : 1000;
 
-  const displayClicks =
-    isLoading && realtimeClicks === 0
-      ? user.clicks_current_month
-      : realtimeClicks;
-  const clicksUsage = (displayClicks / maxClicks) * 100;
+  // Use session data for immediate display, then replace with fresh API data
+  const displayClicks = loading && clicksUsed === 0 ? user.clicks_current_month : clicksUsed;
+  const usagePercent = Math.min((displayClicks / maxClicks) * 100, 100);
+
+  // Avatar
+  const avatarUrl = `https://api.dicebear.com/9.x/thumbs/svg?seed=Brian`;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 max-w-4xl mx-auto">
-      {/* Header Profile Info */}
-      <div className="flex items-center gap-4 mb-8">
-        <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-          <UserIcon size={40} />
+    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+
+      <div className="flex flex-col gap-2 mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Profile</h1>
+        <p className="text-muted-foreground">Manage your personal information and preferences.</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* --- LEFT COLUMN: CONTROL GRID --- */}
+        <div className="grid grid-cols-2 gap-4 h-fit order-2 lg:order-1">
+          {/* Theme Toggle */}
+          <ActionTile
+            icon={theme === 'dark' ? <MoonIcon size={20} /> : <SunIcon size={20} />}
+            label="Theme"
+            subLabel={theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
+            onClick={toggleTheme}
+            active={theme === 'dark'}
+          />
+
+          {/* Language (Stub) */}
+          <ActionTile
+            icon={<GlobeIcon size={20} />}
+            label="Language"
+            subLabel="English"
+            onClick={() => alert("Localization coming soon!")}
+          />
+
+          {/* Support */}
+          <ActionTile
+            icon={<MessageCircleIcon size={20} />}
+            label="Support"
+            subLabel="Contact us"
+            onClick={() => setIsFeedbackOpen(true)}
+          />
+
+          {/* Logout */}
+          <ActionTile
+            icon={<LogOutIcon size={20} />}
+            label="Sign Out"
+            subLabel="End session"
+            variant="destructive"
+            onClick={logout}
+          />
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{user.email.split('@')[0]}</h1>
-          <p className="text-muted-foreground">{user.email}</p>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="px-2 py-0.5 rounded-full bg-secondary text-xs font-medium border border-border capitalize text-foreground">
-              {user.role}
-            </span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-xs font-medium border capitalize ${
-                user.plan_id === 'free'
-                  ? 'bg-secondary border-border text-muted-foreground'
-                  : 'bg-chart-3/10 border-chart-3/20 text-chart-3'
-              }`}
-            >
-              {user.plan_id} Plan
-            </span>
+
+        {/* --- RIGHT COLUMN: INFO CARD --- */}
+        <div className="lg:col-span-2 order-1 lg:order-2">
+          <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-8 h-full">
+
+            {/* Header: Avatar & Info */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
+              <div className="w-28 h-28 rounded-full border-4 border-background shadow-lg overflow-hidden shrink-0 bg-primary/5">
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              </div>
+
+              <div className="flex-1 space-y-2 mt-2">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">{user.email.split('@')[0]}</h2>
+                  <p className="text-muted-foreground font-medium">{user.email}</p>
+                </div>
+
+                <div className="flex flex-wrap gap-2 justify-center sm:justify-start pt-1">
+                  {/* Role Badge */}
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-secondary text-secondary-foreground border border-border capitalize">
+                    {user.role}
+                  </span>
+
+                  {/* Active/Verified Badge from is_active */}
+                  {user.is_active ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-chart-2/10 text-chart-2 border border-chart-2/20">
+                      <ShieldCheckIcon size={12} /> Verified
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-destructive/10 text-destructive border border-destructive/20">
+                      <AlertCircleIcon size={12} /> Inactive
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Plan & Usage Section */}
+            <div className="space-y-4">
+               {/* Visual Plan Card */}
+              <div className="relative p-6 rounded-2xl bg-linear-to-br from-slate-900 to-slate-800 text-white shadow-lg overflow-hidden group">
+                <div className="absolute top-0 right-0 p-32 bg-primary/30 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none group-hover:bg-primary/40 transition-colors" />
+
+                <div className="relative z-10 flex flex-col sm:flex-row justify-between items-center gap-6">
+                  <div>
+                    <div className="text-white/60 text-xs font-bold uppercase tracking-widest mb-1 flex items-center gap-2">
+                      Current Plan
+                    </div>
+                    <div className="text-3xl font-bold flex items-center gap-2">
+                      {user.plan_id === 'pro' || user.plan_id === 'enterprise' ? (
+                         <ZapIcon className="text-yellow-400" fill="currentColor" />
+                      ) : (
+                         <SparklesIcon className="text-indigo-300" />
+                      )}
+                      <span className="capitalize">{user.plan_id} Plan</span>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => navigate('/pricing')}
+                    className="bg-white text-black hover:bg-gray-200 border-none shadow-none font-bold whitespace-nowrap"
+                  >
+                    Upgrade Plan
+                  </Button>
+                </div>
+
+                {/* Usage Bar inside Plan Card */}
+                <div className="mt-6 space-y-2">
+                  <div className="flex justify-between text-xs font-medium text-white/80">
+                    <span className="flex items-center gap-2">
+                      Monthly Clicks
+                      {loading && <RefreshCwIcon size={10} className="animate-spin opacity-50"/>}
+                    </span>
+                    <span>
+                      {new Intl.NumberFormat('en-US').format(displayClicks)} / {new Intl.NumberFormat('en-US', { notation: 'compact' }).format(maxClicks)}
+                    </span>
+                  </div>
+                  <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden backdrop-blur-sm">
+                    <div
+                      className={cn(
+                        "h-full transition-all duration-1000 ease-out",
+                         usagePercent > 90 ? "bg-red-500" : "bg-primary"
+                      )}
+                      style={{ width: `${usagePercent}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Detailed Stats Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <StatPill
+                label="Campaigns"
+                value={loading ? '-' : inventory.campaigns}
+                icon={<LayersIcon size={14} />}
+              />
+              <StatPill
+                label="Active Links"
+                value={loading ? '-' : inventory.links}
+                icon={<LinkIcon size={14} />}
+              />
+              <StatPill
+                label="Member Since"
+                value={new Date(user.created_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+                icon={<CalendarIcon size={14} />}
+              />
+            </div>
+
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Usage Stats (Fresh Data) */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCardIcon size={20} className="text-muted-foreground" />
-              Subscription & Usage
-            </CardTitle>
-            <CardDescription>
-              Usage for{' '}
-              {new Date().toLocaleString('default', {
-                month: 'long',
-                year: 'numeric',
-              })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="font-medium flex items-center gap-2 text-foreground">
-                  Total Clicks
-                  {isLoading && (
-                    <RefreshCwIcon
-                      size={12}
-                      className="animate-spin text-muted-foreground"
-                    />
-                  )}
-                </span>
-                <span className="text-muted-foreground tabular-nums">
-                  {new Intl.NumberFormat('en-US').format(displayClicks)} /{' '}
-                  {new Intl.NumberFormat('en-US', {
-                    notation: 'compact',
-                  }).format(maxClicks)}
-                </span>
-              </div>
-              <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                <div
-                  className={`h-full transition-all duration-1000 ease-out ${
-                    clicksUsage > 90 ? 'bg-destructive' : 'bg-primary'
-                  }`}
-                  style={{ width: `${Math.min(clicksUsage, 100)}%` }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground text-right">
-                Refreshes automatically based on real-time analytics
-              </p>
-            </div>
-
-            <div className="pt-4 border-t border-border">
-              <Button variant="outline" className="w-full">
-                Upgrade Plan
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Settings Stubs */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <SettingsIcon size={20} className="text-muted-foreground" />
-              Preferences
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <GlobeIcon size={16} /> Language
-              </div>
-              <select className="h-8 rounded-md border border-input bg-transparent px-2 text-xs focus:ring-ring text-foreground">
-                <option>English</option>
-                <option disabled>Russian (Coming Soon)</option>
-              </select>
-            </div>
-
-            <div className="flex items-center justify-between pt-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <ShieldIcon size={16} /> Password
-              </div>
-              <Button variant="ghost" size="sm" className="h-8">
-                Change
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="border-destructive/20">
-        <CardHeader>
-          <CardTitle className="text-destructive text-lg">
-            Session Control
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Button variant="destructive" className="gap-2" onClick={logout}>
-            <LogOutIcon size={16} /> Sign Out
-          </Button>
-        </CardContent>
-      </Card>
+      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
     </div>
   );
 };

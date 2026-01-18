@@ -11,8 +11,9 @@ import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { CampaignsPage } from '@/pages/campaigns/CampaignsPage';
 import { CampaignDetailsPage } from '@/pages/campaigns/CampaignDetailsPage';
 import { LinksPage } from '@/pages/links/LinksPage';
-import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { AnalyticsPage } from '@/pages/analytics/AnalyticsPage';
+import { ProfilePage } from '@/pages/profile/ProfilePage';
+import { PricingPage } from '@/pages/pricing/PricingPage'; // New Page
 import { useAuthStore } from '@/entities/session/store';
 
 const ProtectedRoute = () => {
@@ -46,6 +47,7 @@ export const App = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/pricing" element={<PricingPage />} /> {/* New Route */}
           <Route path="/campaigns" element={<CampaignsPage />} />
           <Route path="/campaigns/:id" element={<CampaignDetailsPage />} />
           <Route path="/links" element={<LinksPage />} />
