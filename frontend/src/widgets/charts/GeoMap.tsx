@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import * as topojson from 'topojson-client';
 import { Mercator } from '@visx/geo';
-import { scaleQuantize } from '@visx/scale';
+import { scaleLinear } from '@visx/scale';
 import { withParentSize } from '@visx/responsive';
 import type { Feature, Geometry } from 'geojson';
 import countries from 'i18n-iso-countries';
@@ -55,22 +55,13 @@ const GeoMapBase = ({
     return map;
   }, [data]);
 
-  const colorScale = useMemo(() => {
+  // FIX: Используем scaleLinear для прозрачности, чтобы не хардкодить цвета
+  const opacityScale = useMemo(() => {
     const maxVal = data.length > 0 ? Math.max(...data.map((d) => d.value)) : 1;
-    // Map colors should ideally be shades of primary
-    // Since CSS vars are strings, scaleQuantize needs specific hexes or interpolators
-    // For now, we use a fixed range that matches Indigo/Primary logic but in Hex for SVG safety
-    return scaleQuantize({
+    return scaleLinear<number>({
       domain: [0, maxVal],
-      range: [
-        '#e0e7ff', // lighter
-        '#c7d2fe',
-        '#a5b4fc',
-        '#818cf8',
-        '#6366f1',
-        '#4f46e5',
-        '#4338ca', // darker
-      ],
+      range: [0.2, 1], // Страны с данными будут иметь opacity от 0.2 до 1
+      clamp: true,
     });
   }, [data]);
 
@@ -102,7 +93,10 @@ const GeoMapBase = ({
                 <path
                   key={`map-feature-${i}`}
                   d={mercator.path(feature.feature) || ''}
-                  fill={hasData ? colorScale(value) : THEME_COLORS.secondary}
+                  // FIX: Основной цвет = Primary, фон = Muted
+                  fill={hasData ? THEME_COLORS.primary : THEME_COLORS.muted}
+                  // FIX: Прозрачность зависит от данных
+                  fillOpacity={hasData ? opacityScale(value) : 1}
                   stroke={THEME_COLORS.background}
                   strokeWidth={0.5}
                   className="transition-all duration-200 outline-none hover:opacity-80"

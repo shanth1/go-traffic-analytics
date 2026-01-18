@@ -23,7 +23,6 @@ const HeatmapChartBase = ({
   const width = parentWidth;
   const height = parentHeight;
   const margin = { top: 10, left: 40, right: 10, bottom: 30 };
-
   const xMax = width - margin.left - margin.right;
   const yMax = height - margin.top - margin.bottom;
 
@@ -39,10 +38,12 @@ const HeatmapChartBase = ({
     return data.length > 0 ? Math.max(...data.map((d) => d.count)) : 0;
   }, [data]);
 
-  const colorScale = scaleLinear<string>({
+  // FIX: Используем scaleLinear для Opacity (числа), а не для Цветов (строк)
+  const opacityScale = useMemo(() => scaleLinear<number>({
     domain: [0, maxCount],
-    range: [THEME_COLORS.secondary, THEME_COLORS.primary],
-  });
+    range: [0.05, 1], // От почти прозрачного до полного цвета
+    clamp: true,
+  }), [maxCount]);
 
   const xScale = scaleLinear({
     domain: [0, 24],
@@ -72,16 +73,18 @@ const HeatmapChartBase = ({
                 y={yScale(dIndex)}
                 width={binWidth - 2}
                 height={binHeight - 2}
-                fill={colorScale(count)}
+                // FIX: Цвет берется из CSS переменной
+                fill={THEME_COLORS.primary}
+                // FIX: Насыщенность зависит от данных
+                fillOpacity={count > 0 ? opacityScale(count) : 0.05}
                 rx={2}
-                style={{ transition: 'fill 0.3s ease' }}
+                style={{ transition: 'fill-opacity 0.3s ease' }}
               >
                 <title>{`${day} ${hour}:00 - ${count} clicks`}</title>
               </rect>
             );
           })
         )}
-
         <AxisLeft
           scale={yScale}
           top={binHeight / 2}
