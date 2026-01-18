@@ -4,6 +4,7 @@ import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/shared/ui/card';
 import { ResponsiveSheet } from '@/shared/ui/responsive-sheet';
 import { useAuthStore } from '@/entities/session/store';
+import { useIsDesktop } from '@/shared/lib/hooks';
 
 const PLANS = [
   {
@@ -39,6 +40,7 @@ const PLANS = [
 export const PricingPage = () => {
   const { user } = useAuthStore();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const isDesktop = useIsDesktop();
 
   const handleAction = (planId: string) => {
     if (planId === user?.plan_id) return;
@@ -133,9 +135,15 @@ export const PricingPage = () => {
             Contact Support to Upgrade
           </Button>
 
-          <Button variant="ghost" onClick={() => setSelectedPlan(null)} className="w-full">
-            Cancel
-          </Button>
+          {isDesktop && (
+            <Button
+                variant="ghost"
+                onClick={() => setSelectedPlan(null)}
+                className="w-full text-muted-foreground hover:text-foreground hover:bg-muted"
+            >
+                Cancel
+            </Button>
+          )}
         </div>
       </ResponsiveSheet>
     </div>

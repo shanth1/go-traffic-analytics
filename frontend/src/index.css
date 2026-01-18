@@ -145,6 +145,11 @@
   }
 }
 
+html, body {
+  overscroll-behavior: none; /* Prevents rubber-banding on mobile */
+  -webkit-tap-highlight-color: transparent; /* Removes tap highlight on mobile */
+}
+
 @layer base {
   * {
     @apply border-border;
