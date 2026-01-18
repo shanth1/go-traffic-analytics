@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { useAuthStore } from '@/entities/session/store';
+import { APP_TITLE } from '@/shared/config';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboardIcon },
@@ -30,9 +31,9 @@ export const MainLayout = () => {
       {/* --- Desktop Sidebar --- */}
       <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card fixed inset-y-0 left-0 z-40 shrink-0">
         <div className="p-6">
-          <h1 className="text-2xl font-bold tracking-tight text-primary flex items-center gap-2">
-            <LayoutDashboardIcon className="text-primary" />
-            Analytics
+          <h1 className="text-2xl font-bold tracking-tight text-primary flex items-center gap-2 truncate" title={APP_TITLE}>
+            <LayoutDashboardIcon className="text-primary shrink-0" />
+            {APP_TITLE}
           </h1>
         </div>
 
