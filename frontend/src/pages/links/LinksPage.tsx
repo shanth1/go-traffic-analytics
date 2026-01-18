@@ -17,16 +17,17 @@ import { Card } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Pagination } from '@/shared/ui/pagination';
+import { ConfirmationModal } from '@/shared/ui/confirmation-modal'; // Импорт модалки
 import type { Link as LinkType } from '@/shared/api/types';
 import { QrCodeModal } from '@/widgets/qr/QrCodeModal';
 import { getShortLink } from '@/shared/config';
 
 interface LinkCardProps {
   data: LinkType;
+  onDeleteClick: (id: string) => void; // Прокидываем ID наверх
 }
 
-const LinkCard = ({ data }: LinkCardProps) => {
-  const { deleteLink } = useLinkStore();
+const LinkCard = ({ data, onDeleteClick }: LinkCardProps) => {
   const [copied, setCopied] = useState(false);
   const [isQrOpen, setIsQrOpen] = useState(false);
 
@@ -67,7 +68,7 @@ const LinkCard = ({ data }: LinkCardProps) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 border-t sm:border-t-0 pt-3 sm:pt-0">
+        <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 border-t sm:border-t-0 pt-3 sm:pt-0 border-border">
           <Button
             variant="ghost"
             size="icon"
@@ -94,7 +95,8 @@ const LinkCard = ({ data }: LinkCardProps) => {
             variant="ghost"
             size="icon"
             className="text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={() => deleteLink(data.id)}
+            // Здесь мы больше не удаляем сразу, а вызываем обработчик родителя
+            onClick={() => onDeleteClick(data.id)}
           >
             <TrashIcon size={16} />
           </Button>
@@ -114,9 +116,13 @@ export const LinksPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const campaignIdParam = searchParams.get('campaign_id');
 
-  const { links, meta, setFilters, setPage, isLoading } = useLinkStore();
+  const { links, meta, setFilters, setPage, isLoading, deleteLink } = useLinkStore();
   const { fetchCampaigns, campaigns } = useCampaignStore();
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Состояние для удаления
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchCampaigns();
@@ -142,6 +148,22 @@ export const LinksPage = () => {
       setSearchParams({});
     }
     setFilters({ campaign_id: val || undefined });
+  };
+
+  // Обработчик подтверждения удаления
+  const handleDeleteConfirm = async () => {
+    if (!deleteId) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteLink(deleteId);
+      setDeleteId(null); // Закрываем модалку при успехе
+    } catch (e) {
+      console.error("Failed to delete link", e);
+      // Опционально: можно добавить toast с ошибкой здесь
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -209,7 +231,11 @@ export const LinksPage = () => {
         ) : (
           <div className="grid gap-4">
             {links.map((link) => (
-              <LinkCard key={link.id} data={link} />
+              <LinkCard
+                key={link.id}
+                data={link}
+                onDeleteClick={setDeleteId} // Передаем сеттер ID
+              />
             ))}
           </div>
         )}
@@ -223,6 +249,17 @@ export const LinksPage = () => {
           onChange={setPage}
         />
       </div>
+
+      {/* Модалка подтверждения */}
+      <ConfirmationModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Link?"
+        description="Are you sure? This short link will stop working immediately, and users will see a 404 error. All analytics data for this link will be permanently removed."
+        confirmLabel="Yes, Delete Link"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
