@@ -310,7 +310,11 @@ export const AnalyticsPage = () => {
         />
         <KpiCard
           title="Top Source"
-          value={topReferrers[0]?.name || 'Direct'}
+          value={(() => {
+            const v = topReferrers[0]?.name || 'Direct';
+            const idx = v.indexOf(':');
+            return idx !== -1 ? v.slice(idx + 1).trim() : v;
+          })()}
           icon={<ExternalLinkIcon size={18} />}
           isText
           loading={loading}
