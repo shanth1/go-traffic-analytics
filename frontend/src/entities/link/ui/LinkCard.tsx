@@ -15,6 +15,7 @@ import { Button } from '@/shared/ui/button';
 import { getShortLink } from '@/shared/config';
 import { QrCodeModal } from '@/widgets/qr/QrCodeModal';
 import type { Link } from '@/shared/api/types';
+import { toast } from '@/entities/notification/store';
 
 interface LinkCardProps {
   link: Link;
@@ -29,6 +30,7 @@ export const LinkCard = ({ link, onDelete }: LinkCardProps) => {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(getShortLink(link.slug));
     setCopied(true);
+    toast.info("Copied to clipboard", getShortLink(link.slug));
     setTimeout(() => setCopied(false), 2000);
   };
 

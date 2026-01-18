@@ -11,6 +11,7 @@ import { Input } from '@/shared/ui/input';
 import { Pagination } from '@/shared/ui/pagination';
 import { ConfirmationModal } from '@/shared/ui/confirmation-modal';
 import { LinkCard } from '@/entities/link/ui/LinkCard'; // New Import
+import { toast } from '@/entities/notification/store';
 
 export const LinksPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -56,6 +57,7 @@ export const LinksPage = () => {
     setIsDeleting(true);
     try {
       await deleteLink(deleteId);
+      toast.info("Link Deleted", "The short link has been permanently removed.");
       setDeleteId(null);
     } catch (e) {
       console.error("Failed to delete link", e);

@@ -13,8 +13,9 @@ import { CampaignDetailsPage } from '@/pages/campaigns/CampaignDetailsPage';
 import { LinksPage } from '@/pages/links/LinksPage';
 import { AnalyticsPage } from '@/pages/analytics/AnalyticsPage';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
-import { PricingPage } from '@/pages/pricing/PricingPage'; // New Page
+import { PricingPage } from '@/pages/pricing/PricingPage';
 import { useAuthStore } from '@/entities/session/store';
+import { Toaster } from '@/shared/ui/toaster';
 
 const ProtectedRoute = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -39,6 +40,7 @@ const PublicRoute = () => {
 export const App = () => {
   return (
     <BrowserRouter>
+      <Toaster /> {/* Global Notifications Layer */}
       <Routes>
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<LoginPage />} />
@@ -47,7 +49,7 @@ export const App = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/pricing" element={<PricingPage />} /> {/* New Route */}
+          <Route path="/pricing" element={<PricingPage />} />
           <Route path="/campaigns" element={<CampaignsPage />} />
           <Route path="/campaigns/:id" element={<CampaignDetailsPage />} />
           <Route path="/links" element={<LinksPage />} />

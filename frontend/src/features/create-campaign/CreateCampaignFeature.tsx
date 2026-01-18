@@ -4,6 +4,7 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { ResponsiveSheet } from '@/shared/ui/responsive-sheet';
 import { useCampaignStore } from '@/entities/campaign/model/store';
+import { toast } from '@/entities/notification/store';
 
 export const CreateCampaignFeature = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,10 +13,18 @@ export const CreateCampaignFeature = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name) return;
-    await addCampaign(name);
-    setName('');
-    setIsOpen(false);
+    if (!name) {
+      toast.warn("Validation", "Campaign name cannot be empty");
+      return;
+    }
+    try {
+      await addCampaign(name);
+      toast.info("Campaign Created", `"${name}" is ready.`);
+      setName('');
+      setIsOpen(false);
+    } catch (e) {
+      console.error("Error creating campaign:", e);
+    }
   };
 
   return (

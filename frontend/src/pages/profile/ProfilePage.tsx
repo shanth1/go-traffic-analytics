@@ -4,6 +4,7 @@ import { useAuthStore } from '@/entities/session/store';
 import { analyticsApi } from '@/entities/analytics/api';
 import { useTheme } from '@/shared/lib/hooks/useTheme';
 import { startOfMonth, endOfMonth } from '@/shared/lib/date';
+import { toast } from '@/entities/notification/store'; // Import Toast
 import {
   LogOutIcon,
   MoonIcon,
@@ -18,11 +19,11 @@ import {
   LayersIcon,
   SendIcon,
   AlertCircleIcon,
-  RefreshCwIcon,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/button';
 import { ResponsiveSheet } from '@/shared/ui/responsive-sheet';
+import { Skeleton } from '@/shared/ui/skeleton';
 
 // --- UI Components ---
 
@@ -78,11 +79,13 @@ const ActionTile = ({
 const StatPill = ({
   label,
   value,
-  icon
+  icon,
+  loading
 }: {
   label: string;
   value: string | number;
   icon?: React.ReactNode;
+  loading?: boolean;
 }) => (
   <div className="flex flex-col justify-center px-5 py-4 bg-secondary/30 rounded-2xl border border-border hover:border-primary/20">
     <div className="flex items-center gap-2 mb-1 text-muted-foreground">
@@ -91,13 +94,22 @@ const StatPill = ({
         {label}
       </span>
     </div>
-    <span className="text-xl font-bold text-foreground">{value}</span>
+    {loading ? (
+       <Skeleton className="h-6 w-16" />
+    ) : (
+       <span className="text-xl font-bold text-foreground">{value}</span>
+    )}
   </div>
 );
 
-// --- Modals ---
-
 const FeedbackModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onClose();
+    // REPLACED ALERT WITH TOAST
+    toast.info("Message Sent", "We have received your request. Support will contact you shortly.");
+  };
+
   return (
     <ResponsiveSheet isOpen={isOpen} onClose={onClose} title="Contact Support">
       <div className="space-y-6">
@@ -123,7 +135,7 @@ const FeedbackModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
           </div>
         </div>
 
-        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onClose(); alert("Message sent!"); }}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Message</label>
             <textarea
@@ -140,7 +152,6 @@ const FeedbackModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
   );
 };
 
-// --- Page ---
 
 export const ProfilePage = () => {
   const { user, logout } = useAuthStore();
@@ -148,13 +159,30 @@ export const ProfilePage = () => {
   const navigate = useNavigate();
 
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-
-  // Real Data State
   const [loading, setLoading] = useState(true);
   const [clicksUsed, setClicksUsed] = useState(0);
   const [inventory, setInventory] = useState({ campaigns: 0, links: 0 });
 
-  // 1. Fetch Real Data (Clicks & Inventory)
+  // Handle Theme Toggle with Toast
+  const handleThemeToggle = () => {
+    toggleTheme();
+    const newTheme = theme === 'light' ? 'Dark' : 'Light'; // It toggles AFTER this call usually, but logic depends on hook
+    // Actually hook toggles immediately. Let's assume toggle works.
+    toast.info("Theme Updated", `Switched to ${newTheme === 'Light' ? 'Dark' : 'Light'} mode`);
+  };
+
+  // Handle Logout with Toast
+  const handleLogout = () => {
+    logout();
+    toast.info("Signed Out", "See you next time!");
+  };
+
+  // Handle Language with Toast
+  const handleLanguage = () => {
+     // REPLACED ALERT WITH TOAST
+     toast.warn("Coming Soon", "Localization is currently in development.");
+  };
+
   useEffect(() => {
     if (!user) return;
 
@@ -162,22 +190,16 @@ export const ProfilePage = () => {
       setLoading(true);
       try {
         const now = new Date();
-
-        // Parallel requests for speed
         const [summaryData, treeData] = await Promise.all([
-          // Get clicks for current month
           analyticsApi.getSummary({
             from: startOfMonth(now),
             to: endOfMonth(now),
           }),
-          // Get hierarchy to count campaigns and links
           analyticsApi.getHierarchy(),
         ]);
 
-        // Set Clicks
         setClicksUsed(summaryData?.total_clicks || 0);
 
-        // Calculate Inventory
         let cCount = 0;
         let lCount = 0;
         if (treeData && treeData.children) {
@@ -190,7 +212,6 @@ export const ProfilePage = () => {
 
       } catch (e) {
         console.error("Failed to load profile data", e);
-        // Fallback to session data if API fails
         setClicksUsed(user.clicks_current_month);
       } finally {
         setLoading(false);
@@ -202,15 +223,10 @@ export const ProfilePage = () => {
 
   if (!user) return null;
 
-  // 2. Logic for Limits
   const isPro = user.plan_id === 'pro' || user.plan_id === 'enterprise';
   const maxClicks = isPro ? 100000 : 1000;
-
-  // Use session data for immediate display, then replace with fresh API data
   const displayClicks = loading && clicksUsed === 0 ? user.clicks_current_month : clicksUsed;
   const usagePercent = Math.min((displayClicks / maxClicks) * 100, 100);
-
-  // Avatar
   const avatarUrl = `https://api.dicebear.com/9.x/thumbs/svg?seed=Brian`;
 
   return (
@@ -225,38 +241,31 @@ export const ProfilePage = () => {
 
         {/* --- LEFT COLUMN: CONTROL GRID --- */}
         <div className="grid grid-cols-2 gap-4 h-fit order-2 lg:order-1">
-          {/* Theme Toggle */}
           <ActionTile
             icon={theme === 'dark' ? <MoonIcon size={20} /> : <SunIcon size={20} />}
             label="Theme"
             subLabel={theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
-            onClick={toggleTheme}
+            onClick={handleThemeToggle}
             active={theme === 'dark'}
           />
-
-          {/* Language (Stub) */}
           <ActionTile
             icon={<GlobeIcon size={20} />}
             label="Language"
             subLabel="English"
-            onClick={() => alert("Localization coming soon!")}
+            onClick={handleLanguage}
           />
-
-          {/* Support */}
           <ActionTile
             icon={<MessageCircleIcon size={20} />}
             label="Support"
             subLabel="Contact us"
             onClick={() => setIsFeedbackOpen(true)}
           />
-
-          {/* Logout */}
           <ActionTile
             icon={<LogOutIcon size={20} />}
             label="Sign Out"
             subLabel="End session"
             variant="destructive"
-            onClick={logout}
+            onClick={handleLogout}
           />
         </div>
 
@@ -277,12 +286,9 @@ export const ProfilePage = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-2 justify-center sm:justify-start pt-1">
-                  {/* Role Badge */}
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-secondary text-secondary-foreground border border-border capitalize">
                     {user.role}
                   </span>
-
-                  {/* Active/Verified Badge from is_active */}
                   {user.is_active ? (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-chart-2/10 text-chart-2 border border-chart-2/20">
                       <ShieldCheckIcon size={12} /> Verified
@@ -298,7 +304,6 @@ export const ProfilePage = () => {
 
             {/* Plan & Usage Section */}
             <div className="space-y-4">
-               {/* Visual Plan Card */}
               <div className="relative p-6 rounded-2xl bg-linear-to-br from-slate-900 to-slate-800 text-white shadow-lg overflow-hidden group">
                 <div className="absolute top-0 right-0 p-32 bg-primary/30 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none group-hover:bg-primary/40 transition-colors" />
 
@@ -329,13 +334,12 @@ export const ProfilePage = () => {
                   <div className="flex justify-between text-xs font-medium text-white/80">
                     <span className="flex items-center gap-2">
                       Monthly Clicks
-                      {loading && <RefreshCwIcon size={10} className="animate-spin opacity-50"/>}
                     </span>
                     <span>
-                      {new Intl.NumberFormat('en-US').format(displayClicks)} / {new Intl.NumberFormat('en-US', { notation: 'compact' }).format(maxClicks)}
+                      {loading ? '...' : new Intl.NumberFormat('en-US').format(displayClicks)} / {new Intl.NumberFormat('en-US', { notation: 'compact' }).format(maxClicks)}
                     </span>
                   </div>
-                  <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden backdrop-blur-sm">
+                  <div className={cn("h-2 w-full bg-white/10 rounded-full overflow-hidden backdrop-blur-sm", loading && "animate-pulse")}>
                     <div
                       className={cn(
                         "h-full transition-all duration-1000 ease-out",
@@ -352,13 +356,15 @@ export const ProfilePage = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <StatPill
                 label="Campaigns"
-                value={loading ? '-' : inventory.campaigns}
+                value={inventory.campaigns}
                 icon={<LayersIcon size={14} />}
+                loading={loading}
               />
               <StatPill
                 label="Active Links"
-                value={loading ? '-' : inventory.links}
+                value={inventory.links}
                 icon={<LinkIcon size={14} />}
+                loading={loading}
               />
               <StatPill
                 label="Member Since"

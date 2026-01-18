@@ -5,8 +5,8 @@ import { Input } from '@/shared/ui/input';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { LayoutDashboardIcon } from 'lucide-react';
-import { AxiosError } from 'axios';
 import { APP_TITLE } from '@/shared/config';
+import { toast } from '@/entities/notification/store'; // New
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -20,16 +20,10 @@ export const LoginPage = () => {
     setLoading(true);
     try {
       await login({ email, password });
+      toast.info('Welcome back!', 'You have successfully signed in.');
       navigate('/');
     } catch (error) {
       console.error(error);
-      if (error instanceof AxiosError && error.response) {
-        alert(
-          `Login error: ${error.response.data?.error || 'Invalid credentials'}`
-        );
-      } else {
-        alert('Network or server error');
-      }
     } finally {
       setLoading(false);
     }
@@ -38,6 +32,7 @@ export const LoginPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/20 p-4">
       <div className="w-full max-w-md space-y-6">
+        {/* ... UI code remains exactly the same ... */}
         <div className="flex flex-col items-center gap-2 text-center">
           <div className="p-3 bg-primary/10 rounded-xl text-primary">
              <LayoutDashboardIcon size={32} />

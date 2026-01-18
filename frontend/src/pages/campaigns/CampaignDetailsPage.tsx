@@ -46,6 +46,7 @@ import type {
 } from '@/shared/api/types';
 import { CreateLinkFeature } from '@/features/create-link/CreateLinkFeature';
 import { useLinkStore } from '@/entities/link/model/store';
+import { toast } from '@/entities/notification/store';
 
 export const CampaignDetailsPage = () => {
   const { id } = useParams();
@@ -198,6 +199,7 @@ export const CampaignDetailsPage = () => {
     setIsDeleting(true);
     try {
       await deleteLinkStore(deleteId);
+      toast.info("Link Deleted", "The short link has been permanently removed.");
       setDeleteId(null);
       fetchLinks(linksMeta.offset);
     } catch (e) {

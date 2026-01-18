@@ -5,6 +5,7 @@ import { Input } from '@/shared/ui/input';
 import { ResponsiveSheet } from '@/shared/ui/responsive-sheet';
 import { useLinkStore } from '@/entities/link/model/store';
 import { useCampaignStore } from '@/entities/campaign/model/store';
+import { toast } from '@/entities/notification/store';
 
 type Props = {
   selectedCampaignId?: string;
@@ -37,16 +38,20 @@ export const CreateLinkFeature: React.FC<Props> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!url) return;
+    if (!url) {
+      toast.warn("Validation", "Please enter a valid URL");
+      return;
+    }
 
     const targetCampaign = campaignId || (campaigns[0]?.id ?? 'default');
 
-    await addLink(targetCampaign, url);
-
-    setIsOpen(false);
-
-    if (onSuccess) {
-      onSuccess();
+    try {
+      await addLink(targetCampaign, url);
+      toast.info("Success", "Short link created successfully."); // Success message
+      setIsOpen(false);
+      if (onSuccess) onSuccess();
+    } catch (e) {
+      console.error("Error creating link:", e);
     }
   };
 
