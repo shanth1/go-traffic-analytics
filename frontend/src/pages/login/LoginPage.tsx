@@ -34,20 +34,20 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-muted/20 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
+          <CardTitle className="text-2xl font-bold text-center text-foreground">
             Sign In
           </CardTitle>
-          <p className="text-sm text-slate-500 text-center">
+          <p className="text-sm text-muted-foreground text-center">
             Enter email and password to access
           </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
+              <label className="text-sm font-medium text-foreground">Email</label>
               <Input
                 type="email"
                 placeholder="admin@example.com"
@@ -57,7 +57,7 @@ export const LoginPage = () => {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Password</label>
+              <label className="text-sm font-medium text-foreground">Password</label>
               <Input
                 type="password"
                 value={password}

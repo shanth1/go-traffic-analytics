@@ -1,10 +1,155 @@
-@import 'tailwindcss';
+@import "tailwindcss";
+
+/*
+  === DESIGN SYSTEM CONTROL CENTER ===
+  Change values here to affect the entire application immediately.
+*/
 
 :root {
-  color-scheme: dark;
+  /* --- BASE COLORS --- */
+  --background: #ffffff;
+  --foreground: #020617; /* slate-950 */
+
+  /* --- SURFACES --- */
+  --card: #ffffff;
+  --card-foreground: #020617;
+
+  --popover: #ffffff;
+  --popover-foreground: #020617;
+
+  /* --- PRIMARY BRANDING (Buttons, Active States) --- */
+  --primary: #4f46e5; /* indigo-600 */
+  --primary-foreground: #ffffff;
+
+  /* --- SECONDARY (Subtle backgrounds, tags) --- */
+  --secondary: #f1f5f9; /* slate-100 */
+  --secondary-foreground: #0f172a; /* slate-900 */
+
+  /* --- MUTED (Disabled, Placeholders, Subtext) --- */
+  --muted: #f1f5f9; /* slate-100 */
+  --muted-foreground: #64748b; /* slate-500 */
+
+  /* --- ACCENT (Hover states, Dropdowns) --- */
+  --accent: #f8fafc; /* slate-50 */
+  --accent-foreground: #0f172a;
+
+  /* --- DESTRUCTIVE (Errors, Deletes) --- */
+  --destructive: #ef4444; /* red-500 */
+  --destructive-foreground: #ffffff;
+
+  /* --- BORDERS & INPUTS --- */
+  --border: #e2e8f0; /* slate-200 */
+  --input: #e2e8f0;
+  --ring: #4f46e5; /* indigo-600 - Focus ring */
+
+  /* --- CHART PALETTE (Visualization) --- */
+  --chart-1: #4f46e5; /* indigo */
+  --chart-2: #10b981; /* emerald */
+  --chart-3: #f59e0b; /* amber */
+  --chart-4: #ec4899; /* pink */
+  --chart-5: #3b82f6; /* blue */
+
+  /* --- TYPOGRAPHY & SHAPES --- */
+  --radius: 0.5rem; /* 8px - Global Border Radius */
 }
 
-body {
-  background-color: #020617;
-  color: #f8fafc;
+.dark {
+  /* --- DARK MODE OVERRIDES --- */
+  --background: #020617; /* slate-950 */
+  --foreground: #f8fafc; /* slate-50 */
+
+  --card: #0b1121; /* Slightly lighter than background */
+  --card-foreground: #f8fafc;
+
+  --popover: #0b1121;
+  --popover-foreground: #f8fafc;
+
+  --primary: #6366f1; /* indigo-500 */
+  --primary-foreground: #ffffff;
+
+  --secondary: #1e293b; /* slate-800 */
+  --secondary-foreground: #f8fafc;
+
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8; /* slate-400 */
+
+  --accent: #1e293b;
+  --accent-foreground: #f8fafc;
+
+  --destructive: #7f1d1d; /* red-900 */
+  --destructive-foreground: #f8fafc;
+
+  --border: #1e293b; /* slate-800 */
+  --input: #1e293b;
+  --ring: #6366f1; /* indigo-500 */
+
+  --chart-1: #6366f1;
+  --chart-2: #34d399;
+  --chart-3: #fbbf24;
+  --chart-4: #f472b6;
+  --chart-5: #60a5fa;
+}
+
+@theme {
+  /* Semantic Color Mapping */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Radius Mapping */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  /* Animations */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from { height: 0 }
+    to { height: var(--radix-accordion-content-height) }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height) }
+    to { height: 0 }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

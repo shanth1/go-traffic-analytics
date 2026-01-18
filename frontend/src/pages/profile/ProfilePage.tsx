@@ -26,7 +26,6 @@ export const ProfilePage = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch fresh usage data for the current month
     const fetchUsage = async () => {
       setIsLoading(true);
       try {
@@ -38,23 +37,19 @@ export const ProfilePage = () => {
         setRealtimeClicks(data?.total_clicks || 0);
       } catch (e) {
         console.error('Failed to sync usage', e);
-        // Fallback to session data if API fails
         if (user) setRealtimeClicks(user.clicks_current_month);
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchUsage();
   }, [user]);
 
   if (!user) return null;
 
-  // Mock plan logic (replace with real plan data logic later)
   const isPro = user.plan_id === 'pro' || user.plan_id === 'enterprise';
   const maxClicks = isPro ? 100000 : 1000;
 
-  // Use realtime data, fallback to session data to avoid jump to 0 while loading
   const displayClicks =
     isLoading && realtimeClicks === 0
       ? user.clicks_current_month
@@ -65,21 +60,21 @@ export const ProfilePage = () => {
     <div className="space-y-8 animate-in fade-in duration-500 max-w-4xl mx-auto">
       {/* Header Profile Info */}
       <div className="flex items-center gap-4 mb-8">
-        <div className="h-20 w-20 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+        <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center text-primary">
           <UserIcon size={40} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold">{user.email.split('@')[0]}</h1>
-          <p className="text-slate-500">{user.email}</p>
+          <h1 className="text-2xl font-bold text-foreground">{user.email.split('@')[0]}</h1>
+          <p className="text-muted-foreground">{user.email}</p>
           <div className="flex items-center gap-2 mt-2">
-            <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium border border-slate-200 dark:border-slate-700 capitalize">
+            <span className="px-2 py-0.5 rounded-full bg-secondary text-xs font-medium border border-border capitalize text-foreground">
               {user.role}
             </span>
             <span
               className={`px-2 py-0.5 rounded-full text-xs font-medium border capitalize ${
                 user.plan_id === 'free'
-                  ? 'bg-slate-100 border-slate-200 text-slate-600'
-                  : 'bg-amber-100 border-amber-200 text-amber-700'
+                  ? 'bg-secondary border-border text-muted-foreground'
+                  : 'bg-chart-3/10 border-chart-3/20 text-chart-3'
               }`}
             >
               {user.plan_id} Plan
@@ -93,7 +88,7 @@ export const ProfilePage = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <CreditCardIcon size={20} className="text-slate-400" />
+              <CreditCardIcon size={20} className="text-muted-foreground" />
               Subscription & Usage
             </CardTitle>
             <CardDescription>
@@ -107,36 +102,36 @@ export const ProfilePage = () => {
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="font-medium flex items-center gap-2">
+                <span className="font-medium flex items-center gap-2 text-foreground">
                   Total Clicks
                   {isLoading && (
                     <RefreshCwIcon
                       size={12}
-                      className="animate-spin text-slate-400"
+                      className="animate-spin text-muted-foreground"
                     />
                   )}
                 </span>
-                <span className="text-slate-500 tabular-nums">
+                <span className="text-muted-foreground tabular-nums">
                   {new Intl.NumberFormat('en-US').format(displayClicks)} /{' '}
                   {new Intl.NumberFormat('en-US', {
                     notation: 'compact',
                   }).format(maxClicks)}
                 </span>
               </div>
-              <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
                 <div
                   className={`h-full transition-all duration-1000 ease-out ${
-                    clicksUsage > 90 ? 'bg-red-500' : 'bg-indigo-600'
+                    clicksUsage > 90 ? 'bg-destructive' : 'bg-primary'
                   }`}
                   style={{ width: `${Math.min(clicksUsage, 100)}%` }}
                 />
               </div>
-              <p className="text-xs text-slate-400 text-right">
+              <p className="text-xs text-muted-foreground text-right">
                 Refreshes automatically based on real-time analytics
               </p>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="pt-4 border-t border-border">
               <Button variant="outline" className="w-full">
                 Upgrade Plan
               </Button>
@@ -148,23 +143,23 @@ export const ProfilePage = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <SettingsIcon size={20} className="text-slate-400" />
+              <SettingsIcon size={20} className="text-muted-foreground" />
               Preferences
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <GlobeIcon size={16} /> Language
               </div>
-              <select className="h-8 rounded-md border border-slate-200 bg-transparent px-2 text-xs focus:ring-indigo-500 dark:border-slate-800">
+              <select className="h-8 rounded-md border border-input bg-transparent px-2 text-xs focus:ring-ring text-foreground">
                 <option>English</option>
                 <option disabled>Russian (Coming Soon)</option>
               </select>
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <div className="flex items-center gap-2 text-sm font-medium">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <ShieldIcon size={16} /> Password
               </div>
               <Button variant="ghost" size="sm" className="h-8">
@@ -175,10 +170,9 @@ export const ProfilePage = () => {
         </Card>
       </div>
 
-      {/* Danger Zone */}
-      <Card className="border-red-100 dark:border-red-900/20">
+      <Card className="border-destructive/20">
         <CardHeader>
-          <CardTitle className="text-red-600 dark:text-red-400 text-lg">
+          <CardTitle className="text-destructive text-lg">
             Session Control
           </CardTitle>
         </CardHeader>

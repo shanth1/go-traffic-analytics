@@ -23,12 +23,8 @@ export const CreateLinkFeature = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url) return;
-
     const targetCampaign = campaignId || (campaigns[0]?.id ?? 'default');
-
-    // Slug is now handled purely by backend
     await addLink(targetCampaign, url);
-
     setUrl('');
     setIsOpen(false);
   };
@@ -37,7 +33,7 @@ export const CreateLinkFeature = () => {
     <>
       <Button
         onClick={() => setIsOpen(true)}
-        className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
+        className="gap-2"
       >
         <PlusIcon size={18} />
         <span className="hidden sm:inline">Shorten Link</span>
@@ -51,10 +47,10 @@ export const CreateLinkFeature = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Target URL</label>
+            <label className="text-sm font-medium text-foreground">Target URL</label>
             <div className="relative">
               <Link2Icon
-                className="absolute left-3 top-3 text-slate-400"
+                className="absolute left-3 top-3 text-muted-foreground"
                 size={16}
               />
               <Input
@@ -67,15 +63,15 @@ export const CreateLinkFeature = () => {
                 autoFocus
               />
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Paste the long URL you want to shorten.
             </p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Campaign</label>
+            <label className="text-sm font-medium text-foreground">Campaign</label>
             <select
-              className="w-full flex h-10 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               value={campaignId}
               onChange={(e) => setCampaignId(e.target.value)}
             >
@@ -88,10 +84,7 @@ export const CreateLinkFeature = () => {
             </select>
           </div>
 
-          <Button
-            type="submit"
-            className="w-full bg-indigo-600 text-white mt-4"
-          >
+          <Button type="submit" className="w-full mt-4">
             Create Short Link
           </Button>
         </form>

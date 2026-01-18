@@ -29,6 +29,7 @@ import { useAnalyticsFilter } from '@/entities/analytics/model/filters';
 import { analyticsApi } from '@/entities/analytics/api';
 import { toRFC3339 } from '@/shared/lib/date';
 import { cn } from '@/shared/lib/utils';
+import { CHART_COLORS } from '@/shared/config/theme';
 
 import type {
   HierarchyNode,
@@ -48,14 +49,12 @@ export const DashboardPage = () => {
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [treeData, setTreeData] = useState<HierarchyNode | null>(null);
 
-  // Charts Data
   const [streamData, setStreamData] = useState<StreamChartData[]>([]);
   const [streamKeys, setStreamKeys] = useState<string[]>([]);
   const [geoData, setGeoData] = useState<GeoPoint[]>([]);
   const [heatmapData, setHeatmapData] = useState<HeatmapPoint[]>([]);
   const [qualityData, setQualityData] = useState<TrafficQuality | null>(null);
 
-  // Stats
   const [statsDevice, setStatsDevice] = useState<CategoryStat[]>([]);
   const [statsOS, setStatsOS] = useState<CategoryStat[]>([]);
   const [statsBrowser, setStatsBrowser] = useState<CategoryStat[]>([]);
@@ -115,10 +114,8 @@ export const DashboardPage = () => {
         setSummary(sum);
         setTreeData(tree);
 
-        // --- Process Stream (Sorting Logic) ---
+        // --- Process Stream ---
         const keyTotals: Record<string, number> = {};
-
-        // Calculate totals for each key to determine stack order
         stream.forEach((item) => {
           if (item.values) {
             Object.entries(item.values).forEach(([key, val]) => {
@@ -127,7 +124,6 @@ export const DashboardPage = () => {
           }
         });
 
-        // Sort descending: largest values first -> rendered at the bottom of the stack
         const sortedKeys = Object.keys(keyTotals).sort(
           (a, b) => keyTotals[b] - keyTotals[a]
         );
@@ -142,7 +138,6 @@ export const DashboardPage = () => {
             })
             .sort((a, b) => a.time.getTime() - b.time.getTime())
         );
-        // ---------------------------------------
 
         setGeoData(geo);
         setHeatmapData(heatmap);
@@ -163,23 +158,26 @@ export const DashboardPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-slate-500 font-medium">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-muted-foreground font-medium">
           Assembling your command center...
         </p>
       </div>
     );
   }
 
+  const _unusedColors = CHART_COLORS;
+  console.log('Theme active:', _unusedColors.length > 0);
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       {/* --- HEADER --- */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-border pb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Overview
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-muted-foreground mt-1">
             Global metrics across all campaigns and links.
           </p>
         </div>
@@ -191,26 +189,26 @@ export const DashboardPage = () => {
         <KpiCard
           title="Total Clicks"
           value={summary?.total_clicks || 0}
-          icon={<MousePointerClick className="text-indigo-500" />}
+          icon={<MousePointerClick className="text-primary" />}
           trend="Volumetric"
         />
         <KpiCard
           title="Human Traffic"
           value={`${qualityData?.human_score || 0}%`}
-          icon={<ShieldCheckIcon className="text-emerald-500" />}
+          icon={<ShieldCheckIcon className="text-chart-2" />}
           trend="Quality Score"
           isText
         />
         <KpiCard
           title="Active Campaigns"
           value={inventoryStats.campaigns}
-          icon={<LayersIcon className="text-amber-500" />}
+          icon={<LayersIcon className="text-chart-3" />}
           trend="Inventory"
         />
         <KpiCard
           title="Active Links"
           value={inventoryStats.links}
-          icon={<ActivityIcon className="text-pink-500" />}
+          icon={<ActivityIcon className="text-chart-4" />}
           trend="Inventory"
         />
       </div>
@@ -248,7 +246,8 @@ export const DashboardPage = () => {
             <CardTitle>Top Countries</CardTitle>
           </CardHeader>
           <CardContent>
-            <BarListChart data={topCountries} color="bg-indigo-500" />
+            {/* Using semantic class for color */}
+            <BarListChart data={topCountries} color="bg-primary" />
           </CardContent>
         </Card>
       </div>
@@ -258,7 +257,7 @@ export const DashboardPage = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <SmartphoneIcon size={18} className="text-slate-400" /> Device
+              <SmartphoneIcon size={18} className="text-muted-foreground" /> Device
               Share
             </CardTitle>
           </CardHeader>
@@ -274,23 +273,23 @@ export const DashboardPage = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <ServerIcon size={18} className="text-slate-400" /> Operating
+              <ServerIcon size={18} className="text-muted-foreground" /> Operating
               Systems
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <BarListChart data={statsOS} color="bg-emerald-500" />
+            <BarListChart data={statsOS} color="bg-chart-2" />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <GlobeIcon size={18} className="text-slate-400" /> Browsers
+              <GlobeIcon size={18} className="text-muted-foreground" /> Browsers
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <BarListChart data={statsBrowser} color="bg-amber-500" />
+            <BarListChart data={statsBrowser} color="bg-chart-3" />
           </CardContent>
         </Card>
       </div>
@@ -352,21 +351,21 @@ const KpiCard = ({
   trend,
   isText = false,
 }: KpiCardProps) => (
-  <Card className="hover:border-indigo-200 dark:hover:border-indigo-900 transition-colors">
+  <Card className="hover:border-primary/50 transition-colors">
     <CardContent className="p-6">
       <div className="flex items-center justify-between mb-4">
-        <div className="p-2 bg-slate-100 dark:bg-slate-900 rounded-lg">
+        <div className="p-2 bg-secondary rounded-lg text-foreground">
           {icon}
         </div>
-        <span className="text-xs font-medium text-slate-400 bg-slate-50 dark:bg-slate-900 px-2 py-1 rounded">
+        <span className="text-xs font-medium text-muted-foreground bg-secondary px-2 py-1 rounded">
           {trend}
         </span>
       </div>
       <div>
-        <p className="text-sm font-medium text-slate-500">{title}</p>
+        <p className="text-sm font-medium text-muted-foreground">{title}</p>
         <h3
           className={cn(
-            'font-bold text-slate-900 dark:text-slate-50',
+            'font-bold text-foreground',
             isText ? 'text-xl' : 'text-3xl'
           )}
         >
@@ -382,7 +381,7 @@ const KpiCard = ({
 );
 
 const NoData = () => (
-  <div className="h-full w-full flex items-center justify-center text-slate-400 text-sm italic bg-slate-50/50 dark:bg-slate-900/50 rounded-lg border border-dashed border-slate-200 dark:border-slate-800">
+  <div className="h-full w-full flex items-center justify-center text-muted-foreground text-sm italic bg-muted/20 rounded-lg border border-dashed border-border">
     No data available
   </div>
 );

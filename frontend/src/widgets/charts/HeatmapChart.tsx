@@ -4,6 +4,7 @@ import { scaleLinear } from '@visx/scale';
 import { withParentSize } from '@visx/responsive';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import type { HeatmapPoint } from '@/shared/api/types';
+import { THEME_COLORS } from '@/shared/config/theme';
 
 interface HeatmapProps {
   parentWidth?: number;
@@ -26,11 +27,9 @@ const HeatmapChartBase = ({
   const xMax = width - margin.left - margin.right;
   const yMax = height - margin.top - margin.bottom;
 
-  // Transform data into a matrix-friendly format or bin lookup
   const binData = useMemo(() => {
     const map = new Map<string, number>();
     data.forEach((d) => {
-      // backend returns day 0-6, hour 0-23
       map.set(`${d.day}-${d.hour}`, d.count);
     });
     return map;
@@ -42,7 +41,7 @@ const HeatmapChartBase = ({
 
   const colorScale = scaleLinear<string>({
     domain: [0, maxCount],
-    range: ['#f1f5f9', '#4f46e5'], // Slate-100 to Indigo-600
+    range: [THEME_COLORS.secondary, THEME_COLORS.primary],
   });
 
   const xScale = scaleLinear({
@@ -91,11 +90,12 @@ const HeatmapChartBase = ({
           stroke="transparent"
           tickStroke="transparent"
           tickLabelProps={() => ({
-            fill: '#64748b',
+            fill: THEME_COLORS.foreground,
             fontSize: 11,
             textAnchor: 'end',
             dy: 4,
             dx: -5,
+            opacity: 0.6
           })}
         />
 
@@ -108,9 +108,10 @@ const HeatmapChartBase = ({
           stroke="transparent"
           tickStroke="transparent"
           tickLabelProps={() => ({
-            fill: '#64748b',
+            fill: THEME_COLORS.foreground,
             fontSize: 10,
             textAnchor: 'middle',
+            opacity: 0.6
           })}
         />
       </Group>

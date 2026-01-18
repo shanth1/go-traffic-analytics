@@ -3,6 +3,7 @@ import { sankey, sankeyLinkHorizontal, sankeyLeft } from 'd3-sankey';
 import { Group } from '@visx/group';
 import { withParentSize } from '@visx/responsive';
 import type { SankeyData } from '@/shared/api/types';
+import { CHART_COLORS, THEME_COLORS } from '@/shared/config/theme';
 
 type NodeDatum = {
   id: string;
@@ -36,9 +37,6 @@ interface SankeyChartProps {
   data: SankeyData;
 }
 
-// Helper colors for layers (Referer -> Device -> Country)
-const LAYER_COLORS = ['#6366f1', '#ec4899', '#10b981', '#f59e0b'];
-
 const SankeyChartBase = ({
   parentWidth = 0,
   parentHeight = 0,
@@ -49,25 +47,19 @@ const SankeyChartBase = ({
 
   const { nodes, links } = useMemo(() => {
     const margin = { top: 20, left: 20, right: 20, bottom: 20 };
-
     if (!data.nodes.length || !data.links.length) {
       return { nodes: [], links: [] };
     }
-
-    // Deep clone because d3-sankey mutates inputs
     const nodes = data.nodes.map((n) => ({ ...n }));
     const links = data.links.map((l) => ({ ...l }));
-
-    // Map string IDs to indices for d3-sankey
     const idToIndex = new Map(nodes.map((n, i) => [n.id, i]));
-
     const indexedLinks = links
       .map((link) => ({
         source: idToIndex.get(link.source) ?? 0,
         target: idToIndex.get(link.target) ?? 0,
         value: link.value,
       }))
-      .filter((l) => l.value > 0); // Filter zero values to prevent d3 errors
+      .filter((l) => l.value > 0);
 
     const sankeyGenerator = sankey<NodeDatum, LinkDatum>()
       .nodeWidth(15)
@@ -76,7 +68,7 @@ const SankeyChartBase = ({
         [margin.left, margin.top],
         [width - margin.right, height - margin.bottom],
       ])
-      .nodeAlign(sankeyLeft); // Align nodes to left to handle varying depths
+      .nodeAlign(sankeyLeft);
 
     try {
       return sankeyGenerator({
@@ -93,24 +85,22 @@ const SankeyChartBase = ({
 
   return (
     <svg width={width} height={height}>
-      {/* Links */}
       <Group>
         {links.map((link, i) => (
           <path
             key={`link-${i}`}
             d={sankeyLinkHorizontal()(link) || undefined}
-            stroke="#e2e8f0"
+            stroke={THEME_COLORS.border}
             strokeWidth={Math.max(1, link.width || 0)}
             fill="none"
             strokeOpacity={0.5}
-            className="dark:stroke-slate-700 hover:stroke-indigo-400 dark:hover:stroke-indigo-500 transition-colors"
+            className="hover:stroke-primary transition-colors"
           >
             <title>{`${link.source.id} → ${link.target.id}: ${link.value}`}</title>
           </path>
         ))}
       </Group>
 
-      {/* Nodes */}
       <Group>
         {nodes.map((node, i) => (
           <g key={`node-${i}`}>
@@ -119,13 +109,12 @@ const SankeyChartBase = ({
               y={node.y0}
               width={(node.x1 || 0) - (node.x0 || 0)}
               height={(node.y1 || 0) - (node.y0 || 0)}
-              fill={LAYER_COLORS[node.layer % LAYER_COLORS.length]}
+              fill={CHART_COLORS[node.layer % CHART_COLORS.length]}
               rx={2}
               opacity={0.9}
             >
               <title>{`${node.id}: ${node.value}`}</title>
             </rect>
-            {/* Labels */}
             <text
               x={
                 node.x0 && node.x0 < width / 2
@@ -136,7 +125,8 @@ const SankeyChartBase = ({
               dy="0.35em"
               textAnchor={node.x0 && node.x0 < width / 2 ? 'start' : 'end'}
               fontSize={10}
-              className="fill-slate-600 dark:fill-slate-300 font-medium pointer-events-none truncate"
+              fill={THEME_COLORS.foreground}
+              className="font-medium pointer-events-none truncate opacity-80"
             >
               {node.id}
             </text>

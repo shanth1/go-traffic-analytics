@@ -6,7 +6,7 @@ import {
   TrashIcon,
   SearchIcon,
   FilterIcon,
-  QrCodeIcon, // [ADDED]
+  QrCodeIcon,
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CreateLinkFeature } from '@/features/create-link/CreateLinkFeature';
@@ -18,8 +18,8 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Pagination } from '@/shared/ui/pagination';
 import type { Link as LinkType } from '@/shared/api/types';
-import { QrCodeModal } from '@/widgets/qr/QrCodeModal'; // [ADDED]
-import { getShortLink } from '@/shared/config'; // [ADDED]
+import { QrCodeModal } from '@/widgets/qr/QrCodeModal';
+import { getShortLink } from '@/shared/config';
 
 interface LinkCardProps {
   data: LinkType;
@@ -28,8 +28,6 @@ interface LinkCardProps {
 const LinkCard = ({ data }: LinkCardProps) => {
   const { deleteLink } = useLinkStore();
   const [copied, setCopied] = useState(false);
-
-  // [ADDED] State for QR Modal
   const [isQrOpen, setIsQrOpen] = useState(false);
 
   const copyToClipboard = () => {
@@ -40,13 +38,13 @@ const LinkCard = ({ data }: LinkCardProps) => {
 
   return (
     <>
-      <Card className="p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-white dark:bg-slate-950 hover:border-indigo-300 transition-colors">
+      <Card className="p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-card hover:border-primary/50 transition-colors">
         <div
           className={cn(
             'w-12 h-12 rounded-full flex items-center justify-center shrink-0',
             data.is_active
-              ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-              : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+              ? 'bg-chart-2/10 text-chart-2'
+              : 'bg-destructive/10 text-destructive'
           )}
         >
           <ExternalLinkIcon size={20} />
@@ -54,23 +52,22 @@ const LinkCard = ({ data }: LinkCardProps) => {
 
         <div className="flex-1 min-w-0 grid gap-1">
           <div className="flex items-center gap-2">
-            <h4 className="font-bold text-lg truncate text-slate-900 dark:text-slate-100">
+            <h4 className="font-bold text-lg truncate text-foreground">
               /{data.slug}
             </h4>
             {!data.is_active && (
-              <span className="px-2 py-0.5 rounded text-[10px] bg-red-100 text-red-600 font-bold uppercase">
+              <span className="px-2 py-0.5 rounded text-[10px] bg-destructive/10 text-destructive font-bold uppercase">
                 Inactive
               </span>
             )}
           </div>
-          <p className="text-sm text-slate-500 truncate">{data.target_url}</p>
-          <div className="flex items-center gap-4 mt-1 text-xs text-slate-400">
+          <p className="text-sm text-muted-foreground truncate">{data.target_url}</p>
+          <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
             <span>{new Date(data.created_at).toLocaleDateString()}</span>
           </div>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 border-t sm:border-t-0 pt-3 sm:pt-0">
-          {/* [ADDED] QR Button */}
           <Button
             variant="ghost"
             size="icon"
@@ -96,7 +93,7 @@ const LinkCard = ({ data }: LinkCardProps) => {
           <Button
             variant="ghost"
             size="icon"
-            className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
             onClick={() => deleteLink(data.id)}
           >
             <TrashIcon size={16} />
@@ -104,7 +101,6 @@ const LinkCard = ({ data }: LinkCardProps) => {
         </div>
       </Card>
 
-      {/* [ADDED] Modal */}
       <QrCodeModal
         isOpen={isQrOpen}
         onClose={() => setIsQrOpen(false)}
@@ -120,10 +116,8 @@ export const LinksPage = () => {
 
   const { links, meta, setFilters, setPage, isLoading } = useLinkStore();
   const { fetchCampaigns, campaigns } = useCampaignStore();
-
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Initial Load & URL Sync
   useEffect(() => {
     fetchCampaigns();
     setFilters({
@@ -155,10 +149,10 @@ export const LinksPage = () => {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+            <h1 className="text-3xl font-bold text-foreground">
               Links
             </h1>
-            <p className="text-slate-500">
+            <p className="text-muted-foreground">
               Manage and track your shortened links.
             </p>
           </div>
@@ -166,10 +160,10 @@ export const LinksPage = () => {
         </div>
 
         {/* Filters Toolbar */}
-        <div className="bg-white dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-4">
+        <div className="bg-card p-4 rounded-xl border border-border flex flex-col md:flex-row gap-4">
           <form onSubmit={handleSearch} className="relative flex-1">
             <SearchIcon
-              className="absolute left-3 top-2.5 text-slate-400"
+              className="absolute left-3 top-2.5 text-muted-foreground"
               size={18}
             />
             <Input
@@ -181,9 +175,9 @@ export const LinksPage = () => {
           </form>
 
           <div className="flex items-center gap-2 w-full md:w-auto">
-            <FilterIcon className="text-slate-400" size={18} />
+            <FilterIcon className="text-muted-foreground" size={18} />
             <select
-              className="flex h-10 w-full md:w-[200px] items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus:ring-indigo-500"
+              className="flex h-10 w-full md:w-[200px] items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               value={campaignIdParam || ''}
               onChange={handleCampaignFilterChange}
             >
@@ -204,12 +198,12 @@ export const LinksPage = () => {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="h-24 bg-slate-100 dark:bg-slate-900 rounded-lg animate-pulse"
+                className="h-24 bg-muted rounded-lg animate-pulse"
               />
             ))}
           </div>
         ) : links.length === 0 ? (
-          <div className="text-center py-20 text-slate-500">
+          <div className="text-center py-20 text-muted-foreground">
             No links found matching your criteria.
           </div>
         ) : (

@@ -3,11 +3,9 @@ import { Group } from '@visx/group';
 import { Cluster, hierarchy } from '@visx/hierarchy';
 import { LinkVertical } from '@visx/shape';
 import { withParentSize } from '@visx/responsive';
-import type {
-  HierarchyPointNode,
-  HierarchyPointLink,
-} from '@visx/hierarchy/lib/types';
+import type { HierarchyPointNode, HierarchyPointLink } from '@visx/hierarchy/lib/types';
 import type { HierarchyNode } from '@/shared/api/types';
+import { THEME_COLORS, CHART_COLORS } from '@/shared/config/theme';
 
 interface TreeProps {
   parentWidth?: number;
@@ -22,7 +20,6 @@ const HierarchyTreeBase = ({
 }: TreeProps) => {
   const width = parentWidth;
   const height = parentHeight;
-
   const root = useMemo(() => hierarchy<HierarchyNode>(data), [data]);
 
   return (
@@ -40,7 +37,7 @@ const HierarchyTreeBase = ({
                     <LinkVertical
                       key={`link-${i}`}
                       data={link}
-                      stroke="#cbd5e1"
+                      stroke={THEME_COLORS.border}
                       strokeWidth="1"
                       fill="none"
                     />
@@ -50,15 +47,14 @@ const HierarchyTreeBase = ({
                   (node: HierarchyPointNode<HierarchyNode>, i: number) => {
                     const isRoot = node.depth === 0;
                     const isLink = !node.children;
+                    const fill = isRoot ? CHART_COLORS[0] : isLink ? CHART_COLORS[3] : CHART_COLORS[4];
 
                     return (
                       <Group top={node.y} left={node.x} key={`node-${i}`}>
                         <circle
                           r={isRoot ? 8 : isLink ? 4 : 6}
-                          fill={
-                            isRoot ? '#4f46e5' : isLink ? '#ec4899' : '#0ea5e9'
-                          }
-                          stroke="white"
+                          fill={fill}
+                          stroke={THEME_COLORS.background}
                           strokeWidth={2}
                         />
                         <text
@@ -66,8 +62,8 @@ const HierarchyTreeBase = ({
                           dx={isLink ? 8 : 0}
                           fontSize={10}
                           textAnchor={isLink ? 'start' : 'middle'}
-                          fill="#64748b"
-                          className="font-medium"
+                          fill={THEME_COLORS.foreground}
+                          className="font-medium opacity-60"
                         >
                           {node.data.name}
                         </text>

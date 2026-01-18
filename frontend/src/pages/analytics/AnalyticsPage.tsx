@@ -8,7 +8,7 @@ import {
   ExternalLinkIcon,
   LayersIcon,
   CopyIcon,
-  QrCodeIcon, // [ADDED]
+  QrCodeIcon,
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -20,14 +20,14 @@ import { SankeyChart } from '@/widgets/charts/SankeyChart';
 import { BarListChart } from '@/widgets/charts/BarListChart';
 import { GeoMap } from '@/widgets/charts/GeoMap';
 import { DateRangePicker } from '@/features/analytics-filters/DateRangePicker';
-import { QrCodeModal } from '@/widgets/qr/QrCodeModal'; // [ADDED]
+import { QrCodeModal } from '@/widgets/qr/QrCodeModal';
 
 import { useAnalyticsFilter } from '@/entities/analytics/model/filters';
 import { analyticsApi } from '@/entities/analytics/api';
 import { linkApi } from '@/entities/link/api';
 import { toRFC3339 } from '@/shared/lib/date';
 import { cn } from '@/shared/lib/utils';
-import { getShortLink } from '@/shared/config'; // [ADDED]
+import { getShortLink } from '@/shared/config';
 
 import type {
   StreamChartData,
@@ -45,11 +45,8 @@ export const AnalyticsPage = () => {
   const navigate = useNavigate();
   const { startDate, endDate } = useAnalyticsFilter();
 
-  // --- Data State ---
   const [loading, setLoading] = useState(true);
   const [linkMeta, setLinkMeta] = useState<Link | null>(null);
-
-  // [ADDED] QR State
   const [isQrOpen, setIsQrOpen] = useState(false);
 
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
@@ -57,17 +54,13 @@ export const AnalyticsPage = () => {
   const [streamKeys, setStreamKeys] = useState<string[]>([]);
   const [heatmapData, setHeatmapData] = useState<HeatmapPoint[]>([]);
   const [qualityData, setQualityData] = useState<TrafficQuality | null>(null);
-  const [flowData, setFlowData] = useState<SankeyData>({
-    nodes: [],
-    links: [],
-  });
+  const [flowData, setFlowData] = useState<SankeyData>({ nodes: [], links: [] });
   const [geoData, setGeoData] = useState<GeoPoint[]>([]);
 
   const [statsOS, setStatsOS] = useState<CategoryStat[]>([]);
   const [statsBrowser, setStatsBrowser] = useState<CategoryStat[]>([]);
   const [statsDevice, setStatsDevice] = useState<CategoryStat[]>([]);
 
-  // --- Derived Metrics ---
   const topCountries = useMemo<CategoryStat[]>(() => {
     return geoData
       .sort((a, b) => b.value - a.value)
@@ -77,7 +70,6 @@ export const AnalyticsPage = () => {
 
   const topReferrers = useMemo<CategoryStat[]>(() => {
     if (!flowData.nodes.length) return [];
-
     return flowData.nodes
       .filter((n) => n.layer === 0)
       .map((n) => {
@@ -90,7 +82,6 @@ export const AnalyticsPage = () => {
       .slice(0, 8);
   }, [flowData]);
 
-  // --- Fetching ---
   useEffect(() => {
     if (!id) return;
 
@@ -125,10 +116,8 @@ export const AnalyticsPage = () => {
           analyticsRes;
 
         if (meta) setLinkMeta(meta);
-
         setSummary(sum);
 
-        // --- Process Stream (Sorting Logic) ---
         const keyTotals: Record<string, number> = {};
         stream.forEach((item) => {
           if (item.values) {
@@ -172,8 +161,8 @@ export const AnalyticsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-slate-500 animate-pulse">
-        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-muted-foreground animate-pulse">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         <p className="font-medium">Aggregating analytics data...</p>
       </div>
     );
@@ -184,13 +173,12 @@ export const AnalyticsPage = () => {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       {/* --- 1. RICH HEADER --- */}
-      <div className="flex flex-col gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
-        {/* Breadcrumbs & Actions */}
+      <div className="flex flex-col gap-4 border-b border-border pb-6">
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
-            className="gap-2 text-slate-500 pl-0 hover:text-indigo-600"
+            className="gap-2 text-muted-foreground pl-0 hover:text-primary"
             onClick={() => navigate('/links')}
           >
             <ArrowLeft size={16} /> Back to Links
@@ -198,7 +186,6 @@ export const AnalyticsPage = () => {
 
           {linkMeta && (
             <div className="flex items-center gap-2">
-              {/* [ADDED] QR Button */}
               <Button
                 variant="outline"
                 size="sm"
@@ -234,11 +221,10 @@ export const AnalyticsPage = () => {
           )}
         </div>
 
-        {/* Title & Target */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+              <h1 className="text-3xl font-bold text-foreground">
                 /{linkMeta?.slug || id}
               </h1>
               {linkMeta && (
@@ -246,8 +232,8 @@ export const AnalyticsPage = () => {
                   className={cn(
                     'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider',
                     linkMeta.is_active
-                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                      : 'bg-red-100 text-red-700'
+                      ? 'bg-chart-2/10 text-chart-2'
+                      : 'bg-destructive/10 text-destructive'
                   )}
                 >
                   {linkMeta.is_active ? 'Active' : 'Inactive'}
@@ -256,7 +242,7 @@ export const AnalyticsPage = () => {
             </div>
 
             {linkMeta && (
-              <div className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors">
+              <div className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
                 <ExternalLinkIcon size={14} />
                 <a
                   href={linkMeta.target_url}
@@ -320,10 +306,10 @@ export const AnalyticsPage = () => {
         <Card>
           <CardHeader>
             <CardTitle>Top Referrers</CardTitle>
-            <p className="text-sm text-slate-400">Where traffic comes from</p>
+            <p className="text-sm text-muted-foreground">Where traffic comes from</p>
           </CardHeader>
           <CardContent>
-            <BarListChart data={topReferrers} color="bg-violet-500" />
+            <BarListChart data={topReferrers} color="bg-chart-5" />
           </CardContent>
         </Card>
 
@@ -342,14 +328,14 @@ export const AnalyticsPage = () => {
         <StatsCard
           title="Device Type"
           data={statsDevice}
-          color="bg-indigo-500"
+          color="bg-chart-1"
         />
         <StatsCard
           title="Operating System"
           data={statsOS}
-          color="bg-emerald-500"
+          color="bg-chart-2"
         />
-        <StatsCard title="Browser" data={statsBrowser} color="bg-amber-500" />
+        <StatsCard title="Browser" data={statsBrowser} color="bg-chart-3" />
       </div>
 
       {/* --- 6. FLOW & QUALITY --- */}
@@ -357,7 +343,7 @@ export const AnalyticsPage = () => {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Traffic Flow</CardTitle>
-            <p className="text-sm text-slate-400">Referer → Device → Country</p>
+            <p className="text-sm text-muted-foreground">Referer → Device → Country</p>
           </CardHeader>
           <CardContent className="h-[350px]">
             {flowData.nodes.length > 0 ? (
@@ -392,7 +378,7 @@ export const AnalyticsPage = () => {
         </CardContent>
       </Card>
 
-      {/* [ADDED] QR Modal */}
+      {/* QR Modal */}
       {linkMeta && (
         <QrCodeModal
           isOpen={isQrOpen}
@@ -418,11 +404,11 @@ const KpiCard = ({
   <Card>
     <CardContent className="p-6 flex flex-col justify-between h-full">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-slate-500">{title}</span>
-        <div className="text-slate-400">{icon}</div>
+        <span className="text-sm font-medium text-muted-foreground">{title}</span>
+        <div className="text-muted-foreground">{icon}</div>
       </div>
       <div
-        className={`font-bold text-slate-900 dark:text-slate-100 ${isText ? 'text-lg truncate' : 'text-3xl'}`}
+        className={`font-bold text-foreground ${isText ? 'text-lg truncate' : 'text-3xl'}`}
         title={String(value)}
       >
         {isText
@@ -455,7 +441,7 @@ const StatsCard = ({
 );
 
 const NoData = () => (
-  <div className="h-full w-full flex items-center justify-center text-slate-400 text-sm italic bg-slate-50/50 dark:bg-slate-900/50 rounded-lg">
+  <div className="h-full w-full flex items-center justify-center text-muted-foreground text-sm italic bg-muted/20 rounded-lg">
     No data available
   </div>
 );

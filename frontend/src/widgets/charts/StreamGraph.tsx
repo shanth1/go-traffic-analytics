@@ -12,17 +12,10 @@ import { bisector } from 'd3-array';
 import { timeFormat } from 'd3-time-format';
 
 import type { StreamChartData } from '@/shared/api/types';
+import { CHART_COLORS, THEME_COLORS } from '@/shared/config/theme';
 
 const margin = { top: 20, right: 30, bottom: 50, left: 0 };
-const formatDate = timeFormat('%d %b'); // 17 Dec
-
-const colorRange = [
-  '#ef4444', // red
-  '#3b82f6', // blue
-  '#10b981', // emerald
-  '#f59e0b', // amber
-  '#8b5cf6', // violet
-];
+const formatDate = timeFormat('%d %b');
 
 interface StreamGraphProps {
   parentWidth?: number;
@@ -94,7 +87,7 @@ const StreamGraphBase = ({
   );
 
   const colorScale = useMemo(
-    () => scaleOrdinal({ domain: keys, range: colorRange }),
+    () => scaleOrdinal({ domain: keys, range: CHART_COLORS }),
     [keys]
   );
 
@@ -139,13 +132,13 @@ const StreamGraphBase = ({
             scale={yScale}
             width={xMax}
             strokeDasharray="3,3"
-            stroke="#e0e0e0"
+            stroke={THEME_COLORS.border}
           />
           <GridColumns
             scale={xScale}
             height={yMax}
             strokeDasharray="3,3"
-            stroke="#e0e0e0"
+            stroke={THEME_COLORS.border}
           />
 
           <AreaStack
@@ -163,7 +156,7 @@ const StreamGraphBase = ({
                   key={`stack-${stack.key}`}
                   d={path(stack) || ''}
                   fill={colorScale(stack.key)}
-                  stroke="white"
+                  stroke={THEME_COLORS.background}
                   strokeWidth={0.5}
                   fillOpacity={0.85}
                 />
@@ -175,12 +168,13 @@ const StreamGraphBase = ({
             top={yMax}
             scale={xScale}
             tickFormat={(d) => formatDate(d as Date)}
-            stroke="#cbd5e1"
-            tickStroke="#cbd5e1"
+            stroke={THEME_COLORS.border}
+            tickStroke={THEME_COLORS.border}
             tickLabelProps={() => ({
-              fill: '#64748b',
+              fill: THEME_COLORS.foreground,
               fontSize: 11,
               textAnchor: 'middle',
+              opacity: 0.6
             })}
           />
 
@@ -191,10 +185,11 @@ const StreamGraphBase = ({
             stroke="transparent"
             tickStroke="transparent"
             tickLabelProps={() => ({
-              fill: '#94a3b8',
+              fill: THEME_COLORS.foreground,
               fontSize: 10,
               textAnchor: 'start',
               dx: 4,
+              opacity: 0.5
             })}
           />
 
@@ -202,10 +197,11 @@ const StreamGraphBase = ({
             <Line
               from={{ x: tooltipLeft - margin.left, y: 0 }}
               to={{ x: tooltipLeft - margin.left, y: yMax }}
-              stroke="#64748b"
+              stroke={THEME_COLORS.foreground}
               strokeWidth={1}
               pointerEvents="none"
               strokeDasharray="5,2"
+              opacity={0.5}
             />
           )}
 
@@ -231,8 +227,9 @@ const StreamGraphBase = ({
           left={tooltipLeft}
           style={{
             ...defaultStyles,
-            backgroundColor: '#1e293b',
-            color: 'white',
+            backgroundColor: THEME_COLORS.background,
+            color: THEME_COLORS.foreground,
+            border: `1px solid ${THEME_COLORS.border}`,
             minWidth: 120,
             zIndex: 100,
           }}
@@ -283,7 +280,7 @@ const StreamGraphBase = ({
                     className="w-3 h-3 rounded-full mr-2"
                     style={{ backgroundColor: label.value }}
                   />
-                  <span className="text-xs text-slate-500 font-medium">
+                  <span className="text-xs text-muted-foreground font-medium">
                     {label.text}
                   </span>
                 </div>

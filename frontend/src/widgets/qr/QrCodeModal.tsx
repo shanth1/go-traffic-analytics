@@ -4,33 +4,34 @@ import {
   Download,
   ChevronLeft,
   ChevronRight,
+  X,
+  QrCode as QrCodeIcon,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { getShortLink } from '@/shared/config';
-import { ResponsiveSheet } from '@/shared/ui/responsive-sheet';
 
-// --- Styles Definition ---
 const QR_STYLES = [
   {
     id: 'classic',
     name: 'Classic Black',
     bg: '#ffffff',
     fg: '#000000',
-    wrapperClass: 'bg-white border-slate-200',
+    wrapperClass: 'bg-white',
   },
   {
     id: 'inverted',
     name: 'Dark Mode',
-    bg: '#0f172a', // slate-950
+    bg: '#0f172a',
     fg: '#ffffff',
-    wrapperClass: 'bg-slate-950 border-slate-800',
+    wrapperClass: 'bg-slate-950',
   },
   {
     id: 'brand',
-    name: 'Brand Indigo',
-    bg: '#e0e7ff', // indigo-100
-    fg: '#4f46e5', // indigo-600
-    wrapperClass: 'bg-indigo-100 border-indigo-200',
+    name: 'Brand Primary',
+    // Hardcoded colors for QR ensuring scannability/contrast regardless of theme
+    bg: '#e0e7ff',
+    fg: '#4f46e5',
+    wrapperClass: 'bg-indigo-100',
   },
 ];
 
@@ -44,33 +45,22 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
   const [styleIndex, setStyleIndex] = useState(0);
   const svgRef = useRef<HTMLDivElement>(null);
   const linkUrl = getShortLink(slug);
-
   const currentStyle = QR_STYLES[styleIndex];
 
-  const nextStyle = () => {
-    setStyleIndex((prev) => (prev + 1) % QR_STYLES.length);
-  };
-
-  const prevStyle = () => {
-    setStyleIndex((prev) => (prev - 1 + QR_STYLES.length) % QR_STYLES.length);
-  };
+  const nextStyle = () => setStyleIndex((prev) => (prev + 1) % QR_STYLES.length);
+  const prevStyle = () => setStyleIndex((prev) => (prev - 1 + QR_STYLES.length) % QR_STYLES.length);
 
   const handleDownload = () => {
     const svg = svgRef.current?.querySelector('svg');
     if (!svg) return;
-
     const svgData = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
     const size = 1024;
-
     canvas.width = size;
     canvas.height = size;
-
-    const svgBlob = new Blob([svgData], {
-      type: 'image/svg+xml;charset=utf-8',
-    });
+    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(svgBlob);
 
     img.onload = () => {
@@ -78,7 +68,6 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
         ctx.fillStyle = currentStyle.bg;
         ctx.fillRect(0, 0, size, size);
         ctx.drawImage(img, 0, 0, size, size);
-
         const pngUrl = canvas.toDataURL('image/png');
         const downloadLink = document.createElement('a');
         downloadLink.href = pngUrl;
@@ -92,68 +81,68 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
     img.src = url;
   };
 
+  if (!isOpen) return null;
+
   return (
-    <ResponsiveSheet
-      isOpen={isOpen}
-      onClose={onClose}
-      title="QR Code"
-    >
-      <div className="flex flex-col items-center w-full max-w-sm mx-auto gap-6 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div
+        className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
 
-        {/* Style Selector & Preview */}
-        <div className="flex items-center justify-between w-full gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={prevStyle}
-            className="rounded-full h-12 w-12 shrink-0 border-slate-200 dark:border-slate-700"
+      <div className="relative bg-card rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col items-center animate-in fade-in zoom-in-95 duration-200 border border-border">
+        <div className="w-full flex justify-between items-center p-4 border-b border-border">
+          <h3 className="font-semibold text-lg flex items-center gap-2 text-foreground">
+            <QrCodeIcon size={18} className="text-primary" />
+            QR Code
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-accent rounded-full text-muted-foreground"
           >
-            <ChevronLeft size={20} />
-          </Button>
+            <X size={20} />
+          </button>
+        </div>
 
-          <div
-            ref={svgRef}
-            className={`p-4 rounded-2xl shadow-sm border transition-all duration-300 ${currentStyle.wrapperClass}`}
-          >
-            <QRCodeSVG
-              value={linkUrl}
-              size={160}
-              bgColor={currentStyle.bg}
-              fgColor={currentStyle.fg}
-              level="M"
-              includeMargin={false}
-            />
+        <div className="p-8 w-full flex flex-col items-center gap-6">
+          <div className="flex items-center gap-4 w-full justify-between">
+            <Button variant="ghost" size="icon" onClick={prevStyle} className="rounded-full h-10 w-10 shrink-0">
+              <ChevronLeft />
+            </Button>
+
+            <div
+              ref={svgRef}
+              className={`p-4 rounded-xl shadow-inner transition-colors duration-300 ${currentStyle.wrapperClass}`}
+            >
+              <QRCodeSVG
+                value={linkUrl}
+                size={180}
+                bgColor={currentStyle.bg}
+                fgColor={currentStyle.fg}
+                level="M"
+                includeMargin={false}
+              />
+            </div>
+
+            <Button variant="ghost" size="icon" onClick={nextStyle} className="rounded-full h-10 w-10 shrink-0">
+              <ChevronRight />
+            </Button>
           </div>
 
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={nextStyle}
-            className="rounded-full h-12 w-12 shrink-0 border-slate-200 dark:border-slate-700"
-          >
-            <ChevronRight size={20} />
+          <div className="text-center">
+            <p className="text-sm font-medium text-foreground">{currentStyle.name}</p>
+            <p className="text-xs text-muted-foreground mt-1 truncate max-w-[200px] mx-auto">
+              {linkUrl}
+            </p>
+          </div>
+        </div>
+
+        <div className="w-full p-4 border-t border-border bg-muted/30">
+          <Button onClick={handleDownload} className="w-full gap-2 shadow-sm">
+            <Download size={16} /> Download PNG
           </Button>
         </div>
-
-        {/* Info Text */}
-        <div className="text-center space-y-1">
-          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-            {currentStyle.name}
-          </p>
-          <p className="text-xs text-slate-500 truncate max-w-[250px] mx-auto select-all">
-            {linkUrl}
-          </p>
-        </div>
-
-        {/* Action Button */}
-        <Button
-          onClick={handleDownload}
-          className="w-full h-12 gap-2 text-base font-medium shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all"
-        >
-          <Download size={18} />
-          Download PNG
-        </Button>
       </div>
-    </ResponsiveSheet>
+    </div>
   );
 };

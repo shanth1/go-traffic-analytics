@@ -15,7 +15,7 @@ import {
   SmartphoneIcon,
   ExternalLinkIcon,
   LayersIcon,
-  QrCodeIcon, // [ADDED]
+  QrCodeIcon,
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -25,7 +25,7 @@ import { StreamGraph } from '@/widgets/charts/StreamGraph';
 import { HeatmapChart } from '@/widgets/charts/HeatmapChart';
 import { GeoMap } from '@/widgets/charts/GeoMap';
 import { DateRangePicker } from '@/features/analytics-filters/DateRangePicker';
-import { QrCodeModal } from '@/widgets/qr/QrCodeModal'; // [ADDED]
+import { QrCodeModal } from '@/widgets/qr/QrCodeModal';
 
 import { useAnalyticsFilter } from '@/entities/analytics/model/filters';
 import { analyticsApi } from '@/entities/analytics/api';
@@ -52,14 +52,12 @@ export const CampaignDetailsPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // URL-Synced Tab State
   const activeTab = searchParams.get('tab') || 'overview';
   const setActiveTab = (tab: string) => {
     setSearchParams({ tab });
   };
 
   const { startDate, endDate } = useAnalyticsFilter();
-
   const [loading, setLoading] = useState(true);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
 
@@ -70,8 +68,6 @@ export const CampaignDetailsPage = () => {
     total: 0,
   });
   const [linksLoading, setLinksLoading] = useState(false);
-
-  // [ADDED] QR State
   const [qrSlug, setQrSlug] = useState<string | null>(null);
 
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
@@ -81,7 +77,6 @@ export const CampaignDetailsPage = () => {
   const [geoData, setGeoData] = useState<GeoPoint[]>([]);
   const [statsDevice, setStatsDevice] = useState<CategoryStat[]>([]);
 
-  // --- Helpers ---
   const topCountries = useMemo(() => {
     return geoData
       .sort((a, b) => b.value - a.value)
@@ -89,10 +84,8 @@ export const CampaignDetailsPage = () => {
       .map((g) => ({ name: g.country, value: g.value, share: 0 }));
   }, [geoData]);
 
-  // --- Fetch Analytics ---
   useEffect(() => {
     if (!id) return;
-
     const loadAnalytics = async () => {
       setLoading(true);
       try {
@@ -101,11 +94,9 @@ export const CampaignDetailsPage = () => {
           to: toRFC3339(endDate),
           campaign_id: id,
         };
-
         const metaReq = api.get<CampaignsListResponse>('/campaigns', {
           params: { limit: 100 },
         });
-
         const analyticsReq = Promise.all([
           analyticsApi.getSummary(params),
           analyticsApi.getStream(undefined, params),
@@ -113,11 +104,7 @@ export const CampaignDetailsPage = () => {
           analyticsApi.getGeoStats(params),
           analyticsApi.getStats('device', params),
         ]);
-
-        const [metaRes, analyticsRes] = await Promise.all([
-          metaReq,
-          analyticsReq,
-        ]);
+        const [metaRes, analyticsRes] = await Promise.all([metaReq, analyticsReq]);
         const [sum, stream, heatmap, geo, dev] = analyticsRes;
 
         const foundCampaign = metaRes.data.data.find((c) => c.id === id);
@@ -155,11 +142,9 @@ export const CampaignDetailsPage = () => {
         setLoading(false);
       }
     };
-
     loadAnalytics();
   }, [id, startDate, endDate]);
 
-  // --- Fetch Links ---
   const fetchLinks = async (offset: number) => {
     if (!id) return;
     setLinksLoading(true);
@@ -191,8 +176,8 @@ export const CampaignDetailsPage = () => {
 
   if (loading && !campaign) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-slate-500 animate-pulse">
-        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-muted-foreground animate-pulse">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         <p className="font-medium">Loading Campaign Intelligence...</p>
       </div>
     );
@@ -200,13 +185,13 @@ export const CampaignDetailsPage = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
-      {/* --- HEADER --- */}
-      <div className="flex flex-col gap-6 border-b border-slate-200 dark:border-slate-800 pb-6">
+      {/* HEADER */}
+      <div className="flex flex-col gap-6 border-b border-border pb-6">
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
-            className="gap-2 text-slate-500 pl-0 hover:text-indigo-600"
+            className="gap-2 text-muted-foreground pl-0 hover:text-primary"
             onClick={() => navigate('/campaigns')}
           >
             <ArrowLeft size={16} /> Back to Campaigns
@@ -216,22 +201,22 @@ export const CampaignDetailsPage = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rounded-lg">
+              <div className="p-2 bg-primary/10 text-primary rounded-lg">
                 <LayersIcon size={24} />
               </div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+              <h1 className="text-3xl font-bold text-foreground">
                 {campaign?.name || 'Campaign Details'}
               </h1>
             </div>
 
-            <div className="flex items-center gap-4 mt-3 ml-1 text-sm text-slate-500">
+            <div className="flex items-center gap-4 mt-3 ml-1 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <CalendarIcon size={14} /> Created{' '}
                 {campaign
                   ? new Date(campaign.created_at).toLocaleDateString()
                   : '-'}
               </span>
-              <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+              <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-secondary text-secondary-foreground">
                 <LinkIcon size={12} /> {linksMeta.total} Links
               </span>
             </div>
@@ -243,14 +228,14 @@ export const CampaignDetailsPage = () => {
         </div>
 
         {/* TABS */}
-        <div className="flex gap-1 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl w-fit border border-slate-200 dark:border-slate-800">
+        <div className="flex gap-1 bg-muted p-1.5 rounded-xl w-fit border border-border">
           <button
             onClick={() => setActiveTab('overview')}
             className={cn(
               'flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200',
               activeTab === 'overview'
-                ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? 'bg-background text-primary shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             <BarChart2Icon size={16} />
@@ -261,8 +246,8 @@ export const CampaignDetailsPage = () => {
             className={cn(
               'flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200',
               activeTab === 'links'
-                ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? 'bg-background text-primary shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             <LinkIcon size={16} />
@@ -271,7 +256,7 @@ export const CampaignDetailsPage = () => {
         </div>
       </div>
 
-      {/* --- CONTENT: OVERVIEW TAB --- */}
+      {/* CONTENT: OVERVIEW TAB */}
       {activeTab === 'overview' && (
         <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -339,7 +324,7 @@ export const CampaignDetailsPage = () => {
         </div>
       )}
 
-      {/* --- CONTENT: LINKS TAB --- */}
+      {/* CONTENT: LINKS TAB */}
       {activeTab === 'links' && (
         <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-300">
           {linksLoading ? (
@@ -347,13 +332,13 @@ export const CampaignDetailsPage = () => {
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-16 bg-slate-100 dark:bg-slate-900 rounded-lg animate-pulse"
+                  className="h-16 bg-muted rounded-lg animate-pulse"
                 />
               ))}
             </div>
           ) : links.length === 0 ? (
-            <div className="text-center py-20 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-dashed border-slate-200 dark:border-slate-800">
-              <p className="text-slate-500 mb-4">
+            <div className="text-center py-20 bg-muted/20 rounded-lg border border-dashed border-border">
+              <p className="text-muted-foreground mb-4">
                 No links in this campaign yet.
               </p>
               <Button onClick={() => navigate('/links')}>Create Link</Button>
@@ -364,30 +349,30 @@ export const CampaignDetailsPage = () => {
                 {links.map((link) => (
                   <div
                     key={link.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-300 transition-colors gap-4"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors gap-4"
                   >
                     <div className="flex items-start sm:items-center gap-4 overflow-hidden">
                       <div
                         className={cn(
-                          'w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-slate-100 dark:bg-slate-900',
-                          link.is_active ? 'text-green-600' : 'text-red-500'
+                          'w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-secondary',
+                          link.is_active ? 'text-chart-2' : 'text-destructive'
                         )}
                       >
                         <LinkIcon size={18} />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <h4 className="font-bold text-slate-900 dark:text-slate-100 truncate">
+                          <h4 className="font-bold text-foreground truncate">
                             /{link.slug}
                           </h4>
                           {!link.is_active && (
-                            <span className="text-[10px] bg-red-100 text-red-600 px-1.5 rounded uppercase font-bold">
+                            <span className="text-[10px] bg-destructive/10 text-destructive px-1.5 rounded uppercase font-bold">
                               Inactive
                             </span>
                           )}
                         </div>
                         <p
-                          className="text-xs text-slate-500 truncate max-w-[200px] sm:max-w-[300px]"
+                          className="text-xs text-muted-foreground truncate max-w-[200px] sm:max-w-[300px]"
                           title={link.target_url}
                         >
                           {link.target_url}
@@ -395,12 +380,11 @@ export const CampaignDetailsPage = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-end gap-2 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100 dark:border-slate-800">
-                      <span className="text-xs text-slate-400 mr-2 hidden md:inline-block">
+                    <div className="flex items-center justify-end gap-2 border-t sm:border-t-0 pt-3 sm:pt-0 border-border">
+                      <span className="text-xs text-muted-foreground mr-2 hidden md:inline-block">
                         {new Date(link.created_at).toLocaleDateString()}
                       </span>
 
-                      {/* [ADDED] QR Button */}
                       <Button
                         variant="ghost"
                         size="icon"
@@ -430,7 +414,6 @@ export const CampaignDetailsPage = () => {
                 ))}
               </div>
 
-              {/* PAGINATION */}
               <div className="flex justify-center pt-4">
                 <Pagination
                   total={linksMeta.total}
@@ -444,7 +427,6 @@ export const CampaignDetailsPage = () => {
         </div>
       )}
 
-      {/* [ADDED] QR Modal */}
       {qrSlug && (
         <QrCodeModal
           isOpen={!!qrSlug}
@@ -468,11 +450,11 @@ const KpiCard = ({ title, value, icon, isText = false }: KpiCardProps) => (
   <Card>
     <CardContent className="p-6 flex flex-col justify-between h-full">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-slate-500">{title}</span>
-        <div className="text-slate-400">{icon}</div>
+        <span className="text-sm font-medium text-muted-foreground">{title}</span>
+        <div className="text-muted-foreground">{icon}</div>
       </div>
       <div
-        className={`font-bold text-slate-900 dark:text-slate-100 ${isText ? 'text-lg truncate' : 'text-3xl'}`}
+        className={`font-bold text-foreground ${isText ? 'text-lg truncate' : 'text-3xl'}`}
       >
         {isText
           ? value
@@ -485,7 +467,7 @@ const KpiCard = ({ title, value, icon, isText = false }: KpiCardProps) => (
 );
 
 const NoData = () => (
-  <div className="h-full w-full flex items-center justify-center text-slate-400 text-sm italic">
+  <div className="h-full w-full flex items-center justify-center text-muted-foreground text-sm italic">
     No data available
   </div>
 );

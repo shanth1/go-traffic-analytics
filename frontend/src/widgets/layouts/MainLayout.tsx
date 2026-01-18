@@ -1,6 +1,6 @@
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import {
-  LayoutDashboardIcon, // New icon for dashboard
+  LayoutDashboardIcon,
   LayersIcon,
   LinkIcon,
   LogOutIcon,
@@ -26,12 +26,12 @@ export const MainLayout = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-50 overflow-hidden">
+    <div className="flex min-h-screen bg-muted/20 text-foreground overflow-hidden">
       {/* --- Desktop Sidebar --- */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 fixed inset-y-0 left-0 z-40 shrink-0">
+      <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card fixed inset-y-0 left-0 z-40 shrink-0">
         <div className="p-6">
-          <h1 className="text-2xl font-bold tracking-tight text-indigo-600 flex items-center gap-2">
-            <LayoutDashboardIcon className="text-indigo-600" />
+          <h1 className="text-2xl font-bold tracking-tight text-primary flex items-center gap-2">
+            <LayoutDashboardIcon className="text-primary" />
             Analytics
           </h1>
         </div>
@@ -44,8 +44,8 @@ export const MainLayout = () => {
               className={cn(
                 'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium',
                 isObjActive(item.path)
-                  ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400'
-                  : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  ? 'bg-primary/10 text-primary'
+                  : 'hover:bg-accent text-muted-foreground hover:text-foreground'
               )}
             >
               <item.icon size={20} />
@@ -54,16 +54,16 @@ export const MainLayout = () => {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+        <div className="p-4 border-t border-border">
           <div className="mb-4 px-4 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground">
               <UserIcon size={16} />
             </div>
             <div className="flex flex-col">
-              <span className="text-xs font-bold">My Account</span>
+              <span className="text-xs font-bold text-foreground">My Account</span>
               <Link
                 to="/profile"
-                className="text-[10px] text-slate-500 hover:text-indigo-500"
+                className="text-[10px] text-muted-foreground hover:text-primary transition-colors"
               >
                 View Profile
               </Link>
@@ -71,7 +71,7 @@ export const MainLayout = () => {
           </div>
           <button
             onClick={logout}
-            className="flex items-center gap-3 px-4 py-2 w-full text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+            className="flex items-center gap-3 px-4 py-2 w-full text-sm font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
           >
             <LogOutIcon size={18} />
             Logout
@@ -80,15 +80,14 @@ export const MainLayout = () => {
       </aside>
 
       {/* --- Main Content Area --- */}
-
-      <main className="flex-1 min-w-0 md:ml-64 pb-24 md:pb-8 relative overflow-x-hidden">
+      <main className="flex-1 min-w-0 md:ml-64 pb-24 md:pb-8 relative overflow-x-hidden bg-muted/20">
         <div className="container mx-auto p-4 md:p-8 max-w-7xl">
           <Outlet />
         </div>
       </main>
 
       {/* --- Mobile Bottom Nav --- */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md dark:bg-slate-950/90 border-t border-slate-200 dark:border-slate-800 z-50 pb-safe shadow-lg">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-md border-t border-border z-50 pb-safe shadow-lg">
         <div className="flex justify-around items-center h-16">
           {NAV_ITEMS.map((item) => (
             <Link
@@ -97,8 +96,8 @@ export const MainLayout = () => {
               className={cn(
                 'flex flex-col items-center justify-center w-full h-full gap-1 active:scale-95 transition-transform',
                 isObjActive(item.path)
-                  ? 'text-indigo-600 dark:text-indigo-400'
-                  : 'text-slate-500 dark:text-slate-500'
+                  ? 'text-primary'
+                  : 'text-muted-foreground'
               )}
             >
               <item.icon

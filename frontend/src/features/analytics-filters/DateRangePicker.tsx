@@ -27,12 +27,12 @@ export const DateRangePicker = () => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 bg-white dark:bg-slate-950 p-1 rounded-lg border border-slate-200 dark:border-slate-800">
-      <div className="flex items-center p-2 text-slate-500">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 bg-card p-1 rounded-lg border border-border">
+      <div className="flex items-center p-2 text-muted-foreground">
         <CalendarIcon size={16} />
       </div>
 
-      <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 rounded-md p-1">
+      <div className="flex items-center gap-1 bg-secondary rounded-md p-1">
         {(['7d', '30d', '90d'] as DatePreset[]).map((p) => (
           <Button
             key={p}
@@ -42,7 +42,7 @@ export const DateRangePicker = () => {
             className={cn(
               'h-7 text-xs px-3',
               preset === p &&
-                'bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400'
+                'bg-background shadow-sm text-primary'
             )}
           >
             {p.toUpperCase()}
@@ -55,7 +55,7 @@ export const DateRangePicker = () => {
           className={cn(
             'h-7 text-xs px-3',
             preset === 'custom' &&
-              'bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400'
+              'bg-background shadow-sm text-primary'
           )}
         >
           Custom
@@ -66,15 +66,15 @@ export const DateRangePicker = () => {
         <div className="flex items-center gap-2 px-2 animate-in fade-in slide-in-from-left-2 duration-200">
           <input
             type="date"
-            className="bg-transparent text-xs font-medium focus:outline-none dark:text-slate-200"
+            className="bg-transparent text-xs font-medium focus:outline-none text-foreground"
             value={formatDateInput(startDate)}
             onChange={handleStartChange}
             max={formatDateInput(new Date())}
           />
-          <span className="text-slate-400">-</span>
+          <span className="text-muted-foreground">-</span>
           <input
             type="date"
-            className="bg-transparent text-xs font-medium focus:outline-none dark:text-slate-200"
+            className="bg-transparent text-xs font-medium focus:outline-none text-foreground"
             value={formatDateInput(endDate)}
             onChange={handleEndChange}
             max={formatDateInput(new Date())}

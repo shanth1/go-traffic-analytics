@@ -22,7 +22,7 @@ export const CreateCampaignFeature = () => {
     <>
       <Button
         onClick={() => setIsOpen(true)}
-        className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
+        className="gap-2"
       >
         <PlusIcon size={18} />
         <span className="hidden sm:inline">New Campaign</span>
@@ -36,20 +36,20 @@ export const CreateCampaignFeature = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label className="text-sm font-medium text-foreground">
               Campaign Name
             </label>
             <Input
-              placeholder="Например: Summer Sale 2024"
+              placeholder="e.g. Summer Sale 2024"
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoFocus
             />
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Campaigns help group links for overall analytics.
             </p>
           </div>
-          <Button type="submit" className="w-full bg-indigo-600 text-white">
+          <Button type="submit" className="w-full">
             Create
           </Button>
         </form>
