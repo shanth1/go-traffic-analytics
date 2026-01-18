@@ -34,7 +34,7 @@
   --accent-foreground: #0f172a;
 
   /* --- DESTRUCTIVE (Errors, Deletes) --- */
-  --destructive: #ef4444; /* red-500 */
+  --destructive: #dc2626; /* red-600 */
   --destructive-foreground: #ffffff;
 
   /* --- BORDERS & INPUTS --- */
@@ -76,8 +76,8 @@
   --accent: #1e293b;
   --accent-foreground: #f8fafc;
 
-  --destructive: #7f1d1d; /* red-900 */
-  --destructive-foreground: #f8fafc;
+  --destructive: #b91c1c; /* red-700 */
+  --destructive-foreground: #ffffff;
 
   --border: #1e293b; /* slate-800 */
   --input: #1e293b;

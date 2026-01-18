@@ -230,6 +230,16 @@ export const DashboardPage = () => {
         </CardContent>
       </Card>
 
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Account Hierarchy</CardTitle>
+          <CardDescription>Campaigns & Links</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[300px]">
+          {treeData ? <HierarchyTree data={treeData} /> : <NoData />}
+        </CardContent>
+      </Card>
+
       {/* --- 3. GEOGRAPHY --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
@@ -317,16 +327,6 @@ export const DashboardPage = () => {
           </CardHeader>
           <CardContent className="h-[300px]">
             {qualityData ? <QualityRadar data={qualityData} /> : <NoData />}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Hierarchy</CardTitle>
-            <CardDescription>Campaigns & Links</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            {treeData ? <HierarchyTree data={treeData} /> : <NoData />}
           </CardContent>
         </Card>
       </div>

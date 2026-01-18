@@ -46,6 +46,7 @@ import type {
   LinksListResponse,
   PaginationMeta,
 } from '@/shared/api/types';
+import { CreateLinkFeature } from '@/features/create-link/CreateLinkFeature';
 
 export const CampaignDetailsPage = () => {
   const { id } = useParams();
@@ -232,7 +233,7 @@ export const CampaignDetailsPage = () => {
           <button
             onClick={() => setActiveTab('overview')}
             className={cn(
-              'flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200',
+              'flex cursor-pointer items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200',
               activeTab === 'overview'
                 ? 'bg-background text-primary shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -244,7 +245,7 @@ export const CampaignDetailsPage = () => {
           <button
             onClick={() => setActiveTab('links')}
             className={cn(
-              'flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200',
+              'flex cursor-pointer items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200',
               activeTab === 'links'
                 ? 'bg-background text-primary shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -341,7 +342,7 @@ export const CampaignDetailsPage = () => {
               <p className="text-muted-foreground mb-4">
                 No links in this campaign yet.
               </p>
-              <Button onClick={() => navigate('/links')}>Create Link</Button>
+              <CreateLinkFeature selectedCampaignId={id} />
             </div>
           ) : (
             <>

@@ -6,10 +6,16 @@ import { ResponsiveSheet } from '@/shared/ui/responsive-sheet';
 import { useLinkStore } from '@/entities/link/model/store';
 import { useCampaignStore } from '@/entities/campaign/model/store';
 
-export const CreateLinkFeature = () => {
+type Props = {
+  selectedCampaignId?: string;
+};
+
+export const CreateLinkFeature: React.FC<Props> = ({
+  selectedCampaignId,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [url, setUrl] = useState('');
-  const [campaignId, setCampaignId] = useState('');
+  const [campaignId, setCampaignId] = useState(selectedCampaignId );
 
   const addLink = useLinkStore((s) => s.addLink);
   const { campaigns, fetchCampaigns } = useCampaignStore();
@@ -36,7 +42,7 @@ export const CreateLinkFeature = () => {
         className="gap-2"
       >
         <PlusIcon size={18} />
-        <span className="hidden sm:inline">Shorten Link</span>
+        <span className="hidden sm:inline">New Link</span>
         <span className="sm:hidden">Link</span>
       </Button>
 
@@ -55,7 +61,7 @@ export const CreateLinkFeature = () => {
               />
               <Input
                 className="pl-9"
-                placeholder="https://very-long-url.com/..."
+                placeholder="https://your-service.com/..."
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 type="url"
@@ -63,7 +69,7 @@ export const CreateLinkFeature = () => {
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Paste the long URL you want to shorten.
+              Paste the target URL of your service
             </p>
           </div>
 
@@ -84,7 +90,7 @@ export const CreateLinkFeature = () => {
           </div>
 
           <Button type="submit" className="w-full mt-4">
-            Create Short Link
+            Create Link
           </Button>
         </form>
       </ResponsiveSheet>

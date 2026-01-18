@@ -40,7 +40,7 @@ export const DateRangePicker = () => {
             size="sm"
             onClick={() => handlePresetChange(p)}
             className={cn(
-              'h-7 text-xs px-3',
+              'h-7 text-xs px-3 cursor-pointer',
               preset === p &&
                 'bg-background shadow-sm text-primary'
             )}
@@ -55,7 +55,7 @@ export const DateRangePicker = () => {
           className={cn(
             'h-7 text-xs px-3',
             preset === 'custom' &&
-              'bg-background shadow-sm text-primary'
+              'bg-background shadow-sm text-primary cursor-pointer'
           )}
         >
           Custom

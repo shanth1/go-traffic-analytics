@@ -46,9 +46,9 @@ const ActionTile = ({
   return (
     <button
       className={cn(
-        'group relative flex flex-col justify-between p-5 h-32 w-full rounded-2xl transition-all duration-300 border border-transparent',
+        'cursor-pointer group relative flex flex-col justify-between p-5 h-32 w-full rounded-2xl border border-transparent hover:transition-colors',
         variant === 'default' && 'bg-secondary hover:bg-primary/10 hover:border-primary/20',
-        variant === 'destructive' && 'bg-destructive/10 hover:bg-destructive/20 text-destructive',
+        variant === 'destructive' && 'bg-destructive/30 hover:bg-destructive/20',
         variant === 'outline' && 'border-border hover:bg-accent',
         active && 'bg-primary text-primary-foreground hover:bg-primary',
         className
@@ -56,13 +56,13 @@ const ActionTile = ({
       {...props}
     >
       <div className={cn(
-        "p-2 rounded-full w-fit transition-colors",
+        "p-2 rounded-full w-fit",
         active ? "bg-white/20" : "bg-background/50 group-hover:bg-background"
       )}>
         {icon}
       </div>
       <div className="text-left">
-        <div className={cn("font-bold text-lg", active ? "text-primary-foreground" : "text-foreground")}>
+        <div className={cn("font-bold text-lg", "light", active ? "text-primary-foreground" : "text-foreground")}>
           {label}
         </div>
         {subLabel && (
@@ -84,7 +84,7 @@ const StatPill = ({
   value: string | number;
   icon?: React.ReactNode;
 }) => (
-  <div className="flex flex-col justify-center px-5 py-4 bg-secondary/30 rounded-2xl border border-border hover:border-primary/20 transition-colors">
+  <div className="flex flex-col justify-center px-5 py-4 bg-secondary/30 rounded-2xl border border-border hover:border-primary/20">
     <div className="flex items-center gap-2 mb-1 text-muted-foreground">
       {icon && <span className="opacity-70">{icon}</span>}
       <span className="text-[10px] uppercase font-bold tracking-wider">
@@ -214,7 +214,7 @@ export const ProfilePage = () => {
   const avatarUrl = `https://api.dicebear.com/9.x/thumbs/svg?seed=Brian`;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 pb-20">
 
       <div className="flex flex-col gap-2 mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Profile</h1>
@@ -339,7 +339,7 @@ export const ProfilePage = () => {
                     <div
                       className={cn(
                         "h-full transition-all duration-1000 ease-out",
-                         usagePercent > 90 ? "bg-red-500" : "bg-primary"
+                         usagePercent > 90 ? "bg-destructive" : "bg-primary"
                       )}
                       style={{ width: `${usagePercent}%` }}
                     />

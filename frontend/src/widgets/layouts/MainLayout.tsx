@@ -49,7 +49,7 @@ export const MainLayout = () => {
         {/* 1. PROFILE BUTTON (Interactive) */}
         <div className="p-3">
           <Link to="/profile">
-            <button className="flex items-center gap-3 w-full p-2 rounded-2xl hover:bg-secondary/80 transition-colors border border-transparent hover:border-border group text-left">
+            <button className="cursor-pointer flex items-center gap-3 w-full p-2 rounded-2xl hover:bg-secondary/80 transition-colors border border-transparent hover:border-border group text-left">
               <div className="relative shrink-0">
                 <div className="w-10 h-10 rounded-full bg-background border border-border overflow-hidden">
                   <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
@@ -171,7 +171,7 @@ export const MainLayout = () => {
         <div className="p-3 border-t border-border mt-auto">
           <button
             onClick={logout}
-            className="flex w-full items-center gap-3 px-3 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-xl transition-all duration-200 group"
+            className="flex cursor-pointer w-full items-center gap-3 px-3 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-xl transition-all duration-200 group"
           >
             <LogOutIcon size={20} className="opacity-70 group-hover:opacity-100" />
             <span>Log Out</span>
