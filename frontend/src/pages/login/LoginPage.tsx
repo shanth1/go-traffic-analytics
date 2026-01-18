@@ -64,7 +64,6 @@ export const LoginPage = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  autoFocus
                 />
               </div>
               <div className="space-y-2">

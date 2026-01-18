@@ -60,7 +60,6 @@ export const CreateLinkFeature = () => {
                 onChange={(e) => setUrl(e.target.value)}
                 type="url"
                 required
-                autoFocus
               />
             </div>
             <p className="text-xs text-muted-foreground">

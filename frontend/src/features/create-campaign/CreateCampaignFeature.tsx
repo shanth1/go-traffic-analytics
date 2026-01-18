@@ -43,7 +43,6 @@ export const CreateCampaignFeature = () => {
               placeholder="e.g. Summer Sale 2024"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              autoFocus
             />
             <p className="text-xs text-muted-foreground">
               Campaigns help group links for overall analytics.
