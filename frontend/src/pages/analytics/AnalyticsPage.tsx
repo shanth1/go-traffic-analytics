@@ -40,6 +40,7 @@ import type {
   AnalyticsSummary,
   Link,
 } from '@/shared/api/types';
+import { toast } from '@/entities/notification/store';
 
 export const AnalyticsPage = () => {
   const { id } = useParams();
@@ -173,17 +174,19 @@ export const AnalyticsPage = () => {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       {/* --- 1. RICH HEADER --- */}
       <div className="flex flex-col gap-4 border-b border-border pb-6">
-        <div className="flex items-center justify-between">
+
+        {/* Top Row: Back Button & Actions */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <Button
             variant="ghost"
             size="sm"
-            className="gap-2 text-muted-foreground pl-0 hover:text-primary"
+            className="gap-2 text-muted-foreground pl-0 hover:text-primary shrink-0"
             onClick={() => navigate('/links')}
           >
             <ArrowLeft size={16} /> Back to Links
           </Button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-auto">
               {metaLoading ? (
                   <Skeleton className="h-9 w-32" />
               ) : linkMeta && (
@@ -191,74 +194,83 @@ export const AnalyticsPage = () => {
                     <Button
                         variant="outline"
                         size="sm"
-                        className="gap-2"
+                        className="gap-2 px-3"
                         onClick={() => setIsQrOpen(true)}
+                        title="Show QR Code"
                     >
-                        <QrCodeIcon size={14} /> QR Code
+                        <QrCodeIcon size={16} />
+                        <span className="hidden sm:inline">QR Code</span>
                     </Button>
 
                     <Button
                         variant="outline"
                         size="sm"
-                        className="gap-2"
+                        className="gap-2 px-3"
                         onClick={() => {
-                        navigator.clipboard.writeText(getShortLink(linkMeta.slug));
+                            navigator.clipboard.writeText(getShortLink(linkMeta.slug));
+                            toast.info("Copied to clipboard", getShortLink(linkMeta.slug));
                         }}
+                        title="Copy Link"
                     >
-                        <CopyIcon size={14} /> Copy Short Link
+                        <CopyIcon size={16} />
+                        <span className="hidden sm:inline">Copy</span>
                     </Button>
+
                     <Button
                         variant="secondary"
                         size="sm"
-                        className="gap-2"
+                        className="gap-2 px-3"
                         onClick={() => {
                         if (linkMeta.campaign_id)
                             navigate(`/campaigns/${linkMeta.campaign_id}`);
                         else navigate('/campaigns');
                         }}
+                        title="View Campaign"
                     >
-                        <LayersIcon size={14} /> Campaign
+                        <LayersIcon size={16} />
+                        <span className="hidden sm:inline">Campaign</span>
                     </Button>
                   </>
               )}
             </div>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-          <div>
+        {/* Title & Filters Row */}
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
+          <div className="w-full xl:w-auto">
             {metaLoading ? (
                 <div className="space-y-2">
-                    <Skeleton className="h-10 w-64" />
-                    <Skeleton className="h-4 w-96" />
+                    <Skeleton className="h-10 w-full sm:w-64" />
+                    <Skeleton className="h-4 w-full sm:w-96" />
                 </div>
             ) : (
                 <>
-                    <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-3xl font-bold text-foreground">
-                        /{linkMeta?.slug || id}
-                    </h1>
-                    {linkMeta && (
-                        <span
-                        className={cn(
-                            'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider',
-                            linkMeta.is_active
-                            ? 'bg-chart-2/10 text-chart-2'
-                            : 'bg-destructive/10 text-destructive'
+                    <div className="flex flex-wrap items-center gap-3 mb-2">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-foreground break-all">
+                            /{linkMeta?.slug || id}
+                        </h1>
+                        {linkMeta && (
+                            <span
+                            className={cn(
+                                'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shrink-0',
+                                linkMeta.is_active
+                                ? 'bg-chart-2/10 text-chart-2'
+                                : 'bg-destructive/10 text-destructive'
+                            )}
+                            >
+                            {linkMeta.is_active ? 'Active' : 'Inactive'}
+                            </span>
                         )}
-                        >
-                        {linkMeta.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                    )}
                     </div>
 
                     {linkMeta && (
-                    <div className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
-                        <ExternalLinkIcon size={14} />
+                    <div className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors overflow-hidden">
+                        <ExternalLinkIcon size={14} className="shrink-0" />
                         <a
                         href={linkMeta.target_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-sm truncate max-w-[300px] md:max-w-[500px] underline underline-offset-4"
+                        className="text-sm truncate underline underline-offset-4 block w-full"
                         >
                         {linkMeta.target_url}
                         </a>
@@ -268,7 +280,9 @@ export const AnalyticsPage = () => {
             )}
           </div>
 
-          <DateRangePicker />
+          <div className="w-full xl:w-auto">
+             <DateRangePicker />
+          </div>
         </div>
       </div>
 
