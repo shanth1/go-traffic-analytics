@@ -3,8 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="mask-icon" href="/mask-icon.svg" color="#4f46e5" />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <meta name="theme-color" content="#ffffff" id="theme-color-meta" />
+
     <title>%VITE_APP_TITLE%</title>
+
     <script>
       (function () {
         try {
@@ -12,10 +23,14 @@
           const sysDark = window.matchMedia(
             '(prefers-color-scheme: dark)'
           ).matches;
+          const meta = document.getElementById('theme-color-meta');
+
           if (localTheme === 'dark' || (!localTheme && sysDark)) {
             document.documentElement.classList.add('dark');
+            if (meta) meta.setAttribute('content', '#020617'); // slate-950
           } else {
             document.documentElement.classList.remove('dark');
+            if (meta) meta.setAttribute('content', '#ffffff'); // white
           }
         } catch (e) {}
       })();

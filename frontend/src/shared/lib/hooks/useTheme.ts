@@ -4,7 +4,6 @@ type Theme = 'dark' | 'light';
 
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
-    // Check if the inline script in index.html already set the class
     if (typeof window !== 'undefined') {
       return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
     }
@@ -13,15 +12,18 @@ export function useTheme() {
 
   useEffect(() => {
     const root = window.document.documentElement;
+    const metaThemeColor = document.getElementById('theme-color-meta');
 
-    // Force sync DOM with React state
     if (theme === 'dark') {
       root.classList.add('dark');
+      // Set status bar to dark color (slate-950)
+      metaThemeColor?.setAttribute('content', '#020617');
     } else {
       root.classList.remove('dark');
+      // Set status bar to white
+      metaThemeColor?.setAttribute('content', '#ffffff');
     }
 
-    // Persist choice
     localStorage.setItem('theme', theme);
   }, [theme]);
 
