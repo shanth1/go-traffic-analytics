@@ -34,7 +34,7 @@ export const MainLayout = () => {
 
   if (!user) return null;
 
-  const avatarUrl = `https://api.dicebear.com/7.x/notionists/svg?seed=${user.email}&backgroundColor=e0e7ff`;
+  const avatarUrl = `https://api.dicebear.com/9.x/thumbs/svg?seed=Brian`;
 
   return (
     <div className="flex h-screen w-full bg-muted/20 text-foreground overflow-hidden font-sans">
