@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { getShortLink } from '@/shared/config';
+import { toast } from '@/entities/notification/store';
 
 const QR_STYLES = [
   {
@@ -75,6 +76,8 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
+
+        toast.info("Saved", "QR Code successfully downloaded.");
       }
       URL.revokeObjectURL(url);
     };
@@ -120,7 +123,6 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
                 bgColor={currentStyle.bg}
                 fgColor={currentStyle.fg}
                 level="M"
-                includeMargin={false}
               />
             </div>
 
