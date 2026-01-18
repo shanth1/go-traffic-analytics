@@ -2,7 +2,6 @@ import { useEffect, useState, useMemo } from 'react';
 import {
   useParams,
   useNavigate,
-  Link as RouterLink,
   useSearchParams,
 } from 'react-router-dom';
 import {
@@ -13,9 +12,7 @@ import {
   MousePointerClick,
   GlobeIcon,
   SmartphoneIcon,
-  ExternalLinkIcon,
   LayersIcon,
-  QrCodeIcon,
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -25,14 +22,14 @@ import { StreamGraph } from '@/widgets/charts/StreamGraph';
 import { HeatmapChart } from '@/widgets/charts/HeatmapChart';
 import { GeoMap } from '@/widgets/charts/GeoMap';
 import { DateRangePicker } from '@/features/analytics-filters/DateRangePicker';
-import { QrCodeModal } from '@/widgets/qr/QrCodeModal';
+import { ConfirmationModal } from '@/shared/ui/confirmation-modal';
+import { LinkCard } from '@/entities/link/ui/LinkCard'; // New Import
 
 import { useAnalyticsFilter } from '@/entities/analytics/model/filters';
 import { analyticsApi } from '@/entities/analytics/api';
 import { api } from '@/shared/api/base';
 import { toRFC3339 } from '@/shared/lib/date';
 import { cn } from '@/shared/lib/utils';
-import { getShortLink } from '@/shared/config';
 
 import type {
   Campaign,
@@ -47,11 +44,13 @@ import type {
   PaginationMeta,
 } from '@/shared/api/types';
 import { CreateLinkFeature } from '@/features/create-link/CreateLinkFeature';
+import { useLinkStore } from '@/entities/link/model/store'; // Import store for delete action
 
 export const CampaignDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const deleteLinkStore = useLinkStore(s => s.deleteLink); // Hook up delete action
 
   const activeTab = searchParams.get('tab') || 'overview';
   const setActiveTab = (tab: string) => {
@@ -69,7 +68,10 @@ export const CampaignDetailsPage = () => {
     total: 0,
   });
   const [linksLoading, setLinksLoading] = useState(false);
-  const [qrSlug, setQrSlug] = useState<string | null>(null);
+
+  // Delete Modal State
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [streamData, setStreamData] = useState<StreamChartData[]>([]);
@@ -85,6 +87,7 @@ export const CampaignDetailsPage = () => {
       .map((g) => ({ name: g.country, value: g.value, share: 0 }));
   }, [geoData]);
 
+  // --- Analytics Loading ---
   useEffect(() => {
     if (!id) return;
     const loadAnalytics = async () => {
@@ -146,6 +149,7 @@ export const CampaignDetailsPage = () => {
     loadAnalytics();
   }, [id, startDate, endDate]);
 
+  // --- Links Loading ---
   const fetchLinks = async (offset: number) => {
     if (!id) return;
     setLinksLoading(true);
@@ -173,6 +177,27 @@ export const CampaignDetailsPage = () => {
 
   const handlePageChange = (newOffset: number) => {
     setLinksMeta((prev) => ({ ...prev, offset: newOffset }));
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteId) return;
+    setIsDeleting(true);
+    try {
+      await deleteLinkStore(deleteId);
+      setDeleteId(null);
+      fetchLinks(linksMeta.offset); // Refresh list
+    } catch (e) {
+      console.error("Failed to delete link", e);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Callback for CreateFeature
+  const handleCreateSuccess = () => {
+    // Reset to first page and reload
+    setLinksMeta(prev => ({ ...prev, offset: 0 }));
+    fetchLinks(0);
   };
 
   if (loading && !campaign) {
@@ -217,13 +242,13 @@ export const CampaignDetailsPage = () => {
                   ? new Date(campaign.created_at).toLocaleDateString()
                   : '-'}
               </span>
-              <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-secondary text-secondary-foreground">
+              <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-secondary text-secondary-foreground font-medium">
                 <LinkIcon size={12} /> {linksMeta.total} Links
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-end gap-3 w-full sm:w-auto">
             <DateRangePicker />
           </div>
         </div>
@@ -328,90 +353,43 @@ export const CampaignDetailsPage = () => {
       {/* CONTENT: LINKS TAB */}
       {activeTab === 'links' && (
         <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-300">
+          <div className="flex justify-between items-center bg-card p-4 rounded-xl border border-border">
+             <div>
+                <h3 className="text-lg font-bold">Manage Links</h3>
+                <p className="text-sm text-muted-foreground">Create, edit or delete links in this campaign.</p>
+             </div>
+             {/* Pass Success Callback */}
+             <CreateLinkFeature
+                selectedCampaignId={id}
+                onSuccess={handleCreateSuccess}
+             />
+          </div>
+
           {linksLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-16 bg-muted rounded-lg animate-pulse"
+                  className="h-20 bg-muted/50 rounded-lg animate-pulse"
                 />
               ))}
             </div>
           ) : links.length === 0 ? (
-            <div className="text-center py-20 bg-muted/20 rounded-lg border border-dashed border-border">
+            <div className="text-center py-20 bg-muted/20 rounded-xl border border-dashed border-border">
               <p className="text-muted-foreground mb-4">
                 No links in this campaign yet.
               </p>
-              <CreateLinkFeature selectedCampaignId={id} />
             </div>
           ) : (
             <>
               <div className="grid gap-3">
                 {links.map((link) => (
-                  <div
+                   // Use Shared LinkCard
+                  <LinkCard
                     key={link.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors gap-4"
-                  >
-                    <div className="flex items-start sm:items-center gap-4 overflow-hidden">
-                      <div
-                        className={cn(
-                          'w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-secondary',
-                          link.is_active ? 'text-chart-2' : 'text-destructive'
-                        )}
-                      >
-                        <LinkIcon size={18} />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-bold text-foreground truncate">
-                            /{link.slug}
-                          </h4>
-                          {!link.is_active && (
-                            <span className="text-[10px] bg-destructive/10 text-destructive px-1.5 rounded uppercase font-bold">
-                              Inactive
-                            </span>
-                          )}
-                        </div>
-                        <p
-                          className="text-xs text-muted-foreground truncate max-w-[200px] sm:max-w-[300px]"
-                          title={link.target_url}
-                        >
-                          {link.target_url}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-end gap-2 border-t sm:border-t-0 pt-3 sm:pt-0 border-border">
-                      <span className="text-xs text-muted-foreground mr-2 hidden md:inline-block">
-                        {new Date(link.created_at).toLocaleDateString()}
-                      </span>
-
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setQrSlug(link.slug)}
-                        title="QR Code"
-                      >
-                        <QrCodeIcon size={16} />
-                      </Button>
-
-                      <RouterLink to={`/links/${link.id}`}>
-                        <Button variant="secondary" size="sm" className="gap-2">
-                          <BarChart2Icon size={14} /> Analytics
-                        </Button>
-                      </RouterLink>
-
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          window.open(getShortLink(link.slug), '_blank');
-                        }}
-                      >
-                        <ExternalLinkIcon size={16} />
-                      </Button>
-                    </div>
-                  </div>
+                    link={link}
+                    onDelete={setDeleteId}
+                  />
                 ))}
               </div>
 
@@ -428,13 +406,15 @@ export const CampaignDetailsPage = () => {
         </div>
       )}
 
-      {qrSlug && (
-        <QrCodeModal
-          isOpen={!!qrSlug}
-          onClose={() => setQrSlug(null)}
-          slug={qrSlug}
-        />
-      )}
+      <ConfirmationModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Link?"
+        description="Are you sure? This short link will stop working immediately, and users will see a 404 error. All analytics data for this link will be permanently removed."
+        confirmLabel="Yes, Delete Link"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

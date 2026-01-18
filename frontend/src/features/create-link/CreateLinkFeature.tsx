@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PlusIcon, Link2Icon } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
@@ -8,42 +8,57 @@ import { useCampaignStore } from '@/entities/campaign/model/store';
 
 type Props = {
   selectedCampaignId?: string;
+  onSuccess?: () => void;
 };
 
 export const CreateLinkFeature: React.FC<Props> = ({
   selectedCampaignId,
+  onSuccess,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [url, setUrl] = useState('');
-  const [campaignId, setCampaignId] = useState(selectedCampaignId );
+  const [campaignId, setCampaignId] = useState(selectedCampaignId || '');
 
   const addLink = useLinkStore((s) => s.addLink);
   const { campaigns, fetchCampaigns } = useCampaignStore();
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchCampaigns(100, 0);
-    }
-  }, [isOpen, fetchCampaigns]);
+  // Handler to open modal and initialize state
+  const handleOpen = () => {
+    // 1. Fetch fresh data
+    fetchCampaigns(100, 0);
+
+    // 2. Reset form state based on current props
+    setCampaignId(selectedCampaignId || '');
+    setUrl('');
+
+    // 3. Open modal
+    setIsOpen(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url) return;
+
     const targetCampaign = campaignId || (campaigns[0]?.id ?? 'default');
+
     await addLink(targetCampaign, url);
-    setUrl('');
+
     setIsOpen(false);
+
+    if (onSuccess) {
+      onSuccess();
+    }
   };
 
   return (
     <>
       <Button
-        onClick={() => setIsOpen(true)}
-        className="gap-2"
+        onClick={handleOpen}
+        className="gap-2 shadow-sm"
       >
         <PlusIcon size={18} />
         <span className="hidden sm:inline">New Link</span>
-        <span className="sm:hidden">Link</span>
+        <span className="sm:hidden">Add</span>
       </Button>
 
       <ResponsiveSheet
@@ -60,16 +75,17 @@ export const CreateLinkFeature: React.FC<Props> = ({
                 size={16}
               />
               <Input
-                className="pl-9"
+                className="pl-9 bg-background"
                 placeholder="https://your-service.com/..."
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 type="url"
                 required
+                autoFocus
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Paste the target URL of your service
+              Paste the full HTTPS URL where you want users to land.
             </p>
           </div>
 
