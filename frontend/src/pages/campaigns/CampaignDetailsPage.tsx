@@ -1,9 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import {
-  useParams,
-  useNavigate,
-  useSearchParams,
-} from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
   LinkIcon,
@@ -52,7 +48,7 @@ export const CampaignDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const deleteLinkStore = useLinkStore(s => s.deleteLink);
+  const deleteLinkStore = useLinkStore((s) => s.deleteLink);
 
   const activeTab = searchParams.get('tab') || 'overview';
   const setActiveTab = (tab: string) => {
@@ -94,20 +90,23 @@ export const CampaignDetailsPage = () => {
 
   // 1. Fetch Campaign Meta separately (Fast)
   useEffect(() => {
-      if (!id) return;
-      const loadMeta = async () => {
-          setMetaLoading(true);
-          try {
-             // Optimization: In real app, stick to /campaigns/:id. Here we filter list.
-             const { data } = await api.get<CampaignsListResponse>('/campaigns', {
-                 params: { limit: 100 },
-             });
-             const found = data.data.find(c => c.id === id);
-             if (found) setCampaign(found);
-          } catch(e) { console.error(e) }
-          finally { setMetaLoading(false); }
-      };
-      loadMeta();
+    if (!id) return;
+    const loadMeta = async () => {
+      setMetaLoading(true);
+      try {
+        // Optimization: In real app, stick to /campaigns/:id. Here we filter list.
+        const { data } = await api.get<CampaignsListResponse>('/campaigns', {
+          params: { limit: 100 },
+        });
+        const found = data.data.find((c) => c.id === id);
+        if (found) setCampaign(found);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setMetaLoading(false);
+      }
+    };
+    loadMeta();
   }, [id]);
 
   // 2. Fetch Analytics (Slower)
@@ -199,18 +198,21 @@ export const CampaignDetailsPage = () => {
     setIsDeleting(true);
     try {
       await deleteLinkStore(deleteId);
-      toast.info("Link Deleted", "The short link has been permanently removed.");
+      toast.info(
+        'Link Deleted',
+        'The short link has been permanently removed.'
+      );
       setDeleteId(null);
       fetchLinks(linksMeta.offset);
     } catch (e) {
-      console.error("Failed to delete link", e);
+      console.error('Failed to delete link', e);
     } finally {
       setIsDeleting(false);
     }
   };
 
   const handleCreateSuccess = () => {
-    setLinksMeta(prev => ({ ...prev, offset: 0 }));
+    setLinksMeta((prev) => ({ ...prev, offset: 0 }));
     fetchLinks(0);
   };
 
@@ -232,33 +234,33 @@ export const CampaignDetailsPage = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
             {metaLoading ? (
-               <div className="space-y-2">
-                   <Skeleton className="h-10 w-64" />
-                   <Skeleton className="h-4 w-48" />
-               </div>
+              <div className="space-y-2">
+                <Skeleton className="h-10 w-64" />
+                <Skeleton className="h-4 w-48" />
+              </div>
             ) : (
-                <>
-                    <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 text-primary rounded-lg">
-                        <LayersIcon size={24} />
-                    </div>
-                    <h1 className="text-3xl font-bold text-foreground">
-                        {campaign?.name || 'Campaign Details'}
-                    </h1>
-                    </div>
+              <>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 text-primary rounded-lg">
+                    <LayersIcon size={24} />
+                  </div>
+                  <h1 className="text-3xl font-bold text-foreground">
+                    {campaign?.name || 'Campaign Details'}
+                  </h1>
+                </div>
 
-                    <div className="flex items-center gap-4 mt-3 ml-1 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1.5">
-                        <CalendarIcon size={14} /> Created{' '}
-                        {campaign
-                        ? new Date(campaign.created_at).toLocaleDateString()
-                        : '-'}
-                    </span>
-                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-secondary text-secondary-foreground font-medium">
-                        <LinkIcon size={12} /> {linksMeta.total} Links
-                    </span>
-                    </div>
-                </>
+                <div className="flex items-center gap-4 mt-3 ml-1 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <CalendarIcon size={14} /> Created{' '}
+                    {campaign
+                      ? new Date(campaign.created_at).toLocaleDateString()
+                      : '-'}
+                  </span>
+                  <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-secondary text-secondary-foreground font-medium">
+                    <LinkIcon size={12} /> {linksMeta.total} Links
+                  </span>
+                </div>
+              </>
             )}
           </div>
 
@@ -335,7 +337,7 @@ export const CampaignDetailsPage = () => {
             </CardHeader>
             <CardContent className="h-[400px]">
               {analyticsLoading ? (
-                 <Skeleton className="w-full h-full" />
+                <Skeleton className="w-full h-full" />
               ) : streamData.length > 0 ? (
                 <StreamGraph data={streamData} keys={streamKeys} />
               ) : (
@@ -350,15 +352,15 @@ export const CampaignDetailsPage = () => {
                 <CardTitle>Global Reach</CardTitle>
               </CardHeader>
               <CardContent className="h-[300px] w-full overflow-hidden p-0">
-                 {analyticsLoading ? (
-                    <div className="p-6 h-full">
-                       <Skeleton className="w-full h-full" />
-                    </div>
-                 ) : geoData.length > 0 ? (
-                    <GeoMap data={geoData} />
-                 ) : (
-                    <NoData />
-                 )}
+                {analyticsLoading ? (
+                  <div className="p-6 h-full">
+                    <Skeleton className="w-full h-full" />
+                  </div>
+                ) : geoData.length > 0 ? (
+                  <GeoMap data={geoData} />
+                ) : (
+                  <NoData />
+                )}
               </CardContent>
             </Card>
 
@@ -367,13 +369,13 @@ export const CampaignDetailsPage = () => {
                 <CardTitle>Activity Heatmap</CardTitle>
               </CardHeader>
               <CardContent className="h-[300px]">
-                 {analyticsLoading ? (
-                    <Skeleton className="w-full h-full" />
-                 ) : heatmapData.length > 0 ? (
-                    <HeatmapChart data={heatmapData} />
-                 ) : (
-                    <NoData />
-                 )}
+                {analyticsLoading ? (
+                  <Skeleton className="w-full h-full" />
+                ) : heatmapData.length > 0 ? (
+                  <HeatmapChart data={heatmapData} />
+                ) : (
+                  <NoData />
+                )}
               </CardContent>
             </Card>
           </div>
@@ -384,14 +386,16 @@ export const CampaignDetailsPage = () => {
       {activeTab === 'links' && (
         <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-300">
           <div className="flex justify-between items-center bg-card p-4 rounded-xl border border-border">
-             <div>
-                <h3 className="text-lg font-bold">Manage Links</h3>
-                <p className="text-sm text-muted-foreground">Create, edit or delete links in this campaign.</p>
-             </div>
-             <CreateLinkFeature
-                selectedCampaignId={id}
-                onSuccess={handleCreateSuccess}
-             />
+            <div>
+              <h3 className="text-lg font-bold">Manage Links</h3>
+              <p className="text-sm text-muted-foreground">
+                Create, edit or delete links in this campaign.
+              </p>
+            </div>
+            <CreateLinkFeature
+              selectedCampaignId={id}
+              onSuccess={handleCreateSuccess}
+            />
           </div>
 
           {linksLoading ? (
@@ -413,11 +417,7 @@ export const CampaignDetailsPage = () => {
             <>
               <div className="grid gap-3">
                 {links.map((link) => (
-                  <LinkCard
-                    key={link.id}
-                    link={link}
-                    onDelete={setDeleteId}
-                  />
+                  <LinkCard key={link.id} link={link} onDelete={setDeleteId} />
                 ))}
               </div>
 
@@ -456,24 +456,32 @@ interface KpiCardProps {
   loading?: boolean;
 }
 
-const KpiCard = ({ title, value, icon, isText = false, loading = false }: KpiCardProps) => (
+const KpiCard = ({
+  title,
+  value,
+  icon,
+  isText = false,
+  loading = false,
+}: KpiCardProps) => (
   <Card>
     <CardContent className="p-6 flex flex-col justify-between h-full">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-muted-foreground">{title}</span>
+        <span className="text-sm font-medium text-muted-foreground">
+          {title}
+        </span>
         <div className="text-muted-foreground">{icon}</div>
       </div>
       {loading ? (
-         <Skeleton className="h-8 w-24" />
+        <Skeleton className="h-8 w-24" />
       ) : (
         <div
-            className={`font-bold text-foreground ${isText ? 'text-lg truncate' : 'text-3xl'}`}
+          className={`font-bold text-foreground ${isText ? 'text-lg truncate' : 'text-3xl'}`}
         >
-            {isText
+          {isText
             ? value
             : new Intl.NumberFormat('en-US', { notation: 'compact' }).format(
                 value as number
-                )}
+              )}
         </div>
       )}
     </CardContent>

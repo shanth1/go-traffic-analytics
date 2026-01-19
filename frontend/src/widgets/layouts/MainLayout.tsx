@@ -38,21 +38,23 @@ export const MainLayout = () => {
 
   return (
     <div className="flex h-screen w-full bg-muted/20 text-foreground overflow-hidden font-sans">
-
       {/*
         ========================================
         DESKTOP SIDEBAR (Floating Glass Island)
         ========================================
       */}
       <aside className="hidden md:flex flex-col w-[260px] h-[calc(100vh-24px)] m-3 mr-0 bg-card/80 backdrop-blur-xl border border-border shadow-2xl shadow-primary/5 rounded-4xl overflow-hidden z-50 relative">
-
         {/* 1. PROFILE BUTTON (Interactive) */}
         <div className="p-3">
           <Link to="/profile">
             <button className="cursor-pointer flex items-center gap-3 w-full p-2 rounded-2xl hover:bg-secondary/80 transition-colors border border-transparent hover:border-border group text-left">
               <div className="relative shrink-0">
                 <div className="w-10 h-10 rounded-full bg-background border border-border overflow-hidden">
-                  <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                  <img
+                    src={avatarUrl}
+                    alt="avatar"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 {/* Online/Active Dot */}
                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-card rounded-full" />
@@ -74,7 +76,6 @@ export const MainLayout = () => {
 
         {/* 2. MAIN NAVIGATION */}
         <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6 scrollbar-none">
-
           {/* Section: Main */}
           <div className="space-y-1">
             <div className="px-3 text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-2 opacity-70">
@@ -94,7 +95,11 @@ export const MainLayout = () => {
                       layoutId="desktop-nav-active"
                       className="absolute inset-0 bg-primary shadow-lg shadow-primary/20 rounded-xl"
                       initial={false}
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 300,
+                        damping: 30,
+                      }}
                     />
                   )}
 
@@ -106,14 +111,20 @@ export const MainLayout = () => {
                   <item.icon
                     size={20}
                     className={cn(
-                      "relative z-10 transition-colors duration-200",
-                      isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
+                      'relative z-10 transition-colors duration-200',
+                      isActive
+                        ? 'text-primary-foreground'
+                        : 'text-muted-foreground group-hover:text-foreground'
                     )}
                   />
-                  <span className={cn(
-                    "relative z-10 font-medium text-sm transition-colors duration-200",
-                    isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
-                  )}>
+                  <span
+                    className={cn(
+                      'relative z-10 font-medium text-sm transition-colors duration-200',
+                      isActive
+                        ? 'text-primary-foreground'
+                        : 'text-muted-foreground group-hover:text-foreground'
+                    )}
+                  >
                     {item.label}
                   </span>
                 </Link>
@@ -139,7 +150,11 @@ export const MainLayout = () => {
                       layoutId="desktop-nav-active"
                       className="absolute inset-0 bg-primary shadow-lg shadow-primary/20 rounded-xl"
                       initial={false}
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 300,
+                        damping: 30,
+                      }}
                     />
                   )}
 
@@ -150,21 +165,26 @@ export const MainLayout = () => {
                   <item.icon
                     size={20}
                     className={cn(
-                      "relative z-10 transition-colors duration-200",
-                      isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
+                      'relative z-10 transition-colors duration-200',
+                      isActive
+                        ? 'text-primary-foreground'
+                        : 'text-muted-foreground group-hover:text-foreground'
                     )}
                   />
-                  <span className={cn(
-                    "relative z-10 font-medium text-sm transition-colors duration-200",
-                    isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
-                  )}>
+                  <span
+                    className={cn(
+                      'relative z-10 font-medium text-sm transition-colors duration-200',
+                      isActive
+                        ? 'text-primary-foreground'
+                        : 'text-muted-foreground group-hover:text-foreground'
+                    )}
+                  >
                     {item.label}
                   </span>
                 </Link>
               );
             })}
           </div>
-
         </div>
 
         {/* 3. BOTTOM ACTIONS */}
@@ -173,7 +193,10 @@ export const MainLayout = () => {
             onClick={logout}
             className="flex cursor-pointer w-full items-center gap-3 px-3 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-xl transition-all duration-200 group"
           >
-            <LogOutIcon size={20} className="opacity-70 group-hover:opacity-100" />
+            <LogOutIcon
+              size={20}
+              className="opacity-70 group-hover:opacity-100"
+            />
             <span>Log Out</span>
           </button>
         </div>
@@ -199,9 +222,13 @@ export const MainLayout = () => {
               {APP_TITLE}
             </h1>
             <Link to="/profile">
-               <div className="w-9 h-9 rounded-full bg-secondary border border-border overflow-hidden">
-                 <img src={avatarUrl} alt="user" className="w-full h-full object-cover" />
-               </div>
+              <div className="w-9 h-9 rounded-full bg-secondary border border-border overflow-hidden">
+                <img
+                  src={avatarUrl}
+                  alt="user"
+                  className="w-full h-full object-cover"
+                />
+              </div>
             </Link>
           </div>
 
@@ -217,55 +244,58 @@ export const MainLayout = () => {
         ========================================
       */}
       <nav className="md:hidden fixed bottom-6 left-6 right-6 h-[72px] bg-card/90 backdrop-blur-2xl border border-border rounded-4xl shadow-xl z-50 flex items-center justify-between px-2">
-
         {/* 1. PROFILE (First Item) */}
         <Link
           to="/profile"
           className="relative flex-1 flex flex-col items-center justify-center h-full group"
         >
-           {isPathActive('/profile') && (
-             <motion.div
-               layoutId="mobile-nav-active"
-               className="absolute w-12 h-12 bg-primary rounded-full shadow-lg shadow-primary/30 -z-10"
-               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-             />
-           )}
-           <UserIcon
-             size={24}
-             className={cn(
-               "transition-all duration-300",
-               isPathActive('/profile') ? "text-primary-foreground scale-110" : "text-muted-foreground group-active:scale-90"
-             )}
-             strokeWidth={isPathActive('/profile') ? 2.5 : 2}
-           />
+          {isPathActive('/profile') && (
+            <motion.div
+              layoutId="mobile-nav-active"
+              className="absolute w-12 h-12 bg-primary rounded-full shadow-lg shadow-primary/30 -z-10"
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            />
+          )}
+          <UserIcon
+            size={24}
+            className={cn(
+              'transition-all duration-300',
+              isPathActive('/profile')
+                ? 'text-primary-foreground scale-110'
+                : 'text-muted-foreground group-active:scale-90'
+            )}
+            strokeWidth={isPathActive('/profile') ? 2.5 : 2}
+          />
         </Link>
 
         {/* 2. MAIN NAV ITEMS */}
         {MAIN_NAV.map((item) => {
           const isActive = isPathActive(item.path);
           return (
-             <Link
+            <Link
               key={item.path}
               to={item.path}
               className="relative flex-1 flex flex-col items-center justify-center h-full group"
-             >
-               {isActive && (
-                 <motion.div
-                   layoutId="mobile-nav-active"
-                   className="absolute w-12 h-12 bg-primary rounded-full shadow-lg shadow-primary/30 -z-10"
-                   transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                 />
-               )}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="mobile-nav-active"
+                  className="absolute w-12 h-12 bg-primary rounded-full shadow-lg shadow-primary/30 -z-10"
+                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                />
+              )}
 
-               <item.icon
-                 size={24}
-                 className={cn(
-                   "transition-all duration-300",
-                   isActive ? "text-primary-foreground scale-110" : "text-muted-foreground group-active:scale-90"
-                 )}
-                 strokeWidth={isActive ? 2.5 : 2}
-               />
-             </Link>
+              <item.icon
+                size={24}
+                className={cn(
+                  'transition-all duration-300',
+                  isActive
+                    ? 'text-primary-foreground scale-110'
+                    : 'text-muted-foreground group-active:scale-90'
+                )}
+                strokeWidth={isActive ? 2.5 : 2}
+              />
+            </Link>
           );
         })}
       </nav>

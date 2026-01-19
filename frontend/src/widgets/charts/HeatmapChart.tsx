@@ -39,11 +39,15 @@ const HeatmapChartBase = ({
   }, [data]);
 
   // FIX: Используем scaleLinear для Opacity (числа), а не для Цветов (строк)
-  const opacityScale = useMemo(() => scaleLinear<number>({
-    domain: [0, maxCount],
-    range: [0.05, 1], // От почти прозрачного до полного цвета
-    clamp: true,
-  }), [maxCount]);
+  const opacityScale = useMemo(
+    () =>
+      scaleLinear<number>({
+        domain: [0, maxCount],
+        range: [0.05, 1], // От почти прозрачного до полного цвета
+        clamp: true,
+      }),
+    [maxCount]
+  );
 
   const xScale = scaleLinear({
     domain: [0, 24],
@@ -98,7 +102,7 @@ const HeatmapChartBase = ({
             textAnchor: 'end',
             dy: 4,
             dx: -5,
-            opacity: 0.6
+            opacity: 0.6,
           })}
         />
 
@@ -114,7 +118,7 @@ const HeatmapChartBase = ({
             fill: THEME_COLORS.foreground,
             fontSize: 10,
             textAnchor: 'middle',
-            opacity: 0.6
+            opacity: 0.6,
           })}
         />
       </Group>

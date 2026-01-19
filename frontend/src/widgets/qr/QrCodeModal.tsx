@@ -48,8 +48,10 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
   const linkUrl = getShortLink(slug);
   const currentStyle = QR_STYLES[styleIndex];
 
-  const nextStyle = () => setStyleIndex((prev) => (prev + 1) % QR_STYLES.length);
-  const prevStyle = () => setStyleIndex((prev) => (prev - 1 + QR_STYLES.length) % QR_STYLES.length);
+  const nextStyle = () =>
+    setStyleIndex((prev) => (prev + 1) % QR_STYLES.length);
+  const prevStyle = () =>
+    setStyleIndex((prev) => (prev - 1 + QR_STYLES.length) % QR_STYLES.length);
 
   const handleDownload = () => {
     const svg = svgRef.current?.querySelector('svg');
@@ -61,7 +63,9 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
     const size = 1024;
     canvas.width = size;
     canvas.height = size;
-    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const svgBlob = new Blob([svgData], {
+      type: 'image/svg+xml;charset=utf-8',
+    });
     const url = URL.createObjectURL(svgBlob);
 
     img.onload = () => {
@@ -77,7 +81,7 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
         downloadLink.click();
         document.body.removeChild(downloadLink);
 
-        toast.info("Saved", "QR Code successfully downloaded.");
+        toast.info('Saved', 'QR Code successfully downloaded.');
       }
       URL.revokeObjectURL(url);
     };
@@ -109,7 +113,12 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
 
         <div className="p-8 w-full flex flex-col items-center gap-6">
           <div className="flex items-center gap-4 w-full justify-between">
-            <Button variant="ghost" size="icon" onClick={prevStyle} className="rounded-full h-10 w-10 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={prevStyle}
+              className="rounded-full h-10 w-10 shrink-0"
+            >
               <ChevronLeft />
             </Button>
 
@@ -126,13 +135,20 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
               />
             </div>
 
-            <Button variant="ghost" size="icon" onClick={nextStyle} className="rounded-full h-10 w-10 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={nextStyle}
+              className="rounded-full h-10 w-10 shrink-0"
+            >
               <ChevronRight />
             </Button>
           </div>
 
           <div className="text-center">
-            <p className="text-sm font-medium text-foreground">{currentStyle.name}</p>
+            <p className="text-sm font-medium text-foreground">
+              {currentStyle.name}
+            </p>
             <p className="text-xs text-muted-foreground mt-1 truncate max-w-[200px] mx-auto">
               {linkUrl}
             </p>

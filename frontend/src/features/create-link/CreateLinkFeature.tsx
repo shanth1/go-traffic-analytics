@@ -39,7 +39,7 @@ export const CreateLinkFeature: React.FC<Props> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url) {
-      toast.warn("Validation", "Please enter a valid URL");
+      toast.warn('Validation', 'Please enter a valid URL');
       return;
     }
 
@@ -47,20 +47,17 @@ export const CreateLinkFeature: React.FC<Props> = ({
 
     try {
       await addLink(targetCampaign, url);
-      toast.info("Success", "Short link created successfully."); // Success message
+      toast.info('Success', 'Short link created successfully.'); // Success message
       setIsOpen(false);
       if (onSuccess) onSuccess();
     } catch (e) {
-      console.error("Error creating link:", e);
+      console.error('Error creating link:', e);
     }
   };
 
   return (
     <>
-      <Button
-        onClick={handleOpen}
-        className="gap-2 shadow-sm"
-      >
+      <Button onClick={handleOpen} className="gap-2 shadow-sm">
         <PlusIcon size={18} />
         <span className="hidden sm:inline">New Link</span>
         <span className="sm:hidden">Add</span>
@@ -73,7 +70,9 @@ export const CreateLinkFeature: React.FC<Props> = ({
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Target URL</label>
+            <label className="text-sm font-medium text-foreground">
+              Target URL
+            </label>
             <div className="relative">
               <Link2Icon
                 className="absolute left-3 top-3 text-muted-foreground"
@@ -94,7 +93,9 @@ export const CreateLinkFeature: React.FC<Props> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Campaign</label>
+            <label className="text-sm font-medium text-foreground">
+              Campaign
+            </label>
             <select
               className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               value={campaignId}

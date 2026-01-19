@@ -3,7 +3,10 @@ import { Group } from '@visx/group';
 import { Cluster, hierarchy } from '@visx/hierarchy';
 import { LinkVertical } from '@visx/shape';
 import { withParentSize } from '@visx/responsive';
-import type { HierarchyPointNode, HierarchyPointLink } from '@visx/hierarchy/lib/types';
+import type {
+  HierarchyPointNode,
+  HierarchyPointLink,
+} from '@visx/hierarchy/lib/types';
 import type { HierarchyNode } from '@/shared/api/types';
 import { THEME_COLORS, CHART_COLORS } from '@/shared/config/theme';
 
@@ -47,7 +50,11 @@ const HierarchyTreeBase = ({
                   (node: HierarchyPointNode<HierarchyNode>, i: number) => {
                     const isRoot = node.depth === 0;
                     const isLink = !node.children;
-                    const fill = isRoot ? CHART_COLORS[0] : isLink ? CHART_COLORS[3] : CHART_COLORS[4];
+                    const fill = isRoot
+                      ? CHART_COLORS[0]
+                      : isLink
+                        ? CHART_COLORS[3]
+                        : CHART_COLORS[4];
 
                     return (
                       <Group top={node.y} left={node.x} key={`node-${i}`}>

@@ -48,26 +48,41 @@ const ActionTile = ({
     <button
       className={cn(
         'cursor-pointer group relative flex flex-col justify-between p-5 h-32 w-full rounded-2xl border border-transparent hover:transition-colors',
-        variant === 'default' && 'bg-secondary hover:bg-primary/10 hover:border-primary/20',
-        variant === 'destructive' && 'bg-destructive/30 hover:bg-destructive/20',
+        variant === 'default' &&
+          'bg-secondary hover:bg-primary/10 hover:border-primary/20',
+        variant === 'destructive' &&
+          'bg-destructive/30 hover:bg-destructive/20',
         variant === 'outline' && 'border-border hover:bg-accent',
         active && 'bg-primary text-primary-foreground hover:bg-primary',
         className
       )}
       {...props}
     >
-      <div className={cn(
-        "p-2 rounded-full w-fit",
-        active ? "bg-white/20" : "bg-background/50 group-hover:bg-background"
-      )}>
+      <div
+        className={cn(
+          'p-2 rounded-full w-fit',
+          active ? 'bg-white/20' : 'bg-background/50 group-hover:bg-background'
+        )}
+      >
         {icon}
       </div>
       <div className="text-left">
-        <div className={cn("font-bold text-lg", "light", active ? "text-primary-foreground" : "text-foreground")}>
+        <div
+          className={cn(
+            'font-bold text-lg',
+            'light',
+            active ? 'text-primary-foreground' : 'text-foreground'
+          )}
+        >
           {label}
         </div>
         {subLabel && (
-          <div className={cn("text-xs font-medium mt-0.5", active ? "text-primary-foreground/80" : "text-muted-foreground")}>
+          <div
+            className={cn(
+              'text-xs font-medium mt-0.5',
+              active ? 'text-primary-foreground/80' : 'text-muted-foreground'
+            )}
+          >
             {subLabel}
           </div>
         )}
@@ -80,7 +95,7 @@ const StatPill = ({
   label,
   value,
   icon,
-  loading
+  loading,
 }: {
   label: string;
   value: string | number;
@@ -95,19 +110,28 @@ const StatPill = ({
       </span>
     </div>
     {loading ? (
-       <Skeleton className="h-6 w-16" />
+      <Skeleton className="h-6 w-16" />
     ) : (
-       <span className="text-xl font-bold text-foreground">{value}</span>
+      <span className="text-xl font-bold text-foreground">{value}</span>
     )}
   </div>
 );
 
-const FeedbackModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+const FeedbackModal = ({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onClose();
     // REPLACED ALERT WITH TOAST
-    toast.info("Message Sent", "We have received your request. Support will contact you shortly.");
+    toast.info(
+      'Message Sent',
+      'We have received your request. Support will contact you shortly.'
+    );
   };
 
   return (
@@ -121,7 +145,12 @@ const FeedbackModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
           <p className="text-sm text-muted-foreground mb-4">
             The fastest way to get help is via our Telegram bot.
           </p>
-          <Button className="w-full gap-2" onClick={() => window.open('https://t.me/your_support_bot', '_blank')}>
+          <Button
+            className="w-full gap-2"
+            onClick={() =>
+              window.open('https://t.me/your_support_bot', '_blank')
+            }
+          >
             Open Telegram
           </Button>
         </div>
@@ -131,13 +160,17 @@ const FeedbackModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
             <span className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">Or send email</span>
+            <span className="bg-background px-2 text-muted-foreground">
+              Or send email
+            </span>
           </div>
         </div>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Message</label>
+            <label className="text-sm font-medium text-foreground">
+              Message
+            </label>
             <textarea
               className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
               placeholder="Describe your idea or issue..."
@@ -151,7 +184,6 @@ const FeedbackModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
     </ResponsiveSheet>
   );
 };
-
 
 export const ProfilePage = () => {
   const { user, logout } = useAuthStore();
@@ -168,19 +200,22 @@ export const ProfilePage = () => {
     toggleTheme();
     const newTheme = theme === 'light' ? 'Dark' : 'Light'; // It toggles AFTER this call usually, but logic depends on hook
     // Actually hook toggles immediately. Let's assume toggle works.
-    toast.info("Theme Updated", `Switched to ${newTheme === 'Light' ? 'Dark' : 'Light'} mode`);
+    toast.info(
+      'Theme Updated',
+      `Switched to ${newTheme === 'Light' ? 'Dark' : 'Light'} mode`
+    );
   };
 
   // Handle Logout with Toast
   const handleLogout = () => {
     logout();
-    toast.info("Signed Out", "See you next time!");
+    toast.info('Signed Out', 'See you next time!');
   };
 
   // Handle Language with Toast
   const handleLanguage = () => {
-     // REPLACED ALERT WITH TOAST
-     toast.warn("Coming Soon", "Localization is currently in development.");
+    // REPLACED ALERT WITH TOAST
+    toast.warn('Coming Soon', 'Localization is currently in development.');
   };
 
   useEffect(() => {
@@ -204,14 +239,13 @@ export const ProfilePage = () => {
         let lCount = 0;
         if (treeData && treeData.children) {
           cCount = treeData.children.length;
-          treeData.children.forEach(c => {
+          treeData.children.forEach((c) => {
             if (c.children) lCount += c.children.length;
           });
         }
         setInventory({ campaigns: cCount, links: lCount });
-
       } catch (e) {
-        console.error("Failed to load profile data", e);
+        console.error('Failed to load profile data', e);
         setClicksUsed(user.clicks_current_month);
       } finally {
         setLoading(false);
@@ -225,24 +259,29 @@ export const ProfilePage = () => {
 
   const isPro = user.plan_id === 'pro' || user.plan_id === 'enterprise';
   const maxClicks = isPro ? 100000 : 1000;
-  const displayClicks = loading && clicksUsed === 0 ? user.clicks_current_month : clicksUsed;
+  const displayClicks =
+    loading && clicksUsed === 0 ? user.clicks_current_month : clicksUsed;
   const usagePercent = Math.min((displayClicks / maxClicks) * 100, 100);
   const avatarUrl = `https://api.dicebear.com/9.x/thumbs/svg?seed=Brian`;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 pb-20">
-
       <div className="flex flex-col gap-2 mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Profile</h1>
-        <p className="text-muted-foreground">Manage your personal information and preferences.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          Profile
+        </h1>
+        <p className="text-muted-foreground">
+          Manage your personal information and preferences.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
         {/* --- LEFT COLUMN: CONTROL GRID --- */}
         <div className="grid grid-cols-2 gap-4 h-fit order-2 lg:order-1">
           <ActionTile
-            icon={theme === 'dark' ? <MoonIcon size={20} /> : <SunIcon size={20} />}
+            icon={
+              theme === 'dark' ? <MoonIcon size={20} /> : <SunIcon size={20} />
+            }
             label="Theme"
             subLabel={theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
             onClick={handleThemeToggle}
@@ -272,17 +311,24 @@ export const ProfilePage = () => {
         {/* --- RIGHT COLUMN: INFO CARD --- */}
         <div className="lg:col-span-2 order-1 lg:order-2">
           <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-8 h-full">
-
             {/* Header: Avatar & Info */}
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
               <div className="w-28 h-28 rounded-full border-4 border-background shadow-lg overflow-hidden shrink-0 bg-primary/5">
-                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                <img
+                  src={avatarUrl}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
               </div>
 
               <div className="flex-1 space-y-2 mt-2">
                 <div>
-                  <h2 className="text-2xl font-bold text-foreground">{user.email.split('@')[0]}</h2>
-                  <p className="text-muted-foreground font-medium">{user.email}</p>
+                  <h2 className="text-2xl font-bold text-foreground">
+                    {user.email.split('@')[0]}
+                  </h2>
+                  <p className="text-muted-foreground font-medium">
+                    {user.email}
+                  </p>
                 </div>
 
                 <div className="flex flex-wrap gap-2 justify-center sm:justify-start pt-1">
@@ -313,10 +359,14 @@ export const ProfilePage = () => {
                       Current Plan
                     </div>
                     <div className="text-3xl font-bold flex items-center gap-2">
-                      {user.plan_id === 'pro' || user.plan_id === 'enterprise' ? (
-                         <ZapIcon className="text-yellow-400" fill="currentColor" />
+                      {user.plan_id === 'pro' ||
+                      user.plan_id === 'enterprise' ? (
+                        <ZapIcon
+                          className="text-yellow-400"
+                          fill="currentColor"
+                        />
                       ) : (
-                         <SparklesIcon className="text-indigo-300" />
+                        <SparklesIcon className="text-indigo-300" />
                       )}
                       <span className="capitalize">{user.plan_id} Plan</span>
                     </div>
@@ -336,14 +386,27 @@ export const ProfilePage = () => {
                       Monthly Clicks
                     </span>
                     <span>
-                      {loading ? '...' : new Intl.NumberFormat('en-US').format(displayClicks)} / {new Intl.NumberFormat('en-US', { notation: 'compact' }).format(maxClicks)}
+                      {loading
+                        ? '...'
+                        : new Intl.NumberFormat('en-US').format(
+                            displayClicks
+                          )}{' '}
+                      /{' '}
+                      {new Intl.NumberFormat('en-US', {
+                        notation: 'compact',
+                      }).format(maxClicks)}
                     </span>
                   </div>
-                  <div className={cn("h-2 w-full bg-white/10 rounded-full overflow-hidden backdrop-blur-sm", loading && "animate-pulse")}>
+                  <div
+                    className={cn(
+                      'h-2 w-full bg-white/10 rounded-full overflow-hidden backdrop-blur-sm',
+                      loading && 'animate-pulse'
+                    )}
+                  >
                     <div
                       className={cn(
-                        "h-full transition-all duration-1000 ease-out",
-                         usagePercent > 90 ? "bg-destructive" : "bg-primary"
+                        'h-full transition-all duration-1000 ease-out',
+                        usagePercent > 90 ? 'bg-destructive' : 'bg-primary'
                       )}
                       style={{ width: `${usagePercent}%` }}
                     />
@@ -368,16 +431,21 @@ export const ProfilePage = () => {
               />
               <StatPill
                 label="Member Since"
-                value={new Date(user.created_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+                value={new Date(user.created_at).toLocaleDateString(undefined, {
+                  month: 'short',
+                  year: 'numeric',
+                })}
                 icon={<CalendarIcon size={14} />}
               />
             </div>
-
           </div>
         </div>
       </div>
 
-      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+      />
     </div>
   );
 };

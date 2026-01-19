@@ -20,7 +20,11 @@ export const BarListChart = ({
   const maxValue = sortedData[0]?.value || 1;
 
   if (data.length === 0) {
-    return <div className="text-sm text-muted-foreground py-4">No data available</div>;
+    return (
+      <div className="text-sm text-muted-foreground py-4">
+        No data available
+      </div>
+    );
   }
 
   return (

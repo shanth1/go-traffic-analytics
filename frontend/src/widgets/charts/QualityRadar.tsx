@@ -128,7 +128,13 @@ const QualityRadarBase = ({
         />
 
         {valuePoints.map((p, i) => (
-          <circle key={`point-${i}`} cx={p.x} cy={p.y} r={3} fill={THEME_COLORS.primary} />
+          <circle
+            key={`point-${i}`}
+            cx={p.x}
+            cy={p.y}
+            r={3}
+            fill={THEME_COLORS.primary}
+          />
         ))}
 
         <text

@@ -246,15 +246,15 @@ export const DashboardPage = () => {
             <CardDescription>Traffic intensity by region</CardDescription>
           </CardHeader>
           <CardContent className="h-[400px] w-full p-0 overflow-hidden">
-             {loading ? (
-                <div className="p-6 h-full">
-                   <Skeleton className="w-full h-full rounded-none" />
-                </div>
-             ) : geoData.length > 0 ? (
-                <GeoMap data={geoData} />
-             ) : (
-                <NoData />
-             )}
+            {loading ? (
+              <div className="p-6 h-full">
+                <Skeleton className="w-full h-full rounded-none" />
+              </div>
+            ) : geoData.length > 0 ? (
+              <GeoMap data={geoData} />
+            ) : (
+              <NoData />
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -263,11 +263,13 @@ export const DashboardPage = () => {
           </CardHeader>
           <CardContent>
             {loading ? (
-               <div className="space-y-3">
-                  {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-6 w-full" />)}
-               </div>
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="h-6 w-full" />
+                ))}
+              </div>
             ) : (
-               <BarListChart data={topCountries} color="bg-primary" />
+              <BarListChart data={topCountries} color="bg-primary" />
             )}
           </CardContent>
         </Card>
@@ -278,13 +280,13 @@ export const DashboardPage = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <SmartphoneIcon size={18} className="text-muted-foreground" /> Device
-              Share
+              <SmartphoneIcon size={18} className="text-muted-foreground" />{' '}
+              Device Share
             </CardTitle>
           </CardHeader>
           <CardContent className="h-[250px] flex items-center justify-center">
             {loading ? (
-               <Skeleton className="w-48 h-48 rounded-full" />
+              <Skeleton className="w-48 h-48 rounded-full" />
             ) : Object.keys(deviceDonutData).length > 0 ? (
               <DonutChart data={deviceDonutData} />
             ) : (
@@ -296,18 +298,20 @@ export const DashboardPage = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <ServerIcon size={18} className="text-muted-foreground" /> Operating
-              Systems
+              <ServerIcon size={18} className="text-muted-foreground" />{' '}
+              Operating Systems
             </CardTitle>
           </CardHeader>
           <CardContent>
-             {loading ? (
-                <div className="space-y-3">
-                   {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-6 w-full" />)}
-                </div>
-             ) : (
-                <BarListChart data={statsOS} color="bg-chart-2" />
-             )}
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-6 w-full" />
+                ))}
+              </div>
+            ) : (
+              <BarListChart data={statsOS} color="bg-chart-2" />
+            )}
           </CardContent>
         </Card>
 
@@ -318,13 +322,15 @@ export const DashboardPage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-             {loading ? (
-                <div className="space-y-3">
-                   {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-6 w-full" />)}
-                </div>
-             ) : (
-                <BarListChart data={statsBrowser} color="bg-chart-3" />
-             )}
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-6 w-full" />
+                ))}
+              </div>
+            ) : (
+              <BarListChart data={statsBrowser} color="bg-chart-3" />
+            )}
           </CardContent>
         </Card>
       </div>
@@ -338,7 +344,7 @@ export const DashboardPage = () => {
           </CardHeader>
           <CardContent className="h-[300px]">
             {loading ? (
-               <Skeleton className="w-full h-full" />
+              <Skeleton className="w-full h-full" />
             ) : heatmapData.length > 0 ? (
               <HeatmapChart data={heatmapData} />
             ) : (
@@ -354,11 +360,11 @@ export const DashboardPage = () => {
           </CardHeader>
           <CardContent className="h-[300px]">
             {loading ? (
-               <Skeleton className="w-full h-full rounded-full" />
+              <Skeleton className="w-full h-full rounded-full" />
             ) : qualityData ? (
-               <QualityRadar data={qualityData} />
+              <QualityRadar data={qualityData} />
             ) : (
-               <NoData />
+              <NoData />
             )}
           </CardContent>
         </Card>
@@ -399,20 +405,20 @@ const KpiCard = ({
       <div>
         <p className="text-sm font-medium text-muted-foreground">{title}</p>
         {loading ? (
-           <Skeleton className="h-8 w-24 mt-1" />
+          <Skeleton className="h-8 w-24 mt-1" />
         ) : (
-           <h3
-             className={cn(
-               'font-bold text-foreground',
-               isText ? 'text-xl' : 'text-3xl'
-             )}
-           >
-             {typeof value === 'number'
-               ? new Intl.NumberFormat('en-US', { notation: 'compact' }).format(
-                   value
-                 )
-               : value}
-           </h3>
+          <h3
+            className={cn(
+              'font-bold text-foreground',
+              isText ? 'text-xl' : 'text-3xl'
+            )}
+          >
+            {typeof value === 'number'
+              ? new Intl.NumberFormat('en-US', { notation: 'compact' }).format(
+                  value
+                )
+              : value}
+          </h3>
         )}
       </div>
     </CardContent>

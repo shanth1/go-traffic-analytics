@@ -30,7 +30,7 @@ export const LinkCard = ({ link, onDelete }: LinkCardProps) => {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(getShortLink(link.slug));
     setCopied(true);
-    toast.info("Copied to clipboard", getShortLink(link.slug));
+    toast.info('Copied to clipboard', getShortLink(link.slug));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -72,10 +72,10 @@ export const LinkCard = ({ link, onDelete }: LinkCardProps) => {
           </a>
 
           <div className="flex items-center gap-3 mt-1">
-             <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-md">
-                <CalendarIcon size={12} />
-                <span>{new Date(link.created_at).toLocaleDateString()}</span>
-             </div>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-md">
+              <CalendarIcon size={12} />
+              <span>{new Date(link.created_at).toLocaleDateString()}</span>
+            </div>
           </div>
         </div>
 
@@ -94,7 +94,10 @@ export const LinkCard = ({ link, onDelete }: LinkCardProps) => {
           <Button
             variant="outline"
             size="sm"
-            className={cn("gap-2 min-w-[90px]", copied && "text-green-600 border-green-600/30 bg-green-50")}
+            className={cn(
+              'gap-2 min-w-[90px]',
+              copied && 'text-green-600 border-green-600/30 bg-green-50'
+            )}
             onClick={copyToClipboard}
           >
             {copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}

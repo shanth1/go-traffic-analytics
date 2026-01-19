@@ -35,9 +35,11 @@ export const LoginPage = () => {
         {/* ... UI code remains exactly the same ... */}
         <div className="flex flex-col items-center gap-2 text-center">
           <div className="p-3 bg-primary/10 rounded-xl text-primary">
-             <LayoutDashboardIcon size={32} />
+            <LayoutDashboardIcon size={32} />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{APP_TITLE}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            {APP_TITLE}
+          </h1>
         </div>
 
         <Card>
@@ -52,7 +54,9 @@ export const LoginPage = () => {
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Email</label>
+                <label className="text-sm font-medium text-foreground">
+                  Email
+                </label>
                 <Input
                   type="email"
                   placeholder="admin@example.com"
@@ -62,7 +66,9 @@ export const LoginPage = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Password</label>
+                <label className="text-sm font-medium text-foreground">
+                  Password
+                </label>
                 <Input
                   type="password"
                   value={password}

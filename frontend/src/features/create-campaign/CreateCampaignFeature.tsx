@@ -14,25 +14,22 @@ export const CreateCampaignFeature = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name) {
-      toast.warn("Validation", "Campaign name cannot be empty");
+      toast.warn('Validation', 'Campaign name cannot be empty');
       return;
     }
     try {
       await addCampaign(name);
-      toast.info("Campaign Created", `"${name}" is ready.`);
+      toast.info('Campaign Created', `"${name}" is ready.`);
       setName('');
       setIsOpen(false);
     } catch (e) {
-      console.error("Error creating campaign:", e);
+      console.error('Error creating campaign:', e);
     }
   };
 
   return (
     <>
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="gap-2"
-      >
+      <Button onClick={() => setIsOpen(true)} className="gap-2">
         <PlusIcon size={18} />
         <span className="hidden sm:inline">New Campaign</span>
         <span className="sm:hidden">Create</span>

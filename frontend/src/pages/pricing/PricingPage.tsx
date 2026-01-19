@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import { CheckIcon, ZapIcon } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/shared/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from '@/shared/ui/card';
 import { ResponsiveSheet } from '@/shared/ui/responsive-sheet';
 import { useAuthStore } from '@/entities/session/store';
 import { useIsDesktop } from '@/shared/lib/hooks';
@@ -12,7 +19,12 @@ const PLANS = [
     name: 'Starter',
     price: '$0',
     description: 'Perfect for side projects and hobbies.',
-    features: ['1,000 clicks/mo', 'Unlimited Links', 'Basic Analytics', '7-day Data Retention'],
+    features: [
+      '1,000 clicks/mo',
+      'Unlimited Links',
+      'Basic Analytics',
+      '7-day Data Retention',
+    ],
     buttonText: 'Current Plan',
     highlight: false,
   },
@@ -22,7 +34,13 @@ const PLANS = [
     price: '$29',
     period: '/mo',
     description: 'For creators and growing businesses.',
-    features: ['100,000 clicks/mo', 'Custom Slugs', 'Geo & Device Analytics', '90-day Data Retention', 'Priority Support'],
+    features: [
+      '100,000 clicks/mo',
+      'Custom Slugs',
+      'Geo & Device Analytics',
+      '90-day Data Retention',
+      'Priority Support',
+    ],
     buttonText: 'Upgrade to Pro',
     highlight: true,
   },
@@ -31,7 +49,13 @@ const PLANS = [
     name: 'Enterprise',
     price: 'Custom',
     description: 'For large scale organizations.',
-    features: ['Unlimited clicks', 'SSO & SLA', 'Dedicated Manager', 'Custom Contracts', 'Raw Data Export'],
+    features: [
+      'Unlimited clicks',
+      'SSO & SLA',
+      'Dedicated Manager',
+      'Custom Contracts',
+      'Raw Data Export',
+    ],
     buttonText: 'Contact Sales',
     highlight: false,
   },
@@ -54,7 +78,8 @@ export const PricingPage = () => {
           Simple, transparent pricing
         </h1>
         <p className="text-lg text-muted-foreground">
-          Choose the plan that's right for you. All plans include our core link shortening features.
+          Choose the plan that's right for you. All plans include our core link
+          shortening features.
         </p>
       </div>
 
@@ -86,13 +111,22 @@ export const PricingPage = () => {
               </CardHeader>
               <CardContent className="flex-1 space-y-6">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-foreground">{plan.price}</span>
-                  {plan.period && <span className="text-muted-foreground font-medium">{plan.period}</span>}
+                  <span className="text-4xl font-bold text-foreground">
+                    {plan.price}
+                  </span>
+                  {plan.period && (
+                    <span className="text-muted-foreground font-medium">
+                      {plan.period}
+                    </span>
+                  )}
                 </div>
 
                 <ul className="space-y-3">
                   {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <li
+                      key={feature}
+                      className="flex items-start gap-3 text-sm text-muted-foreground"
+                    >
                       <CheckIcon className="h-5 w-5 text-primary shrink-0" />
                       {feature}
                     </li>
@@ -102,11 +136,17 @@ export const PricingPage = () => {
               <CardFooter>
                 <Button
                   className="w-full"
-                  variant={isCurrent ? "outline" : (plan.highlight ? "default" : "secondary")}
+                  variant={
+                    isCurrent
+                      ? 'outline'
+                      : plan.highlight
+                        ? 'default'
+                        : 'secondary'
+                  }
                   disabled={isCurrent}
                   onClick={() => handleAction(plan.id)}
                 >
-                  {isCurrent ? "Current Plan" : plan.buttonText}
+                  {isCurrent ? 'Current Plan' : plan.buttonText}
                 </Button>
               </CardFooter>
             </Card>
@@ -118,30 +158,39 @@ export const PricingPage = () => {
       <ResponsiveSheet
         isOpen={!!selectedPlan}
         onClose={() => setSelectedPlan(null)}
-        title={`Upgrade to ${PLANS.find(p => p.id === selectedPlan)?.name}`}
+        title={`Upgrade to ${PLANS.find((p) => p.id === selectedPlan)?.name}`}
       >
         <div className="space-y-6 text-center py-4">
           <div className="p-4 bg-primary/10 rounded-full w-16 h-16 mx-auto flex items-center justify-center text-primary">
             <ZapIcon size={32} />
           </div>
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold">Payment Gateway Integration</h3>
+            <h3 className="text-lg font-semibold">
+              Payment Gateway Integration
+            </h3>
             <p className="text-muted-foreground text-sm">
-              We are currently integrating Stripe. To upgrade your plan immediately, please contact our support team, and we will handle it manually within 1 hour.
+              We are currently integrating Stripe. To upgrade your plan
+              immediately, please contact our support team, and we will handle
+              it manually within 1 hour.
             </p>
           </div>
 
-          <Button className="w-full" onClick={() => window.open('https://t.me/your_support_bot', '_blank')}>
+          <Button
+            className="w-full"
+            onClick={() =>
+              window.open('https://t.me/your_support_bot', '_blank')
+            }
+          >
             Contact Support to Upgrade
           </Button>
 
           {isDesktop && (
             <Button
-                variant="ghost"
-                onClick={() => setSelectedPlan(null)}
-                className="w-full text-muted-foreground hover:text-foreground hover:bg-muted"
+              variant="ghost"
+              onClick={() => setSelectedPlan(null)}
+              className="w-full text-muted-foreground hover:text-foreground hover:bg-muted"
             >
-                Cancel
+              Cancel
             </Button>
           )}
         </div>

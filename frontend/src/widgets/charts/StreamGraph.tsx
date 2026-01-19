@@ -174,7 +174,7 @@ const StreamGraphBase = ({
               fill: THEME_COLORS.foreground,
               fontSize: 11,
               textAnchor: 'middle',
-              opacity: 0.6
+              opacity: 0.6,
             })}
           />
 
@@ -189,7 +189,7 @@ const StreamGraphBase = ({
               fontSize: 10,
               textAnchor: 'start',
               dx: 4,
-              opacity: 0.5
+              opacity: 0.5,
             })}
           />
 

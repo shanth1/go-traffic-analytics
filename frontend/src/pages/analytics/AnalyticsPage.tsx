@@ -57,7 +57,10 @@ export const AnalyticsPage = () => {
   const [streamKeys, setStreamKeys] = useState<string[]>([]);
   const [heatmapData, setHeatmapData] = useState<HeatmapPoint[]>([]);
   const [qualityData, setQualityData] = useState<TrafficQuality | null>(null);
-  const [flowData, setFlowData] = useState<SankeyData>({ nodes: [], links: [] });
+  const [flowData, setFlowData] = useState<SankeyData>({
+    nodes: [],
+    links: [],
+  });
   const [geoData, setGeoData] = useState<GeoPoint[]>([]);
 
   const [statsOS, setStatsOS] = useState<CategoryStat[]>([]);
@@ -87,15 +90,18 @@ export const AnalyticsPage = () => {
 
   // Load Meta separately to show header fast
   useEffect(() => {
-    if(!id) return;
+    if (!id) return;
     const loadMeta = async () => {
-        setMetaLoading(true);
-        try {
-            const meta = await linkApi.getLinkById(id);
-            if (meta) setLinkMeta(meta);
-        } catch(e) { console.error(e) }
-        finally { setMetaLoading(false); }
-    }
+      setMetaLoading(true);
+      try {
+        const meta = await linkApi.getLinkById(id);
+        if (meta) setLinkMeta(meta);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setMetaLoading(false);
+      }
+    };
     loadMeta();
   }, [id]);
 
@@ -174,7 +180,6 @@ export const AnalyticsPage = () => {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       {/* --- 1. RICH HEADER --- */}
       <div className="flex flex-col gap-4 border-b border-border pb-6">
-
         {/* Top Row: Back Button & Actions */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Button
@@ -187,101 +192,108 @@ export const AnalyticsPage = () => {
           </Button>
 
           <div className="flex items-center gap-2 ml-auto">
-              {metaLoading ? (
-                  <Skeleton className="h-9 w-32" />
-              ) : linkMeta && (
-                  <>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2 px-3"
-                        onClick={() => setIsQrOpen(true)}
-                        title="Show QR Code"
-                    >
-                        <QrCodeIcon size={16} />
-                        <span className="hidden sm:inline">QR Code</span>
-                    </Button>
+            {metaLoading ? (
+              <Skeleton className="h-9 w-32" />
+            ) : (
+              linkMeta && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 px-3"
+                    onClick={() => setIsQrOpen(true)}
+                    title="Show QR Code"
+                  >
+                    <QrCodeIcon size={16} />
+                    <span className="hidden sm:inline">QR Code</span>
+                  </Button>
 
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2 px-3"
-                        onClick={() => {
-                            navigator.clipboard.writeText(getShortLink(linkMeta.slug));
-                            toast.info("Copied to clipboard", getShortLink(linkMeta.slug));
-                        }}
-                        title="Copy Link"
-                    >
-                        <CopyIcon size={16} />
-                        <span className="hidden sm:inline">Copy</span>
-                    </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 px-3"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        getShortLink(linkMeta.slug)
+                      );
+                      toast.info(
+                        'Copied to clipboard',
+                        getShortLink(linkMeta.slug)
+                      );
+                    }}
+                    title="Copy Link"
+                  >
+                    <CopyIcon size={16} />
+                    <span className="hidden sm:inline">Copy</span>
+                  </Button>
 
-                    <Button
-                        variant="secondary"
-                        size="sm"
-                        className="gap-2 px-3"
-                        onClick={() => {
-                        if (linkMeta.campaign_id)
-                            navigate(`/campaigns/${linkMeta.campaign_id}`);
-                        else navigate('/campaigns');
-                        }}
-                        title="View Campaign"
-                    >
-                        <LayersIcon size={16} />
-                        <span className="hidden sm:inline">Campaign</span>
-                    </Button>
-                  </>
-              )}
-            </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="gap-2 px-3"
+                    onClick={() => {
+                      if (linkMeta.campaign_id)
+                        navigate(`/campaigns/${linkMeta.campaign_id}`);
+                      else navigate('/campaigns');
+                    }}
+                    title="View Campaign"
+                  >
+                    <LayersIcon size={16} />
+                    <span className="hidden sm:inline">Campaign</span>
+                  </Button>
+                </>
+              )
+            )}
+          </div>
         </div>
 
         {/* Title & Filters Row */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
           <div className="w-full xl:w-auto">
             {metaLoading ? (
-                <div className="space-y-2">
-                    <Skeleton className="h-10 w-full sm:w-64" />
-                    <Skeleton className="h-4 w-full sm:w-96" />
-                </div>
+              <div className="space-y-2">
+                <Skeleton className="h-10 w-full sm:w-64" />
+                <Skeleton className="h-4 w-full sm:w-96" />
+              </div>
             ) : (
-                <>
-                    <div className="flex flex-wrap items-center gap-3 mb-2">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-foreground break-all">
-                            /{linkMeta?.slug || id}
-                        </h1>
-                        {linkMeta && (
-                            <span
-                            className={cn(
-                                'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shrink-0',
-                                linkMeta.is_active
-                                ? 'bg-chart-2/10 text-chart-2'
-                                : 'bg-destructive/10 text-destructive'
-                            )}
-                            >
-                            {linkMeta.is_active ? 'Active' : 'Inactive'}
-                            </span>
-                        )}
-                    </div>
+              <>
+                <div className="flex flex-wrap items-center gap-3 mb-2">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground break-all">
+                    /{linkMeta?.slug || id}
+                  </h1>
+                  {linkMeta && (
+                    <span
+                      className={cn(
+                        'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shrink-0',
+                        linkMeta.is_active
+                          ? 'bg-chart-2/10 text-chart-2'
+                          : 'bg-destructive/10 text-destructive'
+                      )}
+                    >
+                      {linkMeta.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  )}
+                </div>
 
-                    {linkMeta && (
-                    <div className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors overflow-hidden">
-                        <ExternalLinkIcon size={14} className="shrink-0" />
-                        <a
-                        href={linkMeta.target_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-sm truncate underline underline-offset-4 block w-full"
-                        >
-                        {linkMeta.target_url}
-                        </a>
-                    </div>
-                    )}
-                </>
+                {linkMeta && (
+                  <div className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors overflow-hidden">
+                    <ExternalLinkIcon size={14} className="shrink-0" />
+                    <a
+                      href={linkMeta.target_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm truncate underline underline-offset-4 block w-full"
+                    >
+                      {linkMeta.target_url}
+                    </a>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
           <div className="w-full xl:w-auto">
-             <DateRangePicker />
+            <DateRangePicker />
           </div>
         </div>
       </div>
@@ -328,7 +340,7 @@ export const AnalyticsPage = () => {
         </CardHeader>
         <CardContent className="h-[400px]">
           {loading ? (
-             <Skeleton className="w-full h-full" />
+            <Skeleton className="w-full h-full" />
           ) : streamData.length > 0 ? (
             <StreamGraph data={streamData} keys={streamKeys} />
           ) : (
@@ -342,16 +354,20 @@ export const AnalyticsPage = () => {
         <Card>
           <CardHeader>
             <CardTitle>Top Referrers</CardTitle>
-            <p className="text-sm text-muted-foreground">Where traffic comes from</p>
+            <p className="text-sm text-muted-foreground">
+              Where traffic comes from
+            </p>
           </CardHeader>
           <CardContent>
-             {loading ? (
-                <div className="space-y-3">
-                   {[1,2,3,4].map(i => <Skeleton key={i} className="h-6 w-full" />)}
-                </div>
-             ) : (
-                <BarListChart data={topReferrers} color="bg-chart-5" />
-             )}
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-6 w-full" />
+                ))}
+              </div>
+            ) : (
+              <BarListChart data={topReferrers} color="bg-chart-5" />
+            )}
           </CardContent>
         </Card>
 
@@ -360,15 +376,15 @@ export const AnalyticsPage = () => {
             <CardTitle>Global Reach</CardTitle>
           </CardHeader>
           <CardContent className="h-[400px] w-full overflow-hidden p-0">
-             {loading ? (
-                 <div className="p-6 h-full">
-                    <Skeleton className="w-full h-full" />
-                 </div>
-             ) : geoData.length > 0 ? (
-                <GeoMap data={geoData} />
-             ) : (
-                <NoData />
-             )}
+            {loading ? (
+              <div className="p-6 h-full">
+                <Skeleton className="w-full h-full" />
+              </div>
+            ) : geoData.length > 0 ? (
+              <GeoMap data={geoData} />
+            ) : (
+              <NoData />
+            )}
           </CardContent>
         </Card>
       </div>
@@ -387,7 +403,12 @@ export const AnalyticsPage = () => {
           color="bg-chart-2"
           loading={loading}
         />
-        <StatsCard title="Browser" data={statsBrowser} color="bg-chart-3" loading={loading} />
+        <StatsCard
+          title="Browser"
+          data={statsBrowser}
+          color="bg-chart-3"
+          loading={loading}
+        />
       </div>
 
       {/* --- 6. FLOW & QUALITY --- */}
@@ -395,12 +416,14 @@ export const AnalyticsPage = () => {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Traffic Flow</CardTitle>
-            <p className="text-sm text-muted-foreground">Referer → Device → Country</p>
+            <p className="text-sm text-muted-foreground">
+              Referer → Device → Country
+            </p>
           </CardHeader>
           <CardContent className="h-[350px]">
-             {loading ? (
-                <Skeleton className="w-full h-full" />
-             ) : flowData.nodes.length > 0 ? (
+            {loading ? (
+              <Skeleton className="w-full h-full" />
+            ) : flowData.nodes.length > 0 ? (
               <SankeyChart data={flowData} />
             ) : (
               <NoData />
@@ -413,13 +436,13 @@ export const AnalyticsPage = () => {
             <CardTitle>Quality Score</CardTitle>
           </CardHeader>
           <CardContent className="h-[350px]">
-             {loading ? (
-                <Skeleton className="w-full h-full rounded-full" />
-             ) : qualityData ? (
-                <QualityRadar data={qualityData} />
-             ) : (
-                <NoData />
-             )}
+            {loading ? (
+              <Skeleton className="w-full h-full rounded-full" />
+            ) : qualityData ? (
+              <QualityRadar data={qualityData} />
+            ) : (
+              <NoData />
+            )}
           </CardContent>
         </Card>
       </div>
@@ -430,9 +453,9 @@ export const AnalyticsPage = () => {
           <CardTitle>Engagement Heatmap</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px]">
-           {loading ? (
-              <Skeleton className="w-full h-full" />
-           ) : heatmapData.length > 0 ? (
+          {loading ? (
+            <Skeleton className="w-full h-full" />
+          ) : heatmapData.length > 0 ? (
             <HeatmapChart data={heatmapData} />
           ) : (
             <NoData />
@@ -468,21 +491,23 @@ const KpiCard = ({
   <Card>
     <CardContent className="p-6 flex flex-col justify-between h-full">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-muted-foreground">{title}</span>
+        <span className="text-sm font-medium text-muted-foreground">
+          {title}
+        </span>
         <div className="text-muted-foreground">{icon}</div>
       </div>
       {loading ? (
-         <Skeleton className="h-8 w-24" />
+        <Skeleton className="h-8 w-24" />
       ) : (
         <div
-            className={`font-bold text-foreground ${isText ? 'text-lg truncate' : 'text-3xl'}`}
-            title={String(value)}
+          className={`font-bold text-foreground ${isText ? 'text-lg truncate' : 'text-3xl'}`}
+          title={String(value)}
         >
-            {isText
+          {isText
             ? value
             : new Intl.NumberFormat('en-US', { notation: 'compact' }).format(
                 Number(value)
-                )}
+              )}
         </div>
       )}
     </CardContent>
@@ -505,13 +530,15 @@ const StatsCard = ({
       <CardTitle className="text-lg">{title}</CardTitle>
     </CardHeader>
     <CardContent>
-       {loading ? (
-          <div className="space-y-3">
-             {[1,2,3].map(i => <Skeleton key={i} className="h-6 w-full" />)}
-          </div>
-       ) : (
-          <BarListChart data={data} color={color} />
-       )}
+      {loading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-6 w-full" />
+          ))}
+        </div>
+      ) : (
+        <BarListChart data={data} color={color} />
+      )}
     </CardContent>
   </Card>
 );

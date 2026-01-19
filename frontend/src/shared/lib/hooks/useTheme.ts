@@ -5,7 +5,9 @@ type Theme = 'dark' | 'light';
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      return document.documentElement.classList.contains('dark')
+        ? 'dark'
+        : 'light';
     }
     return 'light';
   });

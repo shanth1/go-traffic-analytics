@@ -30,16 +30,22 @@ api.interceptors.response.use(
     }
     // 2. Handle Server Errors (5xx)
     else if (error.response && error.response.status >= 500) {
-      toast.error('Server Error', 'Something went wrong on our end. Please try again later.');
+      toast.error(
+        'Server Error',
+        'Something went wrong on our end. Please try again later.'
+      );
     }
     // 3. Handle Client Errors (4xx) - Validation, etc.
     else if (error.response && error.response.status >= 400) {
-      const msg = error.response.data?.error || error.response.data?.message || 'Action failed';
+      const msg =
+        error.response.data?.error ||
+        error.response.data?.message ||
+        'Action failed';
       toast.error('Error', msg);
     }
     // 4. Network Errors
     else if (error.code === 'ERR_NETWORK') {
-       toast.error('Network Error', 'Please check your internet connection.');
+      toast.error('Network Error', 'Please check your internet connection.');
     }
 
     return Promise.reject(error);

@@ -60,11 +60,13 @@ export const ResponsiveSheet: React.FC<ResponsiveSheetProps> = ({
                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
                 className="w-full max-w-lg bg-card rounded-2xl shadow-2xl border border-border pointer-events-auto overflow-hidden flex flex-col max-h-[90vh]"
               >
                 <div className="flex items-center justify-between p-6 border-b border-border shrink-0">
-                  <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+                  <h2 className="text-xl font-semibold text-foreground">
+                    {title}
+                  </h2>
                   <button
                     onClick={onClose}
                     className="p-2 hover:bg-secondary rounded-full transition-colors text-muted-foreground hover:text-foreground"
@@ -73,7 +75,7 @@ export const ResponsiveSheet: React.FC<ResponsiveSheetProps> = ({
                   </button>
                 </div>
                 <div className="p-6 text-foreground overflow-y-auto">
-                    {children}
+                  {children}
                 </div>
               </motion.div>
             </div>
@@ -82,7 +84,7 @@ export const ResponsiveSheet: React.FC<ResponsiveSheetProps> = ({
             <motion.div
               className="fixed bottom-0 left-0 right-0 z-100 outline-none flex flex-col"
               style={{
-                  maxHeight: '92vh',
+                maxHeight: '92vh',
               }}
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
@@ -95,24 +97,23 @@ export const ResponsiveSheet: React.FC<ResponsiveSheetProps> = ({
             >
               {/* FIXED CLASSNAME: removed backtick and used arbitrary value for strong rounding */}
               <div className="bg-card rounded-t-4xl shadow-[0_-8px_30px_rgba(0,0,0,0.3)] border-t border-border flex flex-col pb-[50vh] -mb-[50vh]">
+                {/* Handle Bar */}
+                <div className="pt-4 pb-2 flex justify-center cursor-grab active:cursor-grabbing touch-none shrink-0">
+                  <div className="w-12 h-1.5 bg-muted-foreground/20 rounded-full" />
+                </div>
 
-                  {/* Handle Bar */}
-                  <div className="pt-4 pb-2 flex justify-center cursor-grab active:cursor-grabbing touch-none shrink-0">
-                    <div className="w-12 h-1.5 bg-muted-foreground/20 rounded-full" />
-                  </div>
+                {/* Header */}
+                <div className="px-6 pb-4 text-center shrink-0">
+                  <h2 className="text-lg font-bold text-foreground">{title}</h2>
+                </div>
 
-                  {/* Header */}
-                  <div className="px-6 pb-4 text-center shrink-0">
-                    <h2 className="text-lg font-bold text-foreground">{title}</h2>
-                  </div>
-
-                  {/* Content */}
-                  <div
-                    className="px-6 pb-10 overflow-y-auto overscroll-contain max-h-[80vh]"
-                    onPointerDown={(e) => e.stopPropagation()}
-                  >
-                    {children}
-                  </div>
+                {/* Content */}
+                <div
+                  className="px-6 pb-10 overflow-y-auto overscroll-contain max-h-[80vh]"
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  {children}
+                </div>
               </div>
             </motion.div>
           )}

@@ -46,9 +46,7 @@ const CampaignCard = ({ data }: CampaignCardProps) => {
             <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
               Status
             </span>
-            <span className="text-xs font-medium text-chart-2">
-              Active
-            </span>
+            <span className="text-xs font-medium text-chart-2">Active</span>
           </div>
 
           <Button
@@ -67,10 +65,7 @@ const CampaignCard = ({ data }: CampaignCardProps) => {
 const CampaignsSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {[1, 2, 3, 4, 5, 6].map((i) => (
-      <div
-        key={i}
-        className="h-64 bg-muted rounded-xl animate-pulse"
-      />
+      <div key={i} className="h-64 bg-muted rounded-xl animate-pulse" />
     ))}
   </div>
 );

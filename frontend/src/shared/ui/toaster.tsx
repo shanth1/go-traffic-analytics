@@ -1,11 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import type { PanInfo } from 'framer-motion';
-import {
-  X,
-  CheckCircle2,
-  AlertTriangle,
-  AlertCircle,
-} from 'lucide-react';
+import { X, CheckCircle2, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useToastStore } from '@/entities/notification/store';
 import { cn } from '@/shared/lib/utils';
 import { useIsDesktop } from '@/shared/lib/hooks/useMediaQuery';
@@ -39,8 +34,14 @@ const toastVariants = {
   exit: { opacity: 0, scale: 0.95, transition: { duration: 0.15 } },
 };
 
-const ToastItem = ({ t, onRemove }: { t: Toast; onRemove: (id: string) => void }) => {
-  const type = (t.type in styles) ? t.type : 'info';
+const ToastItem = ({
+  t,
+  onRemove,
+}: {
+  t: Toast;
+  onRemove: (id: string) => void;
+}) => {
+  const type = t.type in styles ? t.type : 'info';
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     // Dismiss if dragged horizontally more than 50px
@@ -66,7 +67,12 @@ const ToastItem = ({ t, onRemove }: { t: Toast; onRemove: (id: string) => void }
         styles[type as keyof typeof styles]
       )}
     >
-      <div className={cn('shrink-0 mt-0.5', iconStyles[type as keyof typeof iconStyles])}>
+      <div
+        className={cn(
+          'shrink-0 mt-0.5',
+          iconStyles[type as keyof typeof iconStyles]
+        )}
+      >
         {icons[type as keyof typeof icons]}
       </div>
 
@@ -104,9 +110,9 @@ export const Toaster = () => {
   return (
     <div
       className={cn(
-        "pointer-events-none fixed z-9999 flex flex-col gap-3",
-        "top-0 left-0 right-0 p-4",
-        "md:top-auto md:bottom-0 md:left-auto md:right-0 md:p-6 md:max-w-sm md:w-full"
+        'pointer-events-none fixed z-9999 flex flex-col gap-3',
+        'top-0 left-0 right-0 p-4',
+        'md:top-auto md:bottom-0 md:left-auto md:right-0 md:p-6 md:max-w-sm md:w-full'
       )}
     >
       <AnimatePresence mode="popLayout" initial={false}>

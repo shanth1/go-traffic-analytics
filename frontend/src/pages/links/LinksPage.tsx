@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  SearchIcon,
-  FilterIcon,
-} from 'lucide-react';
+import { SearchIcon, FilterIcon } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { CreateLinkFeature } from '@/features/create-link/CreateLinkFeature';
 import { useLinkStore } from '@/entities/link/model/store';
@@ -17,7 +14,15 @@ export const LinksPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const campaignIdParam = searchParams.get('campaign_id');
 
-  const { links, meta, setFilters, setPage, fetchLinks, isLoading, deleteLink } = useLinkStore();
+  const {
+    links,
+    meta,
+    setFilters,
+    setPage,
+    fetchLinks,
+    isLoading,
+    deleteLink,
+  } = useLinkStore();
   const { fetchCampaigns, campaigns } = useCampaignStore();
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -57,10 +62,13 @@ export const LinksPage = () => {
     setIsDeleting(true);
     try {
       await deleteLink(deleteId);
-      toast.info("Link Deleted", "The short link has been permanently removed.");
+      toast.info(
+        'Link Deleted',
+        'The short link has been permanently removed.'
+      );
       setDeleteId(null);
     } catch (e) {
-      console.error("Failed to delete link", e);
+      console.error('Failed to delete link', e);
     } finally {
       setIsDeleting(false);
     }
@@ -71,9 +79,7 @@ export const LinksPage = () => {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Links
-            </h1>
+            <h1 className="text-3xl font-bold text-foreground">Links</h1>
             <p className="text-muted-foreground">
               Manage and track your shortened links.
             </p>
@@ -132,11 +138,7 @@ export const LinksPage = () => {
         ) : (
           <div className="grid gap-4">
             {links.map((link) => (
-              <LinkCard
-                key={link.id}
-                link={link}
-                onDelete={setDeleteId}
-              />
+              <LinkCard key={link.id} link={link} onDelete={setDeleteId} />
             ))}
           </div>
         )}
