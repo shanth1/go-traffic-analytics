@@ -131,6 +131,7 @@ func NewRouter(
 			r.Route("/campaigns", func(r chi.Router) {
 				r.Get("/", campaignHandlerV1.GetCampaigns)
 				r.Post("/", campaignHandlerV1.CreateCampaign)
+				r.Delete("/{id}", campaignHandlerV1.DeleteCampaign)
 			})
 
 			r.Route("/links", func(r chi.Router) {
