@@ -416,6 +416,20 @@ func (mr *MockUserServiceMockRecorder) ChangePlan(ctx, userID, planID any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePlan", reflect.TypeOf((*MockUserService)(nil).ChangePlan), ctx, userID, planID)
 }
 
+// DeleteUser mocks base method.
+func (m *MockUserService) DeleteUser(ctx context.Context, userID domain.UserID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUser", ctx, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUser indicates an expected call of DeleteUser.
+func (mr *MockUserServiceMockRecorder) DeleteUser(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockUserService)(nil).DeleteUser), ctx, userID)
+}
+
 // GetAll mocks base method.
 func (m *MockUserService) GetAll(ctx context.Context, page, limit int) ([]*domain.User, int64, error) {
 	m.ctrl.T.Helper()

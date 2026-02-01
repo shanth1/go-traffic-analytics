@@ -36,6 +36,7 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	baseLinkRepo := memoryrepo.NewLinkRepo()
 	baseAnalyticRepo := memoryrepo.NewAnalyticRepo()
 	basePlanRepo := memoryrepo.NewPlanRepo()
+	transactor := memoryrepo.NewMemoryTransactor()
 
 	// Cached Repositories
 	userRepo := cachedproxy.NewUserRepo(baseUserRepo, cache, logger, 5*time.Minute)
@@ -56,10 +57,10 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	// Services
 	authService := services.NewAuthService(userRepo, planRepo, cfg)
 	analyticsService := services.NewAnalyticsService(analyticRepo)
-	campaignService := services.NewCampaignService(campRepo)
-	linkService := services.NewLinkService(linkRepo, userRepo, planRepo)
+	campaignService := services.NewCampaignService(campRepo, linkRepo, transactor, logger)
+	linkService := services.NewLinkService(linkRepo, userRepo, planRepo, logger)
 	redirectService := services.NewRedirectService(ctx, ingestor, linkRepo, geoProvider)
-	userService := services.NewUserService(userRepo, planRepo, campRepo, linkRepo)
+	userService := services.NewUserService(userRepo, planRepo, campRepo, linkRepo, transactor, logger)
 	billingService := services.NewBillingService(planRepo)
 
 	httpHandler := transport.NewRouter(transport.Container{

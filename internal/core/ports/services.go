@@ -50,6 +50,7 @@ type UserService interface {
 	SetStatus(ctx context.Context, userID domain.UserID, isActive bool) error
 	ChangePlan(ctx context.Context, userID domain.UserID, planID string) error
 	GetHierarchy(ctx context.Context, id domain.UserID) (*domain.HierarchyNode, error)
+	DeleteUser(ctx context.Context, userID domain.UserID) error
 }
 
 type BillingService interface {
