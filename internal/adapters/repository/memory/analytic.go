@@ -37,6 +37,10 @@ func (r *AnalyticRepo) filterClicks(filter domain.AnalyticsFilter) []*domain.Cli
 
 	filtered := make([]*domain.ClickEvent, 0, len(r.events))
 	for _, c := range r.events {
+		if filter.UserID != "" && c.UserID != filter.UserID {
+			continue
+		}
+
 		if filter.LinkID != "" && c.LinkID != filter.LinkID {
 			continue
 		}

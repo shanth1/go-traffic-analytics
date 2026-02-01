@@ -10,6 +10,7 @@ import (
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/consts"
+	"github.com/shanth1/gotrace/internal/pkg/http/request"
 	"github.com/shanth1/gotrace/internal/pkg/http/response"
 )
 
@@ -39,6 +40,7 @@ func (h *AnalyticsHandler) parseFilter(r *http.Request) domain.AnalyticsFilter {
 	}
 
 	return domain.AnalyticsFilter{
+		UserID:     request.GetUserID(r),
 		CampaignID: query.Get("campaign_id"),
 		LinkID:     domain.LinkID(query.Get("link_id")),
 		From:       from,
