@@ -16,6 +16,7 @@ import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { PricingPage } from '@/pages/pricing/PricingPage';
 import { useAuthStore } from '@/entities/session/store';
 import { Toaster } from '@/shared/ui/toaster';
+import { ExportPage } from './pages/export/ExportPage';
 
 const ProtectedRoute = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -54,6 +55,7 @@ export const App = () => {
           <Route path="/campaigns/:id" element={<CampaignDetailsPage />} />
           <Route path="/links" element={<LinksPage />} />
           <Route path="/links/:id" element={<AnalyticsPage />} />
+          <Route path="/export" element={<ExportPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

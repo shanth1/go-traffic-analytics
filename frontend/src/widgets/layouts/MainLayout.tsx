@@ -7,6 +7,7 @@ import {
   UserIcon,
   LogOutIcon,
   CreditCardIcon,
+  FileDownIcon,
   SparklesIcon,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
@@ -20,6 +21,7 @@ const MAIN_NAV = [
 ];
 
 const SECONDARY_NAV = [
+  { label: 'Export Data', path: '/export', icon: FileDownIcon },
   { label: 'Plans & Billing', path: '/pricing', icon: CreditCardIcon },
 ];
 
