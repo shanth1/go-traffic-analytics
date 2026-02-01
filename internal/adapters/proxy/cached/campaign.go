@@ -3,24 +3,29 @@ package cachedproxy
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/shanth1/gotools/log"
+	"github.com/shanth1/gotools/logkeys"
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 )
 
 type CampaignRepo struct {
-	repo  ports.CampaignRepository
-	cache ports.Cache
-	ttl   time.Duration
+	repo   ports.CampaignRepository
+	cache  ports.Cache
+	logger log.Logger
+	ttl    time.Duration
 }
 
-func NewCampaignRepo(repo ports.CampaignRepository, cache ports.Cache, ttl time.Duration) ports.CampaignRepository {
+func NewCampaignRepo(repo ports.CampaignRepository, cache ports.Cache, logger log.Logger, ttl time.Duration) ports.CampaignRepository {
 	return &CampaignRepo{
-		repo:  repo,
-		cache: cache,
-		ttl:   ttl,
+		repo:   repo,
+		cache:  cache,
+		logger: logger,
+		ttl:    ttl,
 	}
 }
 
@@ -33,19 +38,14 @@ func (r *CampaignRepo) Save(ctx context.Context, camp *domain.Campaign) error {
 		return err
 	}
 
-	go func() {
-		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		// TODO: logging
-		_ = r.cache.Delete(bgCtx, r.buildKey(camp.ID))
-	}()
+	r.invalidate(camp.ID)
 
 	return nil
 }
 
 func (r *CampaignRepo) FindByID(ctx context.Context, id string) (*domain.Campaign, error) {
 	key := r.buildKey(id)
+
 	val, err := r.cache.Get(ctx, key)
 	if err == nil {
 		if bytesVal, ok := val.([]byte); ok {
@@ -53,61 +53,65 @@ func (r *CampaignRepo) FindByID(ctx context.Context, id string) (*domain.Campaig
 			if jsonErr := json.Unmarshal(bytesVal, &camp); jsonErr == nil {
 				return &camp, nil
 			}
-			// TODO: logging (unmarshal error)
+			r.logger.Error().Err(err).Str(logkeys.CacheKey, key).Msg("failed to unmarshal campaign from cache")
 		}
+	} else if !errors.Is(err, ports.ErrCacheMiss) {
+		r.logger.Error().Err(err).Str(logkeys.CacheKey, key).Msg("cache miss or error")
 	}
-	// else if !errors.Is(err, ports.ErrCacheMiss) {
-	// TODO: logging (cache error)
-	// }
 
+	// 2. Достаем из БД
 	camp, err := r.repo.FindByID(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, err // Ошибку БД вернет сервис
 	}
 
+	// 3. Кладем в кеш асинхронно
 	go func() {
 		bytes, err := json.Marshal(camp)
-		if err == nil {
-			bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			// TODO: logging
-			_ = r.cache.Set(bgCtx, key, bytes, r.ttl)
+		if err != nil {
+			r.logger.Error().Err(err).Str("id", id).Msg("failed to marshal campaign for cache")
+			return
 		}
-		// TODO: logging
+
+		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := r.cache.Set(bgCtx, key, bytes, r.ttl); err != nil {
+			r.logger.Error().Err(err).Str(logkeys.CacheKey, key).Msg("failed to set campaign to cache")
+		}
 	}()
 
 	return camp, nil
 }
 
 func (r *CampaignRepo) FindAll(ctx context.Context, filter domain.CampaignFilter) ([]*domain.Campaign, error) {
-	campaigns, err := r.repo.FindAll(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	return campaigns, nil
+	return r.repo.FindAll(ctx, filter)
 }
 
 func (r *CampaignRepo) Count(ctx context.Context, filter domain.CampaignFilter) (int64, error) {
-	count, err := r.repo.Count(ctx, filter)
-	if err != nil {
-		return 0, err
-	}
-
-	return count, nil
+	return r.repo.Count(ctx, filter)
 }
 
 func (r *CampaignRepo) Delete(ctx context.Context, userID domain.UserID, id string) error {
 	if err := r.repo.Delete(ctx, userID, id); err != nil {
 		return err
 	}
+	r.invalidate(id)
+	return nil
+}
 
+func (r *CampaignRepo) DeleteByUserID(ctx context.Context, userID domain.UserID) error {
+	return r.repo.DeleteByUserID(ctx, userID)
+}
+
+func (r *CampaignRepo) invalidate(id string) {
 	go func() {
 		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		// TODO: logging
-		_ = r.cache.Delete(bgCtx, r.buildKey(id))
-	}()
 
-	return nil
+		key := r.buildKey(id)
+		if err := r.cache.Delete(bgCtx, key); err != nil {
+			r.logger.Error().Err(err).Str(logkeys.CacheKey, key).Msg("failed to delete campaign from cache")
+		}
+	}()
 }

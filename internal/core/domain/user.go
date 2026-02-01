@@ -20,6 +20,7 @@ type User struct {
 	ClicksCurrentMonth int        `json:"clicks_current_month"`
 	IsActive           bool       `json:"is_active"`
 	CreatedAt          time.Time  `json:"created_at"`
+	DeletedAt          *time.Time `json:"-"`
 }
 
 func (u *User) ToPublic() UserPublic {

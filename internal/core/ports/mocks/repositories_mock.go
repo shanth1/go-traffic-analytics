@@ -18,6 +18,44 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
+// MockTransactor is a mock of Transactor interface.
+type MockTransactor struct {
+	ctrl     *gomock.Controller
+	recorder *MockTransactorMockRecorder
+	isgomock struct{}
+}
+
+// MockTransactorMockRecorder is the mock recorder for MockTransactor.
+type MockTransactorMockRecorder struct {
+	mock *MockTransactor
+}
+
+// NewMockTransactor creates a new mock instance.
+func NewMockTransactor(ctrl *gomock.Controller) *MockTransactor {
+	mock := &MockTransactor{ctrl: ctrl}
+	mock.recorder = &MockTransactorMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTransactor) EXPECT() *MockTransactorMockRecorder {
+	return m.recorder
+}
+
+// WithinTransaction mocks base method.
+func (m *MockTransactor) WithinTransaction(ctx context.Context, tFunc func(context.Context) error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithinTransaction", ctx, tFunc)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WithinTransaction indicates an expected call of WithinTransaction.
+func (mr *MockTransactorMockRecorder) WithinTransaction(ctx, tFunc any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithinTransaction", reflect.TypeOf((*MockTransactor)(nil).WithinTransaction), ctx, tFunc)
+}
+
 // MockUserRepository is a mock of UserRepository interface.
 type MockUserRepository struct {
 	ctrl     *gomock.Controller
@@ -55,6 +93,20 @@ func (m *MockUserRepository) Count(ctx context.Context) (int64, error) {
 func (mr *MockUserRepositoryMockRecorder) Count(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Count", reflect.TypeOf((*MockUserRepository)(nil).Count), ctx)
+}
+
+// Delete mocks base method.
+func (m *MockUserRepository) Delete(ctx context.Context, id domain.UserID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockUserRepositoryMockRecorder) Delete(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockUserRepository)(nil).Delete), ctx, id)
 }
 
 // FindAll mocks base method.
@@ -195,6 +247,20 @@ func (m *MockCampaignRepository) Delete(ctx context.Context, userID domain.UserI
 func (mr *MockCampaignRepositoryMockRecorder) Delete(ctx, userID, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockCampaignRepository)(nil).Delete), ctx, userID, id)
+}
+
+// DeleteByUserID mocks base method.
+func (m *MockCampaignRepository) DeleteByUserID(ctx context.Context, userID domain.UserID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByUserID", ctx, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByUserID indicates an expected call of DeleteByUserID.
+func (mr *MockCampaignRepositoryMockRecorder) DeleteByUserID(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByUserID", reflect.TypeOf((*MockCampaignRepository)(nil).DeleteByUserID), ctx, userID)
 }
 
 // FindAll mocks base method.
@@ -375,6 +441,34 @@ func (m *MockLinkRepository) Delete(ctx context.Context, userID domain.UserID, i
 func (mr *MockLinkRepositoryMockRecorder) Delete(ctx, userID, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockLinkRepository)(nil).Delete), ctx, userID, id)
+}
+
+// DeleteByCampaignID mocks base method.
+func (m *MockLinkRepository) DeleteByCampaignID(ctx context.Context, campaignID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByCampaignID", ctx, campaignID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByCampaignID indicates an expected call of DeleteByCampaignID.
+func (mr *MockLinkRepositoryMockRecorder) DeleteByCampaignID(ctx, campaignID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByCampaignID", reflect.TypeOf((*MockLinkRepository)(nil).DeleteByCampaignID), ctx, campaignID)
+}
+
+// DeleteByUserID mocks base method.
+func (m *MockLinkRepository) DeleteByUserID(ctx context.Context, userID domain.UserID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByUserID", ctx, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByUserID indicates an expected call of DeleteByUserID.
+func (mr *MockLinkRepositoryMockRecorder) DeleteByUserID(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByUserID", reflect.TypeOf((*MockLinkRepository)(nil).DeleteByUserID), ctx, userID)
 }
 
 // FindAll mocks base method.

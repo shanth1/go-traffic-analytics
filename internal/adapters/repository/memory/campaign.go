@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/shanth1/gotools/errs"
 	"github.com/shanth1/gotools/ops"
@@ -36,7 +37,7 @@ func (r *CampaignRepo) FindByID(_ context.Context, id string) (*domain.Campaign,
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	c, ok := r.campaigns[id]
-	if !ok {
+	if !ok || c.DeletedAt != nil {
 		return nil, ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("%q campaign not found", id))
 	}
 
@@ -48,17 +49,18 @@ func (r *CampaignRepo) FindAll(_ context.Context, filter domain.CampaignFilter) 
 	defer r.mu.RUnlock()
 	var matches []*domain.Campaign
 	for _, c := range r.campaigns {
+		if c.DeletedAt != nil {
+			continue
+		}
 		if c.UserID == filter.UserID {
 			matches = append(matches, c)
 		}
 	}
 
-	// Sort by creation desc
 	sort.Slice(matches, func(i, j int) bool {
 		return matches[i].CreatedAt.After(matches[j].CreatedAt)
 	})
 
-	// Pagination
 	if filter.Offset >= len(matches) {
 		return []*domain.Campaign{}, nil
 	}
@@ -76,6 +78,9 @@ func (r *CampaignRepo) Count(_ context.Context, filter domain.CampaignFilter) (i
 	defer r.mu.RUnlock()
 	var count int64
 	for _, c := range r.campaigns {
+		if c.DeletedAt != nil {
+			continue
+		}
 		if c.UserID == filter.UserID {
 			count++
 		}
@@ -90,7 +95,7 @@ func (r *CampaignRepo) Delete(_ context.Context, userID domain.UserID, id string
 	defer r.mu.Unlock()
 
 	c, ok := r.campaigns[id]
-	if !ok {
+	if !ok || c.DeletedAt != nil {
 		return ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("%q campaign not found", id))
 	}
 
@@ -100,7 +105,21 @@ func (r *CampaignRepo) Delete(_ context.Context, userID domain.UserID, id string
 		return ops.WrapMsg(op, ops.KindPermission, techErr, "access denied")
 	}
 
-	delete(r.campaigns, id)
+	now := time.Now()
+	c.DeletedAt = &now
 
+	return nil
+}
+
+func (r *CampaignRepo) DeleteByUserID(_ context.Context, userID domain.UserID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	now := time.Now()
+	for _, c := range r.campaigns {
+		if c.UserID == userID && c.DeletedAt == nil {
+			c.DeletedAt = &now
+		}
+	}
 	return nil
 }

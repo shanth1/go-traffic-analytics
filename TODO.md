@@ -24,3 +24,7 @@
 ## Jan 2026 (stage 4)
 - [ ] redirect and repo loader
 - [ ] frontend ui/ux
+
+## Other
+
+- [ ] AnonymizeUserData

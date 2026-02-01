@@ -38,9 +38,9 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	basePlanRepo := memoryrepo.NewPlanRepo()
 
 	// Cached Repositories
-	userRepo := cachedproxy.NewUserRepo(baseUserRepo, cache, 5*time.Minute)
-	campRepo := cachedproxy.NewCampaignRepo(baseCampRepo, cache, 10*time.Minute)
-	linkRepo := cachedproxy.NewLinkRepo(baseLinkRepo, cache, 10*time.Minute)
+	userRepo := cachedproxy.NewUserRepo(baseUserRepo, cache, logger, 5*time.Minute)
+	campRepo := cachedproxy.NewCampaignRepo(baseCampRepo, cache, logger, 10*time.Minute)
+	linkRepo := cachedproxy.NewLinkRepo(baseLinkRepo, cache, logger, 10*time.Minute)
 	analyticRepo := cachedproxy.NewAnalyicRepo(baseAnalyticRepo, cache, 30*time.Second)
 	planRepo := cachedproxy.NewPlanRepo(basePlanRepo, cache, 24*time.Hour)
 

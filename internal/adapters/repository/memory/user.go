@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/shanth1/gotools/errs"
 	"github.com/shanth1/gotools/ops"
@@ -50,7 +51,7 @@ func (r *UserRepo) FindByID(_ context.Context, id domain.UserID) (*domain.User, 
 	defer r.mu.RUnlock()
 
 	u, ok := r.users[id]
-	if !ok {
+	if !ok || u.DeletedAt != nil {
 		return nil, ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("%q user not found", id))
 	}
 
@@ -67,30 +68,48 @@ func (r *UserRepo) FindByEmail(_ context.Context, email string) (*domain.User, e
 		return nil, ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("user with email %q not found", email))
 	}
 
-	return r.users[id], nil
+	u := r.users[id]
+	if u.DeletedAt != nil {
+		return nil, ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, "user found but deleted")
+	}
+
+	return u, nil
 }
 
 func (r *UserRepo) FindAll(_ context.Context, limit, offset int) ([]*domain.User, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var result []*domain.User
-	i := 0
+	skipped := 0
+
 	for _, u := range r.users {
-		if i >= offset {
-			if limit > 0 && len(result) >= limit {
-				break
-			}
-			result = append(result, u)
+		if u.DeletedAt != nil {
+			continue
 		}
-		i++
+
+		if skipped < offset {
+			skipped++
+			continue
+		}
+
+		if limit > 0 && len(result) >= limit {
+			break
+		}
+		result = append(result, u)
 	}
 	return result, nil
 }
 
-func (r *UserRepo) Count(_ context.Context) (int64, error) {
+func (r *UserRepo) Count(ctx context.Context) (int64, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	return int64(len(r.users)), nil
+	var cnt int64
+	for _, u := range r.users {
+		if u.DeletedAt == nil {
+			cnt++
+		}
+	}
+	return cnt, nil
 }
 
 func (r *UserRepo) IncrementUsage(_ context.Context, userID domain.UserID, delta int) error {
@@ -100,7 +119,7 @@ func (r *UserRepo) IncrementUsage(_ context.Context, userID domain.UserID, delta
 	defer r.mu.Unlock()
 
 	user, ok := r.users[userID]
-	if !ok {
+	if !ok || user.DeletedAt != nil {
 		return ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("%q user not found", userID))
 	}
 
@@ -115,10 +134,28 @@ func (r *UserRepo) ResetUsage(_ context.Context, userID domain.UserID) error {
 	defer r.mu.Unlock()
 
 	user, ok := r.users[userID]
-	if !ok {
-		return ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("%q user not found", userID))
+
+	if !ok || user.DeletedAt != nil {
+		return ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, "user not found")
+	}
+	user.ClicksCurrentMonth = 0
+
+	return nil
+}
+
+func (r *UserRepo) Delete(_ context.Context, id domain.UserID) error {
+	const op = "memory.UserRepo.Delete"
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	u, ok := r.users[id]
+	if !ok || u.DeletedAt != nil {
+		return ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("%q user not found", id))
 	}
 
-	user.ClicksCurrentMonth = 0
+	now := time.Now()
+	u.DeletedAt = &now
+
 	return nil
 }
