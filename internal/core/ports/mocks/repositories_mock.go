@@ -690,6 +690,21 @@ func (mr *MockAnalyticsRepositoryMockRecorder) GetHeatmapData(ctx, filter any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHeatmapData", reflect.TypeOf((*MockAnalyticsRepository)(nil).GetHeatmapData), ctx, filter)
 }
 
+// GetRawEvents mocks base method.
+func (m *MockAnalyticsRepository) GetRawEvents(ctx context.Context, filter domain.AnalyticsFilter) ([]*domain.ClickEvent, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRawEvents", ctx, filter)
+	ret0, _ := ret[0].([]*domain.ClickEvent)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRawEvents indicates an expected call of GetRawEvents.
+func (mr *MockAnalyticsRepositoryMockRecorder) GetRawEvents(ctx, filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRawEvents", reflect.TypeOf((*MockAnalyticsRepository)(nil).GetRawEvents), ctx, filter)
+}
+
 // GetTimeSeriesGrouped mocks base method.
 func (m *MockAnalyticsRepository) GetTimeSeriesGrouped(ctx context.Context, filter domain.AnalyticsFilter, dimension string, interval time.Duration) ([]domain.StackedPoint, error) {
 	m.ctrl.T.Helper()

@@ -62,7 +62,7 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 
 	// Services
 	authService := services.NewAuthService(userRepo, planRepo, cfg)
-	analyticsService := services.NewAnalyticsService(analyticRepo)
+	analyticsService := services.NewAnalyticsService(analyticRepo, userRepo, planRepo)
 	campaignService := services.NewCampaignService(campRepo, linkRepo, transactor, logger)
 	linkService := services.NewLinkService(linkRepo, userRepo, planRepo, logger)
 	redirectService := services.NewRedirectService(ctx, ingestor, linkRepo, geoProvider)

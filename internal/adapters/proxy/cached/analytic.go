@@ -196,3 +196,7 @@ func (r *AnalyticRepo) GetTopStats(ctx context.Context, filter domain.AnalyticsF
 
 	return stats, nil
 }
+
+func (r *AnalyticRepo) GetRawEvents(ctx context.Context, filter domain.AnalyticsFilter) ([]*domain.ClickEvent, error) {
+	return r.repo.GetRawEvents(ctx, filter)
+}

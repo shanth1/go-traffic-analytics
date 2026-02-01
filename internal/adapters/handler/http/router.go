@@ -155,6 +155,7 @@ func NewRouter(
 				r.Get("/quality", analyticsHandlerV1.GetQualityRadar)
 				r.Get("/heatmap", analyticsHandlerV1.GetHeatmap) // Heatmap
 				r.Get("/stats", analyticsHandlerV1.GetStats)     // BarGroup, Pies
+				r.Get("/export", analyticsHandlerV1.ExportAnalytics)
 			})
 		})
 

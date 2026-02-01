@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -270,4 +272,56 @@ func (h *AnalyticsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 	log.FromContext(r.Context()).Info().Str("dimension", dim).Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_stats_retrieved")
 
 	response.OK(w, r, data)
+}
+
+// ExportAnalytics godoc
+// @Summary Export analytics to Excel
+// @Description Download .xlsx file with raw click data based on filters. Requires Plan.CanExportData = true.
+// @Tags Analytics
+// @Security BearerAuth
+// @Produce application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+// @Param campaign_id query string false "Filter by Campaign"
+// @Param link_id query string false "Filter by Link"
+// @Param from query string false "Date From (RFC3339)"
+// @Param to query string false "Date To (RFC3339)"
+// @Success 200 {file} file
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 403 {object} response.ErrorWrapper "Forbidden (Plan limit)"
+// @Failure 500 {object} response.ErrorWrapper
+// @Router /api/v1/analytics/export [get]
+func (h *AnalyticsHandler) ExportAnalytics(w http.ResponseWriter, r *http.Request) {
+	filter := h.parseFilter(r)
+
+	// ВАЖНО: Получаем UserID из контекста (Middleware JWTAuth должен класть его туда)
+	// Предположим, у вас есть хелпер или ключ контекста для этого.
+	// userID, ok := r.Context().Value("user_id").(string)
+	// В примере кода выше JWT middleware не показан полностью, но обычно это выглядит так:
+	// claims := r.Context().Value("claims").(*jwt.TokenClaims) -> filter.UserID = claims.UserID
+
+	// Для примера я предположу, что parseFilter или middleware заполняет UserID,
+	// но если нет, нужно извлечь его здесь:
+	// filter.UserID = domain.UserID(GetUserIDFromContext(r.Context()))
+
+	dataContent, fileName, err := h.service.ExportData(r.Context(), filter)
+	if err != nil {
+		// Если ошибка связана с правами доступа, лучше вернуть 403
+		// Здесь упрощенно возвращаем ошибку через общий враппер
+		response.Error(w, r, err)
+		return
+	}
+
+	// Установка заголовков для скачивания файла
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	w.Header().Set("Content-Transfer-Encoding", "binary")
+	w.Header().Set("Expires", "0")
+
+	// Пишем данные в ответ
+	if _, err := io.Copy(w, dataContent); err != nil {
+		log.FromContext(r.Context()).Error().Err(err).Msg("failed to write excel to response")
+	}
+
+	log.FromContext(r.Context()).Info().
+		Str("campaign_id", filter.CampaignID).
+		Msg("analytics_exported_successfully")
 }

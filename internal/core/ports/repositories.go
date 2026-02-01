@@ -83,6 +83,8 @@ type AnalyticsRepository interface {
 	// dimension: "browser", "os", "country", "referer"
 	GetTopStats(ctx context.Context, filter domain.AnalyticsFilter, dimension string, limit int) ([]domain.CategoryStat, error)
 
+	GetRawEvents(ctx context.Context, filter domain.AnalyticsFilter) ([]*domain.ClickEvent, error)
+
 	// TODO:
 	// AnonymizeUserData(ctx context.Context, userID domain.UserID) error
 }

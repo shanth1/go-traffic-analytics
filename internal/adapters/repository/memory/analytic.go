@@ -290,6 +290,19 @@ func (r *AnalyticRepo) GetTopStats(_ context.Context, filter domain.AnalyticsFil
 	return stats, nil
 }
 
+func (r *AnalyticRepo) GetRawEvents(_ context.Context, filter domain.AnalyticsFilter) ([]*domain.ClickEvent, error) {
+	events := r.filterClicks(filter)
+
+	result := make([]*domain.ClickEvent, len(events))
+	copy(result, events)
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Timestamp.After(result[j].Timestamp)
+	})
+
+	return result, nil
+}
+
 func getDimensionValue(c *domain.ClickEvent, dim string) string {
 	switch dim {
 	case consts.Referer:
