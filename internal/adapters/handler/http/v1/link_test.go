@@ -193,10 +193,12 @@ func TestLinkHandler_DeleteLink(t *testing.T) {
 		req := httptest.NewRequest(http.MethodDelete, "/api/v1/links/link123", nil)
 		claims := &domain.JwtCustomClaims{UserID: userID}
 		ctx := context.WithValue(req.Context(), domain.CtxKeyUser, claims)
-		req = req.WithContext(ctx)
+
 		rctx := chi.NewRouteContext()
 		rctx.URLParams.Add("id", "link123")
-		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+		ctx = context.WithValue(ctx, chi.RouteCtxKey, rctx)
+
+		req = req.WithContext(ctx)
 		w := httptest.NewRecorder()
 
 		handler.DeleteLink(w, req)
@@ -218,10 +220,12 @@ func TestLinkHandler_DeleteLink(t *testing.T) {
 		req := httptest.NewRequest(http.MethodDelete, "/api/v1/links/link123", nil)
 		claims := &domain.JwtCustomClaims{UserID: userID}
 		ctx := context.WithValue(req.Context(), domain.CtxKeyUser, claims)
-		req = req.WithContext(ctx)
+
 		rctx := chi.NewRouteContext()
 		rctx.URLParams.Add("id", "link123")
-		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+		ctx = context.WithValue(ctx, chi.RouteCtxKey, rctx)
+
+		req = req.WithContext(ctx)
 		w := httptest.NewRecorder()
 
 		handler.DeleteLink(w, req)
