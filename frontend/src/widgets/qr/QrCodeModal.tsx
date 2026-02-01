@@ -1,15 +1,9 @@
 import { useState, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import {
-  Download,
-  ChevronLeft,
-  ChevronRight,
-  X,
-  QrCode as QrCodeIcon,
-} from 'lucide-react';
+import { Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
+import { ResponsiveSheet } from '@/shared/ui/responsive-sheet';
 import { getShortLink } from '@/shared/config';
-import { toast } from '@/entities/notification/store';
 
 const QR_STYLES = [
   {
@@ -17,22 +11,28 @@ const QR_STYLES = [
     name: 'Classic Black',
     bg: '#ffffff',
     fg: '#000000',
-    wrapperClass: 'bg-white',
+    wrapperClass: 'bg-white border-slate-200',
   },
   {
     id: 'inverted',
     name: 'Dark Mode',
-    bg: '#0f172a',
+    bg: '#000000',
     fg: '#ffffff',
-    wrapperClass: 'bg-slate-950',
+    wrapperClass: 'bg-black border-slate-800',
   },
   {
     id: 'brand',
     name: 'Brand Primary',
-    // Hardcoded colors for QR ensuring scannability/contrast regardless of theme
     bg: '#e0e7ff',
     fg: '#4f46e5',
-    wrapperClass: 'bg-indigo-100',
+    wrapperClass: 'bg-indigo-100 border-indigo-200',
+  },
+  {
+    id: 'brand',
+    name: 'Brand Primary',
+    bg: '#e0e7ff',
+    fg: '#4f46e5',
+    wrapperClass: 'bg-indigo-100 border-indigo-200',
   },
 ];
 
@@ -77,90 +77,71 @@ export const QrCodeModal = ({ isOpen, onClose, slug }: QrCodeModalProps) => {
         const downloadLink = document.createElement('a');
         downloadLink.href = pngUrl;
         downloadLink.download = `qr-${slug}-${currentStyle.id}.png`;
-        document.body.appendChild(downloadLink);
         downloadLink.click();
-        document.body.removeChild(downloadLink);
-
-        toast.info('Saved', 'QR Code successfully downloaded.');
       }
       URL.revokeObjectURL(url);
     };
     img.src = url;
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
-
-      <div className="relative bg-card rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col items-center animate-in fade-in zoom-in-95 duration-200 border border-border">
-        <div className="w-full flex justify-between items-center p-4 border-b border-border">
-          <h3 className="font-semibold text-lg flex items-center gap-2 text-foreground">
-            <QrCodeIcon size={18} className="text-primary" />
-            QR Code
-          </h3>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-accent rounded-full text-muted-foreground"
+    <ResponsiveSheet isOpen={isOpen} onClose={onClose} title="QR Code">
+      <div className="flex flex-col items-center gap-6 py-2">
+        <div className="flex items-center gap-4 w-full justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={prevStyle}
+            className="rounded-full h-10 w-10 shrink-0 border border-slate-100 dark:border-slate-800"
           >
-            <X size={20} />
-          </button>
-        </div>
+            <ChevronLeft size={20} />
+          </Button>
 
-        <div className="p-8 w-full flex flex-col items-center gap-6">
-          <div className="flex items-center gap-4 w-full justify-between">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={prevStyle}
-              className="rounded-full h-10 w-10 shrink-0"
-            >
-              <ChevronLeft />
-            </Button>
-
-            <div
-              ref={svgRef}
-              className={`p-4 rounded-xl shadow-inner transition-colors duration-300 ${currentStyle.wrapperClass}`}
-            >
-              <QRCodeSVG
-                value={linkUrl}
-                size={180}
-                bgColor={currentStyle.bg}
-                fgColor={currentStyle.fg}
-                level="M"
-              />
-            </div>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={nextStyle}
-              className="rounded-full h-10 w-10 shrink-0"
-            >
-              <ChevronRight />
-            </Button>
+          <div
+            ref={svgRef}
+            className={`p-6 rounded-2xl shadow-xl transition-all duration-300 border ${currentStyle.wrapperClass}`}
+          >
+            <QRCodeSVG
+              value={linkUrl}
+              size={180}
+              bgColor={currentStyle.bg}
+              fgColor={currentStyle.fg}
+              level="M"
+            />
           </div>
 
-          <div className="text-center">
-            <p className="text-sm font-medium text-foreground">
-              {currentStyle.name}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1 truncate max-w-[200px] mx-auto">
-              {linkUrl}
-            </p>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={nextStyle}
+            className="rounded-full h-10 w-10 shrink-0 border border-slate-100 dark:border-slate-800"
+          >
+            <ChevronRight size={20} />
+          </Button>
         </div>
 
-        <div className="w-full p-4 border-t border-border bg-muted/30">
-          <Button onClick={handleDownload} className="w-full gap-2 shadow-sm">
-            <Download size={16} /> Download PNG
+        <div className="text-center space-y-1">
+          <p className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center justify-center gap-2">
+            <span
+              className="w-3 h-3 rounded-full border border-slate-200"
+              style={{ backgroundColor: currentStyle.fg }}
+            />
+            {currentStyle.name}
+          </p>
+          <p className="text-xs text-slate-500 truncate max-w-[250px]">
+            {linkUrl}
+          </p>
+        </div>
+
+        <div className="w-full pt-4">
+          <Button
+            onClick={handleDownload}
+            className="w-full gap-2 h-12 text-base bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-none"
+          >
+            <Download size={18} /> Download PNG
           </Button>
         </div>
       </div>
-    </div>
+    </ResponsiveSheet>
   );
 };
