@@ -56,3 +56,7 @@ type UserService interface {
 type BillingService interface {
 	GetAllPlans(ctx context.Context) ([]*domain.Plan, error)
 }
+
+type FeedbackService interface {
+	SendFeedback(ctx context.Context, cmd domain.SendFeedbackCmd) error
+}

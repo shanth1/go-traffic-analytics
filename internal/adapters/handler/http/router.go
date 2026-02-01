@@ -33,6 +33,7 @@ type Services struct {
 	Redirect  ports.RedirectService
 	User      ports.UserService
 	Billing   ports.BillingService
+	Feedback  ports.FeedbackService
 }
 
 type Repositories struct {
@@ -72,6 +73,7 @@ func NewRouter(
 	linkHandlerV1 := v1.NewLinkHandler(c.Services.Link, c.Services.Campaign)
 	analyticsHandlerV1 := v1.NewAnalyticsHandler(c.Services.Analytics)
 	billingHandlerV1 := v1.NewBillingHandler(c.Services.Billing)
+	feedbackHandlerV1 := v1.NewFeedbackHandler(c.Services.Feedback)
 
 	// Middleware
 	quotaMiddleware := httpMw.NewQuotaMiddleware(c.Repos.Link, c.Repos.User, c.Repos.Plan)
@@ -96,6 +98,7 @@ func NewRouter(
 
 	// --- API v1 Group ---
 	r.Route("/api/v1", func(r chi.Router) {
+		r.Post("/feedback", feedbackHandlerV1.SendFeedback)
 
 		// --- Auth Routes  ---
 		r.Route("/auth", func(r chi.Router) {
