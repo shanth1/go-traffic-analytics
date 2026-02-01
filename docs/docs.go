@@ -223,6 +223,75 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/analytics/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Download .xlsx file with raw click data based on filters. Requires Plan.CanExportData = true.",
+                "produces": [
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Export analytics to Excel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by Campaign",
+                        "name": "campaign_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by Link",
+                        "name": "link_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date From (RFC3339)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date To (RFC3339)",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorWrapper"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (Plan limit)",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorWrapper"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorWrapper"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/analytics/flow": {
             "get": {
                 "security": [
@@ -1000,6 +1069,40 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorWrapper"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/feedback": {
+            "post": {
+                "description": "Send a support request to the admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Feedback"
+                ],
+                "summary": "Send feedback",
+                "parameters": [
+                    {
+                        "description": "Feedback Info",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.feedbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status: received",
+                        "schema": {
+                            "$ref": "#/definitions/v1.StatusResponse"
                         }
                     }
                 }
@@ -1864,6 +1967,20 @@ const docTemplate = `{
                 },
                 "meta": {
                     "$ref": "#/definitions/domain.PaginationMeta"
+                }
+            }
+        },
+        "v1.feedbackRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         }

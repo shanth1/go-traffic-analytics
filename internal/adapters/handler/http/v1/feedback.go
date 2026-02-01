@@ -30,7 +30,7 @@ type feedbackRequest struct {
 // @Accept json
 // @Produce json
 // @Param request body feedbackRequest true "Feedback Info"
-// @Success 200 {object} response.SuccessWrapper
+// @Success 200 {object} StatusResponse "Status: received"
 // @Router /api/v1/feedback [post]
 func (h *FeedbackHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	var req feedbackRequest
@@ -53,5 +53,5 @@ func (h *FeedbackHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.OK(w, r, map[string]string{"status": "received"})
+	response.OK(w, r, StatusData{Status: "received"})
 }
