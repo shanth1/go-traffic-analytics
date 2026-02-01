@@ -24,6 +24,8 @@ import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/button';
 import { ResponsiveSheet } from '@/shared/ui/responsive-sheet';
 import { Skeleton } from '@/shared/ui/skeleton';
+import { feedbackApi } from '@/entities/feedback/api';
+import { TG_SUPPORT_URL } from '@/shared/config';
 
 // --- UI Components ---
 
@@ -117,21 +119,42 @@ const StatPill = ({
   </div>
 );
 
-const FeedbackModal = ({
+export const FeedbackModal = ({
   isOpen,
   onClose,
 }: {
   isOpen: boolean;
   onClose: () => void;
 }) => {
-  const handleSubmit = (e: React.FormEvent) => {
+  const user = useAuthStore((s) => s.user);
+  const [message, setMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onClose();
-    // REPLACED ALERT WITH TOAST
-    toast.info(
-      'Message Sent',
-      'We have received your request. Support will contact you shortly.'
-    );
+    if (!message.trim()) return;
+
+    setIsSending(true);
+    try {
+      await feedbackApi.send({
+        email: user?.email || 'guest@example.com',
+        name: user?.email?.split('@')[0] || 'Guest',
+        message: message,
+      });
+
+      toast.info(
+        'Message Sent',
+        'We have received your request. Support will contact you shortly.'
+      );
+      setMessage('');
+      onClose();
+    } catch (error) {
+      // Глобальный интерцептор покажет "Action Failed",
+      // поэтому здесь просто прекращаем загрузку
+      console.error('Feedback error:', error);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -147,9 +170,7 @@ const FeedbackModal = ({
           </p>
           <Button
             className="w-full gap-2"
-            onClick={() =>
-              window.open('https://t.me/your_support_bot', '_blank')
-            }
+            onClick={() => window.open(TG_SUPPORT_URL, '_blank')}
           >
             Open Telegram
           </Button>
@@ -172,12 +193,20 @@ const FeedbackModal = ({
               Message
             </label>
             <textarea
-              className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
+              className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 text-foreground"
               placeholder="Describe your idea or issue..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              required
             />
           </div>
-          <Button variant="outline" type="submit" className="w-full">
-            Send Message
+          <Button
+            variant="outline"
+            type="submit"
+            className="w-full"
+            disabled={isSending || !message.trim()}
+          >
+            {isSending ? 'Sending...' : 'Send Message'}
           </Button>
         </form>
       </div>

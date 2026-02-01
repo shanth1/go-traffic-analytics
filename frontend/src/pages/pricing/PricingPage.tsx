@@ -12,6 +12,7 @@ import {
 import { ResponsiveSheet } from '@/shared/ui/responsive-sheet';
 import { useAuthStore } from '@/entities/session/store';
 import { useIsDesktop } from '@/shared/lib/hooks';
+import { TG_SUPPORT_URL } from '@/shared/config';
 
 const PLANS = [
   {
@@ -177,9 +178,7 @@ export const PricingPage = () => {
 
           <Button
             className="w-full"
-            onClick={() =>
-              window.open('https://t.me/your_support_bot', '_blank')
-            }
+            onClick={() => window.open(TG_SUPPORT_URL, '_blank')}
           >
             Contact Support to Upgrade
           </Button>

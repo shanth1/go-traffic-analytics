@@ -1,9 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { useAuthStore } from '@/entities/session/store';
 import { toast } from '@/entities/notification/store'; // New Import
-
-export const API_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+import { API_URL } from '@/shared/config';
 
 export const api = axios.create({
   baseURL: API_URL,
