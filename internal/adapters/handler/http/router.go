@@ -98,7 +98,6 @@ func NewRouter(
 
 	// --- API v1 Group ---
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Post("/feedback", feedbackHandlerV1.SendFeedback)
 
 		// --- Auth Routes  ---
 		r.Route("/auth", func(r chi.Router) {
@@ -119,6 +118,8 @@ func NewRouter(
 		// --- Client Routes (Protected) ---
 		r.Group(func(r chi.Router) {
 			r.Use(jwtAuthMiddleware)
+
+			r.Post("/feedback", feedbackHandlerV1.SendFeedback)
 
 			r.Route("/users", func(r chi.Router) {
 				r.Get("/tree", userHandlerV1.GetProfileTree)
