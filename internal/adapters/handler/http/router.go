@@ -131,20 +131,20 @@ func NewRouter(
 			r.Route("/campaigns", func(r chi.Router) {
 				r.Get("/", campaignHandlerV1.GetCampaigns)
 				r.Post("/", campaignHandlerV1.CreateCampaign)
-				r.Delete("/{id}", campaignHandlerV1.DeleteCampaign)
+				r.Route("/{id}", func(r chi.Router) {
+					r.Delete("/{id}", campaignHandlerV1.DeleteCampaign)
+				})
 			})
 
 			r.Route("/links", func(r chi.Router) {
 				r.Post("/", linkHandlerV1.CreateLink)
 				r.Get("/", linkHandlerV1.GetLinks)
-				r.Delete("/{id}", linkHandlerV1.DeleteLink)
-
-				// TODO:
-				// r.Route("/{id}", func(r chi.Router) {
-				// 	r.Get("/", linkHandlerV1.GetLink)
-				// 	r.Delete("/", linkHandlerV1.DeleteLink)
-				// 	r.Patch("/", linkHandlerV1.UpdateLink)
-				// })
+				r.Route("/{id}", func(r chi.Router) {
+					r.Delete("/{id}", linkHandlerV1.DeleteLink)
+					// TODO:
+					// r.Get("/", linkHandlerV1.GetLink)
+					// r.Patch("/", linkHandlerV1.UpdateLink)
+				})
 			})
 
 			// Analytics (Visx Ready)
