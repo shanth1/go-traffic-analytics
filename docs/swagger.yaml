@@ -991,6 +991,41 @@ paths:
       summary: Create campaign
       tags:
       - Campaigns
+  /api/v1/campaigns/{id}:
+    delete:
+      description: Delete a campaign and cascade soft-delete all its links
+      parameters:
+      - description: Campaign ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
+      security:
+      - BearerAuth: []
+      summary: Delete campaign
+      tags:
+      - Campaigns
   /api/v1/links:
     get:
       description: Get links with filtering, search and pagination
@@ -1076,7 +1111,7 @@ paths:
       - Links
   /api/v1/links/{id}:
     delete:
-      description: Remove a link
+      description: Remove a link (soft delete)
       parameters:
       - description: Link ID
         in: path
@@ -1096,6 +1131,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/response.ErrorWrapper'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
         "500":
           description: Internal Server Error
           schema:
@@ -1105,6 +1144,28 @@ paths:
       summary: Delete link
       tags:
       - Links
+  /api/v1/users/me:
+    delete:
+      description: Permanently delete user account and all associated data (campaigns,
+        links)
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
+      security:
+      - BearerAuth: []
+      summary: Delete account
+      tags:
+      - Users
   /api/v1/users/tree:
     get:
       description: Get hierarchical structure of User -> Campaigns -> Links for Tree
