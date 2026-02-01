@@ -1,5 +1,10 @@
-import { useEffect } from 'react';
-import { FolderIcon, CalendarIcon, LayoutDashboardIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import {
+  FolderIcon,
+  CalendarIcon,
+  LayoutDashboardIcon,
+  Trash2Icon,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { CreateCampaignFeature } from '@/features/create-campaign/CreateCampaignFeature';
 import { useCampaignStore } from '@/entities/campaign/model/store';
@@ -7,12 +12,15 @@ import { Card } from '@/shared/ui/card';
 import { Pagination } from '@/shared/ui/pagination';
 import type { Campaign } from '@/shared/api/types';
 import { Button } from '@/shared/ui/button';
+import { ConfirmationModal } from '@/shared/ui/confirmation-modal';
+import { toast } from '@/entities/notification/store';
 
 interface CampaignCardProps {
   data: Campaign;
+  onDelete: (id: string) => void;
 }
 
-const CampaignCard = ({ data }: CampaignCardProps) => {
+const CampaignCard = ({ data, onDelete }: CampaignCardProps) => {
   const navigate = useNavigate();
 
   return (
@@ -27,6 +35,19 @@ const CampaignCard = ({ data }: CampaignCardProps) => {
           <div className="p-3 bg-primary/10 rounded-lg text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
             <FolderIcon size={24} />
           </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-destructive opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete(data.id);
+            }}
+          >
+            <Trash2Icon size={18} />
+          </Button>
         </div>
 
         <h3
@@ -71,13 +92,40 @@ const CampaignsSkeleton = () => (
 );
 
 export const CampaignsPage = () => {
-  const { campaigns, meta, fetchCampaigns, isLoading, setPage } =
-    useCampaignStore();
+  const {
+    campaigns,
+    meta,
+    fetchCampaigns,
+    isLoading,
+    setPage,
+    deleteCampaign,
+  } = useCampaignStore();
+
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchCampaigns();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteId) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteCampaign(deleteId);
+      toast.info(
+        'Campaign Deleted',
+        'The campaign and all its associated links have been removed.'
+      );
+      setDeleteId(null);
+    } catch (e) {
+      console.error('Failed to delete campaign', e);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 min-h-[calc(100vh-100px)] flex flex-col">
@@ -87,8 +135,7 @@ export const CampaignsPage = () => {
             Campaigns
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage your marketing campaigns and track their aggregated
-            performance.
+            Manage your marketing campaigns and track their performance.
           </p>
         </div>
         <CreateCampaignFeature />
@@ -112,7 +159,11 @@ export const CampaignsPage = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {campaigns.map((camp) => (
-                  <CampaignCard key={camp.id} data={camp} />
+                  <CampaignCard
+                    key={camp.id}
+                    data={camp}
+                    onDelete={setDeleteId}
+                  />
                 ))}
               </div>
             )}
@@ -128,6 +179,16 @@ export const CampaignsPage = () => {
           onChange={setPage}
         />
       </div>
+
+      <ConfirmationModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Campaign?"
+        description="Are you sure? This will delete the campaign and all shortened links inside it. This action cannot be undone."
+        confirmLabel="Yes, Delete Campaign"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
