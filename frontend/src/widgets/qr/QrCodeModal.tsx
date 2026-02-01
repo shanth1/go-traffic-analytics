@@ -28,11 +28,32 @@ const QR_STYLES = [
     wrapperClass: 'bg-indigo-100 border-indigo-200',
   },
   {
-    id: 'brand',
-    name: 'Brand Primary',
-    bg: '#e0e7ff',
-    fg: '#4f46e5',
-    wrapperClass: 'bg-indigo-100 border-indigo-200',
+    id: 'emerald',
+    name: 'Eco Green',
+    bg: '#f0fdf4',
+    fg: '#16a34a',
+    wrapperClass: 'bg-green-50 border-green-200',
+  },
+  {
+    id: 'rose',
+    name: 'Passion Rose',
+    bg: '#fff1f2',
+    fg: '#e11d48',
+    wrapperClass: 'bg-rose-50 border-rose-200',
+  },
+  {
+    id: 'ocean',
+    name: 'Ocean Blue',
+    bg: '#f0f9ff',
+    fg: '#0284c7',
+    wrapperClass: 'bg-sky-50 border-sky-200',
+  },
+  {
+    id: 'amber',
+    name: 'Warm Amber',
+    bg: '#fffbeb',
+    fg: '#d97706',
+    wrapperClass: 'bg-amber-50 border-amber-200',
   },
 ];
 
