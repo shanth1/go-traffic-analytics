@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { useAuthStore } from '@/entities/session/store';
+import { useTranslation } from 'react-i18next';
 import { APP_TITLE } from '@/shared/config';
 
 const MAIN_NAV = [
@@ -28,6 +29,7 @@ const SECONDARY_NAV = [
 export const MainLayout = () => {
   const { user, logout } = useAuthStore();
   const location = useLocation();
+  const { t } = useTranslation();
 
   const isPathActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -81,7 +83,7 @@ export const MainLayout = () => {
           {/* Section: Main */}
           <div className="space-y-1">
             <div className="px-3 text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-2 opacity-70">
-              Overview
+              {t('common.overview')}
             </div>
             {MAIN_NAV.map((item) => {
               const isActive = isPathActive(item.path);

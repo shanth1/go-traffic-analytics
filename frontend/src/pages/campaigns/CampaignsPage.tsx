@@ -14,6 +14,7 @@ import type { Campaign } from '@/shared/api/types';
 import { Button } from '@/shared/ui/button';
 import { ConfirmationModal } from '@/shared/ui/confirmation-modal';
 import { toast } from '@/entities/notification/store';
+import { useTranslation } from 'react-i18next';
 
 interface CampaignCardProps {
   data: Campaign;
@@ -22,6 +23,7 @@ interface CampaignCardProps {
 
 const CampaignCard = ({ data, onDelete }: CampaignCardProps) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <Card
@@ -59,13 +61,16 @@ const CampaignCard = ({ data, onDelete }: CampaignCardProps) => {
 
         <p className="text-sm text-muted-foreground mb-6 flex items-center gap-1.5">
           <CalendarIcon size={14} />
-          <span>Created {new Date(data.created_at).toLocaleDateString()}</span>
+          <span>
+            {t('common.created')}{' '}
+            {new Date(data.created_at).toLocaleDateString()}
+          </span>
         </p>
 
         <div className="mt-auto pt-4 border-t border-border flex items-center justify-between">
           <div className="flex flex-col">
             <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-              Status
+              {t('common.status')}{' '}
             </span>
             <span className="text-xs font-medium text-chart-2">Active</span>
           </div>
@@ -75,7 +80,7 @@ const CampaignCard = ({ data, onDelete }: CampaignCardProps) => {
             size="sm"
             className="gap-2 pointer-events-none group-hover:bg-primary/10 group-hover:text-primary"
           >
-            <LayoutDashboardIcon size={14} /> Dashboard
+            <LayoutDashboardIcon size={14} /> {t('common.dashboard')}
           </Button>
         </div>
       </div>

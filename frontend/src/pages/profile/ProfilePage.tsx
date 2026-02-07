@@ -4,7 +4,8 @@ import { useAuthStore } from '@/entities/session/store';
 import { analyticsApi } from '@/entities/analytics/api';
 import { useTheme } from '@/shared/lib/hooks/useTheme';
 import { startOfMonth, endOfMonth } from '@/shared/lib/date';
-import { toast } from '@/entities/notification/store'; // Import Toast
+import { useTranslation } from 'react-i18next';
+import { toast } from '@/entities/notification/store';
 import {
   LogOutIcon,
   MoonIcon,
@@ -217,6 +218,7 @@ export const FeedbackModal = ({
 export const ProfilePage = () => {
   const { user, logout } = useAuthStore();
   const { theme, toggleTheme } = useTheme();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
@@ -241,10 +243,16 @@ export const ProfilePage = () => {
     toast.info('Signed Out', 'See you next time!');
   };
 
-  // Handle Language with Toast
   const handleLanguage = () => {
-    // REPLACED ALERT WITH TOAST
-    toast.warn('Coming Soon', 'Localization is currently in development.');
+    const currentLang = i18n.language;
+    const nextLang = currentLang === 'ru' ? 'en' : 'ru';
+
+    i18n.changeLanguage(nextLang);
+
+    toast.info(
+      t('notifications.lang_changed'),
+      t('notifications.lang_changed_desc')
+    );
   };
 
   useEffect(() => {
@@ -297,11 +305,9 @@ export const ProfilePage = () => {
     <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 pb-20">
       <div className="flex flex-col gap-2 mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Profile
+          {t('profile.title')}
         </h1>
-        <p className="text-muted-foreground">
-          Manage your personal information and preferences.
-        </p>
+        <p className="text-muted-foreground">{t('profile.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
