@@ -51,6 +51,18 @@ export const en = {
         'Registration is currently invite-only. Contact support to get an account.',
       contact_support: 'Contact Support via Telegram',
       back_to_login: 'Back to Sign In',
+      telegram_title: 'Fastest Way',
+      telegram_desc: 'Get an invite code via our Telegram bot instantly.',
+      open_telegram: 'Open Telegram',
+      or_form: 'Or submit request',
+      form_name: 'Your Name',
+      form_email: 'Your Email',
+      form_message: 'Why do you need access?',
+      form_submit: 'Send Request',
+      form_sending: 'Sending...',
+      success_title: 'Request Sent!',
+      success_desc:
+        'We have received your details. Support will contact you at your email address shortly.',
     },
     dashboard: {
       title: 'Overview',

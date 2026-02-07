@@ -51,6 +51,21 @@ export const ru = {
         'Регистрация доступна только по приглашениям. Свяжитесь с поддержкой для получения доступа.',
       contact_support: 'Написать в Telegram',
       back_to_login: 'Вернуться ко входу',
+      telegram_title: 'Быстрый способ',
+      telegram_desc: 'Получить инвайт через наш Telegram бот.',
+      open_telegram: 'Открыть Telegram',
+      or_form: 'Или заполните форму',
+
+      // Поля формы
+      form_name: 'Ваше имя',
+      form_email: 'Ваш Email',
+      form_message: 'Цель использования?',
+      form_submit: 'Отправить запрос',
+      form_sending: 'Отправка...',
+
+      success_title: 'Запрос отправлен!',
+      success_desc:
+        'Мы получили ваши данные. Поддержка свяжется с вами по указанному Email в ближайшее время.',
     },
     dashboard: {
       title: 'Обзор',
