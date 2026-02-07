@@ -1,49 +1,66 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PlusIcon, Link2Icon } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { ResponsiveSheet } from '@/shared/ui/responsive-sheet';
 import { useLinkStore } from '@/entities/link/model/store';
 import { useCampaignStore } from '@/entities/campaign/model/store';
+import { toast } from '@/entities/notification/store';
 
-export const CreateLinkFeature = () => {
+type Props = {
+  selectedCampaignId?: string;
+  onSuccess?: () => void;
+};
+
+export const CreateLinkFeature: React.FC<Props> = ({
+  selectedCampaignId,
+  onSuccess,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [url, setUrl] = useState('');
-  const [slug, setSlug] = useState('');
-  const [campaignId, setCampaignId] = useState('');
+  const [campaignId, setCampaignId] = useState(selectedCampaignId || '');
 
   const addLink = useLinkStore((s) => s.addLink);
   const { campaigns, fetchCampaigns } = useCampaignStore();
 
-  useEffect(() => {
-    if (isOpen) {
-      // Fetch list for dropdown (fetching page 1 usually enough for dropdown in simple cases,
-      // ideally should have specific endpoint for dropdowns or infinite scroll)
-      fetchCampaigns(100, 0);
-    }
-  }, [isOpen, fetchCampaigns]);
+  // Handler to open modal and initialize state
+  const handleOpen = () => {
+    // 1. Fetch fresh data
+    fetchCampaigns(100, 0);
+
+    // 2. Reset form state based on current props
+    setCampaignId(selectedCampaignId || '');
+    setUrl('');
+
+    // 3. Open modal
+    setIsOpen(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!url) return;
-    const targetCampaign = campaignId || (campaigns[0]?.id ?? 'default');
-    await addLink(targetCampaign, url, slug);
-    setUrl('');
-    setSlug('');
-    setIsOpen(false);
-  };
+    if (!url) {
+      toast.warn('Validation', 'Please enter a valid URL');
+      return;
+    }
 
-  // ... (rest of the component remains similar, ensure Select uses campaigns array)
+    const targetCampaign = campaignId || (campaigns[0]?.id ?? 'default');
+
+    try {
+      await addLink(targetCampaign, url);
+      toast.info('Success', 'Short link created successfully.'); // Success message
+      setIsOpen(false);
+      if (onSuccess) onSuccess();
+    } catch (e) {
+      console.error('Error creating link:', e);
+    }
+  };
 
   return (
     <>
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
-      >
+      <Button onClick={handleOpen} className="gap-2 shadow-sm">
         <PlusIcon size={18} />
-        <span className="hidden sm:inline">Shorten Link</span>
-        <span className="sm:hidden">Link</span>
+        <span className="hidden sm:inline">New Link</span>
+        <span className="sm:hidden">Add</span>
       </Button>
 
       <ResponsiveSheet
@@ -51,45 +68,36 @@ export const CreateLinkFeature = () => {
         onClose={() => setIsOpen(false)}
         title="New Link"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Target URL</label>
+            <label className="text-sm font-medium text-foreground">
+              Target URL
+            </label>
             <div className="relative">
               <Link2Icon
-                className="absolute left-3 top-3 text-slate-400"
+                className="absolute left-3 top-3 text-muted-foreground"
                 size={16}
               />
               <Input
-                className="pl-9"
-                placeholder="https://very-long-url.com/..."
+                className="pl-9 bg-background"
+                placeholder="https://your-service.com/..."
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 type="url"
                 required
               />
             </div>
+            <p className="text-xs text-muted-foreground">
+              Paste the full HTTPS URL where you want users to land.
+            </p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Custom Alias (optional)
+            <label className="text-sm font-medium text-foreground">
+              Campaign
             </label>
-            <div className="flex items-center gap-2">
-              <span className="text-slate-400 text-sm bg-slate-100 px-2 py-2 rounded-md border border-slate-200">
-                /
-              </span>
-              <Input
-                placeholder="my-super-link"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Campaign</label>
             <select
-              className="w-full flex h-10 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               value={campaignId}
               onChange={(e) => setCampaignId(e.target.value)}
             >
@@ -102,10 +110,7 @@ export const CreateLinkFeature = () => {
             </select>
           </div>
 
-          <Button
-            type="submit"
-            className="w-full bg-indigo-600 text-white mt-4"
-          >
+          <Button type="submit" className="w-full mt-4">
             Create Link
           </Button>
         </form>

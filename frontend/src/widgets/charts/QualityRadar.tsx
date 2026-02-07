@@ -4,6 +4,7 @@ import { scaleLinear } from '@visx/scale';
 import { Point } from '@visx/point';
 import { withParentSize } from '@visx/responsive';
 import type { TrafficQuality } from '@/shared/api/types';
+import { THEME_COLORS } from '@/shared/config/theme';
 
 interface QualityRadarProps {
   parentWidth?: number;
@@ -13,10 +14,10 @@ interface QualityRadarProps {
 
 const METRICS = [
   { key: 'human_score', label: 'Human' },
-  { key: 'bot_score', label: 'Bot Rep.' }, // Inverse logic often applies, but we visualize raw score
+  { key: 'bot_score', label: 'Bot Rep.' },
   { key: 'geo_diversity_score', label: 'Geo' },
   { key: 'mobile_friendly_score', label: 'Mobile' },
-  { key: 'is_suspicious', label: 'Safety' }, // Boolean needs mapping
+  { key: 'is_suspicious', label: 'Safety' },
 ] as const;
 
 const QualityRadarBase = ({
@@ -32,12 +33,10 @@ const QualityRadarBase = ({
   const yMax = height - margin.top - margin.bottom;
   const radius = Math.min(xMax, yMax) / 2;
 
-  // Map data to radial points
   const radarData = useMemo(() => {
     return METRICS.map((m) => {
       let val = 0;
       if (m.key === 'is_suspicious') {
-        // Invert: if suspicious (true), score is 0 (bad). If false, score 100 (good).
         val = data[m.key] ? 20 : 100;
       } else {
         val = Number(data[m.key as keyof TrafficQuality]) || 0;
@@ -51,7 +50,6 @@ const QualityRadarBase = ({
     domain: [0, 100],
   });
 
-  // Calculate polygon points
   const angleStep = (Math.PI * 2) / radarData.length;
   const points = radarData.map((_, i) => {
     const angle = i * angleStep - Math.PI / 2;
@@ -75,15 +73,14 @@ const QualityRadarBase = ({
   return (
     <svg width={width} height={height}>
       <Group top={height / 2} left={width / 2}>
-        {/* Background Grid Circles */}
+        {/* Grid */}
         {[20, 40, 60, 80, 100].map((tick) => (
           <circle
             key={`grid-${tick}`}
             r={yScale(tick)}
             fill="none"
-            stroke="#e2e8f0"
+            stroke={THEME_COLORS.border}
             strokeWidth={1}
-            className="dark:stroke-slate-800"
           />
         ))}
 
@@ -95,14 +92,13 @@ const QualityRadarBase = ({
             y1={0}
             x2={p.x}
             y2={p.y}
-            stroke="#cbd5e1"
+            stroke={THEME_COLORS.border}
             strokeWidth={1}
           />
         ))}
 
         {/* Labels */}
         {points.map((p, i) => {
-          // Push label out slightly
           const labelX = p.x * 1.2;
           const labelY = p.y * 1.2;
           return (
@@ -113,33 +109,42 @@ const QualityRadarBase = ({
               dy={5}
               fontSize={11}
               textAnchor="middle"
-              className="fill-slate-500 dark:fill-slate-400 font-medium"
+              className="font-medium"
+              fill={THEME_COLORS.foreground}
+              opacity={0.6}
             >
               {radarData[i].label}
             </text>
           );
         })}
 
-        {/* The Data Shape */}
+        {/* Shape */}
         <polygon
           points={valuePoints.map((p) => `${p.x},${p.y}`).join(' ')}
-          fill="rgba(79, 70, 229, 0.2)"
-          stroke="#4f46e5"
+          fill={THEME_COLORS.primary}
+          fillOpacity={0.2}
+          stroke={THEME_COLORS.primary}
           strokeWidth={2}
         />
 
-        {/* Data Points */}
         {valuePoints.map((p, i) => (
-          <circle key={`point-${i}`} cx={p.x} cy={p.y} r={3} fill="#4f46e5" />
+          <circle
+            key={`point-${i}`}
+            cx={p.x}
+            cy={p.y}
+            r={3}
+            fill={THEME_COLORS.primary}
+          />
         ))}
 
-        {/* Score in Center */}
         <text
           x={0}
           y={0}
           dy={4}
           textAnchor="middle"
-          className="text-xs font-bold fill-indigo-600 dark:fill-indigo-400 opacity-0 hover:opacity-100 transition-opacity"
+          fontSize={12}
+          fontWeight="bold"
+          fill={THEME_COLORS.primary}
         >
           {data.human_score}
         </text>

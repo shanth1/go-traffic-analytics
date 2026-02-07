@@ -42,3 +42,27 @@ func (h *UserHandler) GetProfileTree(w http.ResponseWriter, r *http.Request) {
 
 	response.OK(w, r, tree)
 }
+
+// DeleteAccount godoc
+// @Summary Delete account
+// @Description Permanently delete user account and all associated data (campaigns, links)
+// @Tags Users
+// @Security BearerAuth
+// @Success 204 {string} string "No Content"
+// @Failure 401 {object} response.ErrorWrapper "Unauthorized"
+// @Failure 500 {object} response.ErrorWrapper
+// @Router /api/v1/users/me [delete]
+func (h *UserHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
+	userID := request.GetUserID(r)
+
+	if err := h.userSvc.DeleteUser(r.Context(), userID); err != nil {
+		response.Error(w, r, err)
+		return
+	}
+
+	log.FromContext(r.Context()).Warn().
+		Str("user_id", string(userID)).
+		Msg("user_account_deleted")
+
+	response.NoContent(w, r)
+}

@@ -2,6 +2,7 @@ package ports
 
 import (
 	"context"
+	"io"
 
 	"github.com/shanth1/gotrace/internal/core/domain"
 )
@@ -21,6 +22,7 @@ type AnalyticsService interface {
 	GetTrafficQuality(ctx context.Context, filter domain.AnalyticsFilter) (*domain.TrafficQuality, error)
 	GetHeatmapData(ctx context.Context, filter domain.AnalyticsFilter) ([]domain.HeatmapPoint, error)
 	GetCategoryStats(ctx context.Context, filter domain.AnalyticsFilter, dimension string) ([]domain.CategoryStat, error)
+	ExportData(ctx context.Context, filter domain.AnalyticsFilter) (io.Reader, string, error)
 }
 
 type LinkService interface {
@@ -50,8 +52,13 @@ type UserService interface {
 	SetStatus(ctx context.Context, userID domain.UserID, isActive bool) error
 	ChangePlan(ctx context.Context, userID domain.UserID, planID string) error
 	GetHierarchy(ctx context.Context, id domain.UserID) (*domain.HierarchyNode, error)
+	DeleteUser(ctx context.Context, userID domain.UserID) error
 }
 
 type BillingService interface {
 	GetAllPlans(ctx context.Context) ([]*domain.Plan, error)
+}
+
+type FeedbackService interface {
+	SendFeedback(ctx context.Context, cmd domain.SendFeedbackCmd) error
 }

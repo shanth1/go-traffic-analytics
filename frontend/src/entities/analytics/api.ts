@@ -74,4 +74,16 @@ export const analyticsApi = {
     });
     return data.data;
   },
+
+  exportExcel: async (params: {
+    from?: string;
+    to?: string;
+    campaign_id?: string;
+  }) => {
+    const response = await api.get('/analytics/export', {
+      params,
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };

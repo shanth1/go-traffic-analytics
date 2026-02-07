@@ -37,6 +37,10 @@ func (r *AnalyticRepo) filterClicks(filter domain.AnalyticsFilter) []*domain.Cli
 
 	filtered := make([]*domain.ClickEvent, 0, len(r.events))
 	for _, c := range r.events {
+		if filter.UserID != "" && c.UserID != filter.UserID {
+			continue
+		}
+
 		if filter.LinkID != "" && c.LinkID != filter.LinkID {
 			continue
 		}
@@ -288,6 +292,19 @@ func (r *AnalyticRepo) GetTopStats(_ context.Context, filter domain.AnalyticsFil
 	}
 
 	return stats, nil
+}
+
+func (r *AnalyticRepo) GetRawEvents(_ context.Context, filter domain.AnalyticsFilter) ([]*domain.ClickEvent, error) {
+	events := r.filterClicks(filter)
+
+	result := make([]*domain.ClickEvent, len(events))
+	copy(result, events)
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Timestamp.After(result[j].Timestamp)
+	})
+
+	return result, nil
 }
 
 func getDimensionValue(c *domain.ClickEvent, dim string) string {

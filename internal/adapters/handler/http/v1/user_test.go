@@ -78,3 +78,54 @@ func TestUserHandler_GetProfileTree(t *testing.T) {
 		}
 	})
 }
+
+// NEW TEST: Delete Account
+func TestUserHandler_DeleteAccount(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUserService := mocks.NewMockUserService(ctrl)
+	handler := NewUserHandler(mockUserService)
+
+	t.Run("success", func(t *testing.T) {
+		userID := domain.UserID("user123")
+
+		mockUserService.EXPECT().
+			DeleteUser(gomock.Any(), userID).
+			Return(nil).
+			Times(1)
+
+		req := httptest.NewRequest(http.MethodDelete, "/api/v1/users/me", nil)
+		claims := &domain.JwtCustomClaims{UserID: userID}
+		ctx := context.WithValue(req.Context(), domain.CtxKeyUser, claims)
+		req = req.WithContext(ctx)
+		w := httptest.NewRecorder()
+
+		handler.DeleteAccount(w, req)
+
+		if w.Code != http.StatusNoContent {
+			t.Errorf("expected status %d, got %d", http.StatusNoContent, w.Code)
+		}
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		userID := domain.UserID("user123")
+
+		mockUserService.EXPECT().
+			DeleteUser(gomock.Any(), userID).
+			Return(ops.Wrap("test", ops.KindInternal, errors.New("service error"))).
+			Times(1)
+
+		req := httptest.NewRequest(http.MethodDelete, "/api/v1/users/me", nil)
+		claims := &domain.JwtCustomClaims{UserID: userID}
+		ctx := context.WithValue(req.Context(), domain.CtxKeyUser, claims)
+		req = req.WithContext(ctx)
+		w := httptest.NewRecorder()
+
+		handler.DeleteAccount(w, req)
+
+		if w.Code != http.StatusInternalServerError {
+			t.Errorf("expected status %d, got %d", http.StatusInternalServerError, w.Code)
+		}
+	})
+}

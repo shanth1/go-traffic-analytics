@@ -4,6 +4,7 @@ import { scaleLinear } from '@visx/scale';
 import { withParentSize } from '@visx/responsive';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import type { HeatmapPoint } from '@/shared/api/types';
+import { THEME_COLORS } from '@/shared/config/theme';
 
 interface HeatmapProps {
   parentWidth?: number;
@@ -22,15 +23,12 @@ const HeatmapChartBase = ({
   const width = parentWidth;
   const height = parentHeight;
   const margin = { top: 10, left: 40, right: 10, bottom: 30 };
-
   const xMax = width - margin.left - margin.right;
   const yMax = height - margin.top - margin.bottom;
 
-  // Transform data into a matrix-friendly format or bin lookup
   const binData = useMemo(() => {
     const map = new Map<string, number>();
     data.forEach((d) => {
-      // backend returns day 0-6, hour 0-23
       map.set(`${d.day}-${d.hour}`, d.count);
     });
     return map;
@@ -40,10 +38,16 @@ const HeatmapChartBase = ({
     return data.length > 0 ? Math.max(...data.map((d) => d.count)) : 0;
   }, [data]);
 
-  const colorScale = scaleLinear<string>({
-    domain: [0, maxCount],
-    range: ['#f1f5f9', '#4f46e5'], // Slate-100 to Indigo-600
-  });
+  // FIX: Используем scaleLinear для Opacity (числа), а не для Цветов (строк)
+  const opacityScale = useMemo(
+    () =>
+      scaleLinear<number>({
+        domain: [0, maxCount],
+        range: [0.05, 1], // От почти прозрачного до полного цвета
+        clamp: true,
+      }),
+    [maxCount]
+  );
 
   const xScale = scaleLinear({
     domain: [0, 24],
@@ -73,16 +77,18 @@ const HeatmapChartBase = ({
                 y={yScale(dIndex)}
                 width={binWidth - 2}
                 height={binHeight - 2}
-                fill={colorScale(count)}
+                // FIX: Цвет берется из CSS переменной
+                fill={THEME_COLORS.primary}
+                // FIX: Насыщенность зависит от данных
+                fillOpacity={count > 0 ? opacityScale(count) : 0.05}
                 rx={2}
-                style={{ transition: 'fill 0.3s ease' }}
+                style={{ transition: 'fill-opacity 0.3s ease' }}
               >
                 <title>{`${day} ${hour}:00 - ${count} clicks`}</title>
               </rect>
             );
           })
         )}
-
         <AxisLeft
           scale={yScale}
           top={binHeight / 2}
@@ -91,11 +97,12 @@ const HeatmapChartBase = ({
           stroke="transparent"
           tickStroke="transparent"
           tickLabelProps={() => ({
-            fill: '#64748b',
+            fill: THEME_COLORS.foreground,
             fontSize: 11,
             textAnchor: 'end',
             dy: 4,
             dx: -5,
+            opacity: 0.6,
           })}
         />
 
@@ -108,9 +115,10 @@ const HeatmapChartBase = ({
           stroke="transparent"
           tickStroke="transparent"
           tickLabelProps={() => ({
-            fill: '#64748b',
+            fill: THEME_COLORS.foreground,
             fontSize: 10,
             textAnchor: 'middle',
+            opacity: 0.6,
           })}
         />
       </Group>

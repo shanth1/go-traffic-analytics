@@ -8,6 +8,7 @@ import (
 
 	"github.com/shanth1/gotools/consts"
 	"github.com/shanth1/gotools/log"
+	"github.com/shanth1/gotools/notify"
 	cachememory "github.com/shanth1/gotrace/internal/adapters/cache/memory"
 	"github.com/shanth1/gotrace/internal/adapters/generator"
 	transport "github.com/shanth1/gotrace/internal/adapters/handler/http"
@@ -27,6 +28,11 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 		logger.Fatal().Err(err).Msg("new geo ip repo")
 	}
 
+	tgNotifier, err := notify.NewTelegramNotifier(cfg.Notifications.Telegram.Token)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("new telegram notifier")
+	}
+
 	// Cache (In-Memory)
 	cache := cachememory.NewCache()
 
@@ -36,11 +42,12 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	baseLinkRepo := memoryrepo.NewLinkRepo()
 	baseAnalyticRepo := memoryrepo.NewAnalyticRepo()
 	basePlanRepo := memoryrepo.NewPlanRepo()
+	transactor := memoryrepo.NewMemoryTransactor()
 
 	// Cached Repositories
-	userRepo := cachedproxy.NewUserRepo(baseUserRepo, cache, 5*time.Minute)
-	campRepo := cachedproxy.NewCampaignRepo(baseCampRepo, cache, 10*time.Minute)
-	linkRepo := cachedproxy.NewLinkRepo(baseLinkRepo, cache, 10*time.Minute)
+	userRepo := cachedproxy.NewUserRepo(baseUserRepo, cache, logger, 5*time.Minute)
+	campRepo := cachedproxy.NewCampaignRepo(baseCampRepo, cache, logger, 10*time.Minute)
+	linkRepo := cachedproxy.NewLinkRepo(baseLinkRepo, cache, logger, 10*time.Minute)
 	analyticRepo := cachedproxy.NewAnalyicRepo(baseAnalyticRepo, cache, 30*time.Second)
 	planRepo := cachedproxy.NewPlanRepo(basePlanRepo, cache, 24*time.Hour)
 
@@ -55,12 +62,13 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 
 	// Services
 	authService := services.NewAuthService(userRepo, planRepo, cfg)
-	analyticsService := services.NewAnalyticsService(analyticRepo)
-	campaignService := services.NewCampaignService(campRepo)
-	linkService := services.NewLinkService(linkRepo, userRepo, planRepo)
+	analyticsService := services.NewAnalyticsService(analyticRepo, userRepo, planRepo)
+	campaignService := services.NewCampaignService(campRepo, linkRepo, transactor, logger)
+	linkService := services.NewLinkService(linkRepo, userRepo, planRepo, logger)
 	redirectService := services.NewRedirectService(ctx, ingestor, linkRepo, geoProvider)
-	userService := services.NewUserService(userRepo, planRepo, campRepo, linkRepo)
+	userService := services.NewUserService(userRepo, planRepo, campRepo, linkRepo, transactor, logger)
 	billingService := services.NewBillingService(planRepo)
+	feedbackSvc := services.NewFeedbackService(tgNotifier, cfg.Notifications.Telegram.AdminChatID)
 
 	httpHandler := transport.NewRouter(transport.Container{
 		Cfg:    cfg,
@@ -73,6 +81,7 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 			Redirect:  redirectService,
 			User:      userService,
 			Billing:   billingService,
+			Feedback:  feedbackSvc,
 		},
 		Repos: transport.Repositories{
 			Link: linkRepo,

@@ -223,6 +223,75 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/analytics/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Download .xlsx file with raw click data based on filters. Requires Plan.CanExportData = true.",
+                "produces": [
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Export analytics to Excel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by Campaign",
+                        "name": "campaign_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by Link",
+                        "name": "link_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date From (RFC3339)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date To (RFC3339)",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorWrapper"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (Plan limit)",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorWrapper"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorWrapper"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/analytics/flow": {
             "get": {
                 "security": [
@@ -950,6 +1019,95 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/campaigns/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a campaign and cascade soft-delete all its links",
+                "tags": [
+                    "Campaigns"
+                ],
+                "summary": "Delete campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorWrapper"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorWrapper"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorWrapper"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorWrapper"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/feedback": {
+            "post": {
+                "description": "Send a support request to the admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Feedback"
+                ],
+                "summary": "Send feedback",
+                "parameters": [
+                    {
+                        "description": "Feedback Info",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.feedbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status: received",
+                        "schema": {
+                            "$ref": "#/definitions/v1.StatusResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/links": {
             "get": {
                 "security": [
@@ -1087,7 +1245,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Remove a link",
+                "description": "Remove a link (soft delete)",
                 "tags": [
                     "Links"
                 ],
@@ -1112,6 +1270,46 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorWrapper"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorWrapper"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorWrapper"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorWrapper"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/me": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permanently delete user account and all associated data (campaigns, links)",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Delete account",
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "401": {
@@ -1769,6 +1967,20 @@ const docTemplate = `{
                 },
                 "meta": {
                     "$ref": "#/definitions/domain.PaginationMeta"
+                }
+            }
+        },
+        "v1.feedbackRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         }

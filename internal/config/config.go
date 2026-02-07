@@ -16,13 +16,14 @@ import (
 )
 
 type Config struct {
-	Env     consts.Env `yaml:"-" env:"APP_ENV" validate:"required,oneof=local dev stage prod"`
-	Addr    string     `mapstructure:"addr" yaml:"addr" env:"ADDR" validate:"required,hostname_port"`
-	HTTP    HTTP       `mapstructure:"http" yaml:"http" validate:"required"`
-	Logger  Logger     `mapstructure:"logger" yaml:"logger" validate:"required"`
-	Metrics Metrics    `mapstructure:"metrics" yaml:"metrics"`
-	Auth    Auth       `validate:"required"`
-	GeoIP   GeoIP      `mapstructure:"geo_ip" yaml:"geo_ip"`
+	Env           consts.Env    `yaml:"-" env:"APP_ENV" validate:"required,oneof=local dev stage prod"`
+	Addr          string        `mapstructure:"addr" yaml:"addr" env:"ADDR" validate:"required,hostname_port"`
+	HTTP          HTTP          `mapstructure:"http" yaml:"http" validate:"required"`
+	Logger        Logger        `mapstructure:"logger" yaml:"logger" validate:"required"`
+	Metrics       Metrics       `mapstructure:"metrics" yaml:"metrics"`
+	Auth          Auth          `validate:"required"`
+	GeoIP         GeoIP         `mapstructure:"geo_ip" yaml:"geo_ip"`
+	Notifications Notifications `mapstructure:"notifications" yaml:"notifications"`
 }
 
 type Auth struct {
@@ -39,9 +40,9 @@ type HTTP struct {
 
 type Logger struct {
 	App          string `mapstructure:"app" yaml:"app" validate:"required"`
-	Level        string `mapstructure:"level" yaml:"level" env:"LOGGER_UDP" validate:"required,oneof=debug info warn error fatal panic trace"`
+	Level        string `mapstructure:"level" yaml:"level" validate:"required,oneof=debug info warn error fatal panic trace"`
 	Service      string `mapstructure:"service" yaml:"service" validate:"required"`
-	UDPAddress   string `mapstructure:"udp_address" yaml:"udp_address" validate:"omitempty,hostname_port"`
+	UDPAddress   string `mapstructure:"udp_address" yaml:"udp_address" env:"LOGGER_UDP" validate:"omitempty,hostname_port"`
 	EnableCaller bool   `mapstructure:"enable_caller" yaml:"enable_caller"`
 }
 
@@ -64,6 +65,16 @@ type bootstrapConfig struct {
 	AppEnv     string `flag:"env" usage:"Environment: local, dev, stage prod"`
 	ConfigPath string `flag:"config" usage:"Path to the YAML config file"`
 	EnvPath    string `flag:"env-path" usage:"Path to the env file"`
+}
+
+type Notifications struct {
+	Telegram Telegram `mapstructure:"telegram" yaml:"telegram"`
+}
+
+type Telegram struct {
+	Enabled     bool   `mapstructure:"enabled" yaml:"enabled" env:"TELEGRAM_ENABLED" envDefault:"true"`
+	Token       string `env:"TELEGRAM_TOKEN" validate:"required_if=Enabled true"`
+	AdminChatID string `env:"TELEGRAM_ADMIN_CHAT_ID" validate:"required_if=Enabled true"`
 }
 
 func Load() (*Config, error) {

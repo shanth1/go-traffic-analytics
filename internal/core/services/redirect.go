@@ -112,6 +112,7 @@ func (s *RedirectService) processEvent(evt trackingEvent) {
 
 	event := &domain.ClickEvent{
 		ID:         uuid.New().String(),
+		UserID:     evt.link.UserID,
 		LinkID:     evt.link.ID,
 		CampaignID: evt.link.CampaignID,
 		Timestamp:  evt.time,

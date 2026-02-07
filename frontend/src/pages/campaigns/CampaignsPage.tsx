@@ -1,89 +1,141 @@
-import { useEffect } from 'react';
-import { FolderIcon, CalendarIcon, ArrowRightIcon } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import {
+  FolderIcon,
+  CalendarIcon,
+  LayoutDashboardIcon,
+  Trash2Icon,
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { CreateCampaignFeature } from '@/features/create-campaign/CreateCampaignFeature';
 import { useCampaignStore } from '@/entities/campaign/model/store';
 import { Card } from '@/shared/ui/card';
 import { Pagination } from '@/shared/ui/pagination';
 import type { Campaign } from '@/shared/api/types';
+import { Button } from '@/shared/ui/button';
+import { ConfirmationModal } from '@/shared/ui/confirmation-modal';
+import { toast } from '@/entities/notification/store';
 
 interface CampaignCardProps {
   data: Campaign;
+  onDelete: (id: string) => void;
 }
 
-const CampaignCard = ({ data }: CampaignCardProps) => (
-  <Card className="hover:shadow-lg transition-shadow duration-300 group cursor-pointer border-slate-200 dark:border-slate-800 relative overflow-hidden flex flex-col h-full">
-    <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500 transform scale-y-0 group-hover:scale-y-100 transition-transform origin-bottom" />
-    <div className="p-6 flex flex-col flex-1">
-      <div className="flex justify-between items-start mb-4">
-        <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg text-indigo-600 dark:text-indigo-400">
-          <FolderIcon size={24} />
-        </div>
-      </div>
+const CampaignCard = ({ data, onDelete }: CampaignCardProps) => {
+  const navigate = useNavigate();
 
-      <h3
-        className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1 line-clamp-1"
-        title={data.name}
-      >
-        {data.name}
-      </h3>
-      <p className="text-sm text-slate-500 mb-4 flex items-center gap-1">
-        <CalendarIcon size={14} />
-        {new Date(data.created_at).toLocaleDateString()}
-      </p>
+  return (
+    <Card
+      className="group hover:shadow-lg transition-all duration-300 border-border relative overflow-hidden flex flex-col h-full cursor-pointer"
+      onClick={() => navigate(`/campaigns/${data.id}`)}
+    >
+      <div className="absolute top-0 left-0 w-1 h-full bg-primary transform scale-y-0 group-hover:scale-y-100 transition-transform origin-bottom duration-300" />
 
-      <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-        <div className="flex flex-col">
-          <span className="text-xs text-slate-400 uppercase font-bold tracking-wider">
-            Status
-          </span>
-          <span className="text-xs font-medium text-green-600 dark:text-green-400">
-            Active
-          </span>
+      <div className="p-6 flex flex-col flex-1">
+        <div className="flex justify-between items-start mb-4">
+          <div className="p-3 bg-primary/10 rounded-lg text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+            <FolderIcon size={24} />
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-destructive opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete(data.id);
+            }}
+          >
+            <Trash2Icon size={18} />
+          </Button>
         </div>
-        <Link
-          to={`/links?campaign_id=${data.id}`}
-          className="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+
+        <h3
+          className="text-lg font-bold text-foreground mb-2 line-clamp-1 group-hover:text-primary transition-colors"
+          title={data.name}
         >
-          Details <ArrowRightIcon size={14} />
-        </Link>
+          {data.name}
+        </h3>
+
+        <p className="text-sm text-muted-foreground mb-6 flex items-center gap-1.5">
+          <CalendarIcon size={14} />
+          <span>Created {new Date(data.created_at).toLocaleDateString()}</span>
+        </p>
+
+        <div className="mt-auto pt-4 border-t border-border flex items-center justify-between">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+              Status
+            </span>
+            <span className="text-xs font-medium text-chart-2">Active</span>
+          </div>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            className="gap-2 pointer-events-none group-hover:bg-primary/10 group-hover:text-primary"
+          >
+            <LayoutDashboardIcon size={14} /> Dashboard
+          </Button>
+        </div>
       </div>
-    </div>
-  </Card>
-);
+    </Card>
+  );
+};
 
 const CampaignsSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {[1, 2, 3, 4, 5, 6].map((i) => (
-      <div
-        key={i}
-        className="h-64 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse"
-      />
+      <div key={i} className="h-64 bg-muted rounded-xl animate-pulse" />
     ))}
   </div>
 );
 
 export const CampaignsPage = () => {
-  const { campaigns, meta, fetchCampaigns, isLoading, setPage } =
-    useCampaignStore();
+  const {
+    campaigns,
+    meta,
+    fetchCampaigns,
+    isLoading,
+    setPage,
+    deleteCampaign,
+  } = useCampaignStore();
 
-  console.log('CAMP:', campaigns);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    // Initial fetch only if empty or explicitly needed
     fetchCampaigns();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteId) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteCampaign(deleteId);
+      toast.info(
+        'Campaign Deleted',
+        'The campaign and all its associated links have been removed.'
+      );
+      setDeleteId(null);
+    } catch (e) {
+      console.error('Failed to delete campaign', e);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 min-h-[calc(100vh-100px)] flex flex-col">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Campaigns
           </h1>
-          <p className="text-slate-500 mt-1">
-            Manage link groups and track their effectiveness.
+          <p className="text-muted-foreground mt-1">
+            Manage your marketing campaigns and track their performance.
           </p>
         </div>
         <CreateCampaignFeature />
@@ -95,19 +147,23 @@ export const CampaignsPage = () => {
         ) : (
           <>
             {campaigns.length === 0 ? (
-              <div className="text-center py-20 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
-                <FolderIcon className="mx-auto h-12 w-12 text-slate-400 mb-4" />
-                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">
+              <div className="text-center py-20 bg-muted/20 rounded-xl border border-dashed border-border">
+                <FolderIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium text-foreground">
                   No campaigns yet
                 </h3>
-                <p className="text-slate-500 mb-6">
+                <p className="text-muted-foreground mb-6">
                   Create your first campaign to organize your links.
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {campaigns.map((camp) => (
-                  <CampaignCard key={camp.id} data={camp} />
+                  <CampaignCard
+                    key={camp.id}
+                    data={camp}
+                    onDelete={setDeleteId}
+                  />
                 ))}
               </div>
             )}
@@ -123,6 +179,16 @@ export const CampaignsPage = () => {
           onChange={setPage}
         />
       </div>
+
+      <ConfirmationModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Campaign?"
+        description="Are you sure? This will delete the campaign and all shortened links inside it. This action cannot be undone."
+        confirmLabel="Yes, Delete Campaign"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

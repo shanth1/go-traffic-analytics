@@ -2,6 +2,7 @@ import { Pie } from '@visx/shape';
 import { Group } from '@visx/group';
 import { withParentSize } from '@visx/responsive';
 import { scaleOrdinal } from '@visx/scale';
+import { CHART_COLORS, THEME_COLORS } from '@/shared/config/theme';
 
 interface DonutProps {
   parentWidth?: number;
@@ -27,9 +28,10 @@ const DonutChartBase = ({
     value,
   }));
 
+  // Using theme constants for consistent chart coloring
   const colorScale = scaleOrdinal({
     domain: entries.map((e) => e.label),
-    range: ['#4f46e5', '#ec4899', '#06b6d4', '#f59e0b', '#10b981'],
+    range: CHART_COLORS,
   });
 
   return (
@@ -60,7 +62,9 @@ const DonutChartBase = ({
           y={0}
           dy={5}
           textAnchor="middle"
-          className="text-2xl font-bold fill-slate-900 dark:fill-white"
+          fontSize={24}
+          fontWeight="bold"
+          fill={THEME_COLORS.foreground}
         >
           {entries.reduce((acc, v) => acc + v.value, 0)}
         </text>

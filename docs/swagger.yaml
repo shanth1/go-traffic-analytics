@@ -361,6 +361,15 @@ definitions:
       meta:
         $ref: '#/definitions/domain.PaginationMeta'
     type: object
+  v1.feedbackRequest:
+    properties:
+      email:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -525,6 +534,51 @@ paths:
       summary: Update user status
       tags:
       - Admin
+  /api/v1/analytics/export:
+    get:
+      description: Download .xlsx file with raw click data based on filters. Requires
+        Plan.CanExportData = true.
+      parameters:
+      - description: Filter by Campaign
+        in: query
+        name: campaign_id
+        type: string
+      - description: Filter by Link
+        in: query
+        name: link_id
+        type: string
+      - description: Date From (RFC3339)
+        in: query
+        name: from
+        type: string
+      - description: Date To (RFC3339)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
+        "403":
+          description: Forbidden (Plan limit)
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
+      security:
+      - BearerAuth: []
+      summary: Export analytics to Excel
+      tags:
+      - Analytics
   /api/v1/analytics/flow:
     get:
       description: Get flow data (Referer -> Device -> Country)
@@ -991,6 +1045,63 @@ paths:
       summary: Create campaign
       tags:
       - Campaigns
+  /api/v1/campaigns/{id}:
+    delete:
+      description: Delete a campaign and cascade soft-delete all its links
+      parameters:
+      - description: Campaign ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
+      security:
+      - BearerAuth: []
+      summary: Delete campaign
+      tags:
+      - Campaigns
+  /api/v1/feedback:
+    post:
+      consumes:
+      - application/json
+      description: Send a support request to the admin
+      parameters:
+      - description: Feedback Info
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.feedbackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Status: received'
+          schema:
+            $ref: '#/definitions/v1.StatusResponse'
+      summary: Send feedback
+      tags:
+      - Feedback
   /api/v1/links:
     get:
       description: Get links with filtering, search and pagination
@@ -1076,7 +1187,7 @@ paths:
       - Links
   /api/v1/links/{id}:
     delete:
-      description: Remove a link
+      description: Remove a link (soft delete)
       parameters:
       - description: Link ID
         in: path
@@ -1096,6 +1207,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/response.ErrorWrapper'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
         "500":
           description: Internal Server Error
           schema:
@@ -1105,6 +1220,28 @@ paths:
       summary: Delete link
       tags:
       - Links
+  /api/v1/users/me:
+    delete:
+      description: Permanently delete user account and all associated data (campaigns,
+        links)
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorWrapper'
+      security:
+      - BearerAuth: []
+      summary: Delete account
+      tags:
+      - Users
   /api/v1/users/tree:
     get:
       description: Get hierarchical structure of User -> Campaigns -> Links for Tree

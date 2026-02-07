@@ -33,6 +33,7 @@ type Services struct {
 	Redirect  ports.RedirectService
 	User      ports.UserService
 	Billing   ports.BillingService
+	Feedback  ports.FeedbackService
 }
 
 type Repositories struct {
@@ -72,6 +73,7 @@ func NewRouter(
 	linkHandlerV1 := v1.NewLinkHandler(c.Services.Link, c.Services.Campaign)
 	analyticsHandlerV1 := v1.NewAnalyticsHandler(c.Services.Analytics)
 	billingHandlerV1 := v1.NewBillingHandler(c.Services.Billing)
+	feedbackHandlerV1 := v1.NewFeedbackHandler(c.Services.Feedback)
 
 	// Middleware
 	quotaMiddleware := httpMw.NewQuotaMiddleware(c.Repos.Link, c.Repos.User, c.Repos.Plan)
@@ -117,6 +119,8 @@ func NewRouter(
 		r.Group(func(r chi.Router) {
 			r.Use(jwtAuthMiddleware)
 
+			r.Post("/feedback", feedbackHandlerV1.SendFeedback)
+
 			r.Route("/users", func(r chi.Router) {
 				r.Get("/tree", userHandlerV1.GetProfileTree)
 
@@ -128,19 +132,20 @@ func NewRouter(
 			r.Route("/campaigns", func(r chi.Router) {
 				r.Get("/", campaignHandlerV1.GetCampaigns)
 				r.Post("/", campaignHandlerV1.CreateCampaign)
+				r.Route("/{id}", func(r chi.Router) {
+					r.Delete("/", campaignHandlerV1.DeleteCampaign)
+				})
 			})
 
 			r.Route("/links", func(r chi.Router) {
 				r.Post("/", linkHandlerV1.CreateLink)
 				r.Get("/", linkHandlerV1.GetLinks)
-				r.Delete("/{id}", linkHandlerV1.DeleteLink)
-
-				// TODO:
-				// r.Route("/{id}", func(r chi.Router) {
-				// 	r.Get("/", linkHandlerV1.GetLink)
-				// 	r.Delete("/", linkHandlerV1.DeleteLink)
-				// 	r.Patch("/", linkHandlerV1.UpdateLink)
-				// })
+				r.Route("/{id}", func(r chi.Router) {
+					r.Delete("/", linkHandlerV1.DeleteLink)
+					// TODO:
+					// r.Get("/", linkHandlerV1.GetLink)
+					// r.Patch("/", linkHandlerV1.UpdateLink)
+				})
 			})
 
 			// Analytics (Visx Ready)
@@ -152,6 +157,7 @@ func NewRouter(
 				r.Get("/quality", analyticsHandlerV1.GetQualityRadar)
 				r.Get("/heatmap", analyticsHandlerV1.GetHeatmap) // Heatmap
 				r.Get("/stats", analyticsHandlerV1.GetStats)     // BarGroup, Pies
+				r.Get("/export", analyticsHandlerV1.ExportAnalytics)
 			})
 		})
 

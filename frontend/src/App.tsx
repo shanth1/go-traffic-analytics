@@ -7,11 +7,16 @@ import {
 } from 'react-router-dom';
 import { MainLayout } from '@/widgets/layouts/MainLayout';
 import { LoginPage } from '@/pages/login/LoginPage';
+import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { CampaignsPage } from '@/pages/campaigns/CampaignsPage';
+import { CampaignDetailsPage } from '@/pages/campaigns/CampaignDetailsPage';
 import { LinksPage } from '@/pages/links/LinksPage';
-import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { AnalyticsPage } from '@/pages/analytics/AnalyticsPage';
+import { ProfilePage } from '@/pages/profile/ProfilePage';
+import { PricingPage } from '@/pages/pricing/PricingPage';
 import { useAuthStore } from '@/entities/session/store';
+import { Toaster } from '@/shared/ui/toaster';
+import { ExportPage } from './pages/export/ExportPage';
 
 const ProtectedRoute = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -36,17 +41,21 @@ const PublicRoute = () => {
 export const App = () => {
   return (
     <BrowserRouter>
+      <Toaster /> {/* Global Notifications Layer */}
       <Routes>
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<LoginPage />} />
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<ProfilePage />} />
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/pricing" element={<PricingPage />} />
           <Route path="/campaigns" element={<CampaignsPage />} />
+          <Route path="/campaigns/:id" element={<CampaignDetailsPage />} />
           <Route path="/links" element={<LinksPage />} />
-
           <Route path="/links/:id" element={<AnalyticsPage />} />
+          <Route path="/export" element={<ExportPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

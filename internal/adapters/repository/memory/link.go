@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/shanth1/gotools/errs"
 	"github.com/shanth1/gotools/ops"
@@ -31,9 +32,13 @@ func (r *LinkRepo) Save(_ context.Context, link *domain.Link) error {
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if _, exists := r.slugs[link.Slug]; exists {
-		return ops.WrapMsg(op, ops.KindExist, errs.ErrAlreadyExists, fmt.Sprintf("link with slug %q already exists", link.Slug))
+
+	if existingID, exists := r.slugs[link.Slug]; exists {
+		if existingID != link.ID {
+			return ops.WrapMsg(op, ops.KindExist, errs.ErrAlreadyExists, fmt.Sprintf("link with slug %q already exists", link.Slug))
+		}
 	}
+
 	r.links[link.ID] = link
 	r.slugs[link.Slug] = link.ID
 	return nil
@@ -46,7 +51,7 @@ func (r *LinkRepo) FindByID(_ context.Context, id domain.LinkID) (*domain.Link, 
 	defer r.mu.RUnlock()
 
 	link, ok := r.links[id]
-	if !ok {
+	if !ok || link.DeletedAt != nil {
 		return nil, ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("%q link not found", id))
 	}
 
@@ -63,10 +68,18 @@ func (r *LinkRepo) FindBySlug(_ context.Context, slug string) (*domain.Link, err
 		return nil, ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("link with slug %q not found", slug))
 	}
 
-	return r.links[id], nil
+	link := r.links[id]
+	if link.DeletedAt != nil {
+		return nil, ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("link with slug %q not found", slug))
+	}
+
+	return link, nil
 }
 
 func (r *LinkRepo) matchesFilter(link *domain.Link, filter domain.LinkFilter) bool {
+	if link.DeletedAt != nil {
+		return false
+	}
 	if filter.UserID != "" && link.UserID != filter.UserID {
 		return false
 	}
@@ -133,18 +146,44 @@ func (r *LinkRepo) Delete(_ context.Context, userID domain.UserID, id domain.Lin
 	defer r.mu.Unlock()
 
 	link, ok := r.links[id]
-	if !ok {
+	if !ok || link.DeletedAt != nil {
 		return ops.WrapMsg(op, ops.KindNotFound, errs.ErrNotFound, fmt.Sprintf("%q link not found", id))
 	}
 
 	if link.UserID != userID {
-		techErr := fmt.Errorf("user %q attempted to access campaign %q owned by %q: %w",
+		techErr := fmt.Errorf("user %q attempted to access link %q owned by %q: %w",
 			userID, id, link.UserID, errs.ErrForbidden)
 		return ops.WrapMsg(op, ops.KindPermission, techErr, "access denied")
 	}
 
-	delete(r.slugs, link.Slug)
-	delete(r.links, id)
+	now := time.Now()
+	link.DeletedAt = &now
 
+	return nil
+}
+
+func (r *LinkRepo) DeleteByUserID(_ context.Context, userID domain.UserID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	now := time.Now()
+	for _, link := range r.links {
+		if link.UserID == userID && link.DeletedAt == nil {
+			link.DeletedAt = &now
+		}
+	}
+	return nil
+}
+
+func (r *LinkRepo) DeleteByCampaignID(_ context.Context, campaignID string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	now := time.Now()
+	for _, link := range r.links {
+		if link.CampaignID == campaignID && link.DeletedAt == nil {
+			link.DeletedAt = &now
+		}
+	}
 	return nil
 }

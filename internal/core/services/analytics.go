@@ -1,23 +1,30 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"math"
 	"time"
 
 	"github.com/shanth1/gotrace/internal/core/domain"
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/consts"
+	"github.com/xuri/excelize/v2"
 )
 
 type AnalyticsService struct {
-	repo ports.AnalyticsRepository
+	repo     ports.AnalyticsRepository
+	userRepo ports.UserRepository
+	planRepo ports.PlanRepository
 }
 
-func NewAnalyticsService(analyticsRepo ports.AnalyticsRepository) *AnalyticsService {
+func NewAnalyticsService(analyticsRepo ports.AnalyticsRepository, userRepo ports.UserRepository, planRepo ports.PlanRepository) *AnalyticsService {
 	return &AnalyticsService{
-		repo: analyticsRepo,
+		repo:     analyticsRepo,
+		userRepo: userRepo,
+		planRepo: planRepo,
 	}
 }
 
@@ -186,4 +193,72 @@ func (s *AnalyticsService) GetTrafficQuality(ctx context.Context, filter domain.
 		GeoDiversityScore:   geoScore,
 		IsSuspicious:        false,
 	}, nil
+}
+
+func (s *AnalyticsService) ExportData(ctx context.Context, filter domain.AnalyticsFilter) (io.Reader, string, error) {
+	user, err := s.userRepo.FindByID(ctx, filter.UserID)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get user for export check: %w", err)
+	}
+
+	plan, err := s.planRepo.FindByID(ctx, user.PlanID)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get plan: %w", err)
+	}
+
+	if !plan.CanExportData {
+		return nil, "", fmt.Errorf("export feature is not available on plan %s", plan.Name)
+	}
+
+	events, err := s.repo.GetRawEvents(ctx, filter)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to fetch raw events: %w", err)
+	}
+
+	f := excelize.NewFile()
+	sheetName := "Clicks Data"
+	index, err := f.NewSheet(sheetName)
+	if err != nil {
+		return nil, "", err
+	}
+	f.SetActiveSheet(index)
+	f.DeleteSheet("Sheet1")
+
+	headers := []string{"Timestamp", "IP", "Country", "City", "OS", "Browser", "Device", "Referer", "Campaign ID", "Link ID"}
+	for i, header := range headers {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
+		f.SetCellValue(sheetName, cell, header)
+	}
+
+	headerStyle, _ := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{Bold: true},
+	})
+	f.SetRowStyle(sheetName, 1, 1, headerStyle)
+
+	for i, event := range events {
+		row := i + 2
+
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), event.Timestamp.Format(time.RFC3339))
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), event.IP)
+		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), event.Country)
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), event.City)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), event.OS)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), event.Browser)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), event.Device)
+		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), event.Referer)
+		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), event.CampaignID)
+		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), string(event.LinkID))
+	}
+
+	var b bytes.Buffer
+	if err := f.Write(&b); err != nil {
+		return nil, "", fmt.Errorf("failed to write excel buffer: %w", err)
+	}
+
+	fileName := fmt.Sprintf("analytics_export_%s_%s.xlsx",
+		filter.From.Format("20060102"),
+		filter.To.Format("20060102"),
+	)
+
+	return &b, fileName, nil
 }

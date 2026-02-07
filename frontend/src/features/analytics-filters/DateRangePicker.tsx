@@ -5,10 +5,14 @@ import type { DatePreset } from '@/entities/analytics/model/filters';
 import { formatDateInput } from '@/shared/lib/date';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '@/shared/lib/hooks/useTheme';
 
 export const DateRangePicker = () => {
   const { preset, startDate, endDate, setPreset, setCustomRange } =
     useAnalyticsFilter();
+
+  const { theme } = useTheme();
 
   const handlePresetChange = (p: DatePreset) => {
     setPreset(p);
@@ -27,60 +31,93 @@ export const DateRangePicker = () => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 bg-white dark:bg-slate-950 p-1 rounded-lg border border-slate-200 dark:border-slate-800">
-      <div className="flex items-center p-2 text-slate-500">
-        <CalendarIcon size={16} />
-      </div>
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 bg-card p-1.5 rounded-xl border border-border shadow-sm w-full sm:w-auto overflow-hidden">
+      {/* Icon & Presets Group */}
+      <div className="flex items-center gap-1 w-full sm:w-auto overflow-x-auto no-scrollbar">
+        <div className="flex items-center px-2 text-muted-foreground shrink-0">
+          <CalendarIcon size={16} />
+        </div>
 
-      <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 rounded-md p-1">
-        {(['7d', '30d', '90d'] as DatePreset[]).map((p) => (
+        <div className="flex items-center gap-1 bg-secondary/50 rounded-lg p-1 shrink-0">
+          {(['7d', '30d', '90d'] as DatePreset[]).map((p) => (
+            <Button
+              key={p}
+              variant="ghost"
+              size="sm"
+              onClick={() => handlePresetChange(p)}
+              className={cn(
+                'h-7 text-xs px-3 rounded-md transition-all duration-200',
+                preset === p
+                  ? 'bg-background text-primary shadow-sm font-semibold hover:bg-background'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {p.toUpperCase()}
+            </Button>
+          ))}
           <Button
-            key={p}
             variant="ghost"
             size="sm"
-            onClick={() => handlePresetChange(p)}
+            onClick={() => handlePresetChange('custom')}
             className={cn(
-              'h-7 text-xs px-3',
-              preset === p &&
-                'bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400'
+              'h-7 text-xs px-3 rounded-md transition-all duration-200',
+              preset === 'custom'
+                ? 'bg-background text-primary shadow-sm font-semibold hover:bg-background'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            {p.toUpperCase()}
+            Custom
           </Button>
-        ))}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => handlePresetChange('custom')}
-          className={cn(
-            'h-7 text-xs px-3',
-            preset === 'custom' &&
-              'bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400'
-          )}
-        >
-          Custom
-        </Button>
+        </div>
       </div>
 
-      {preset === 'custom' && (
-        <div className="flex items-center gap-2 px-2 animate-in fade-in slide-in-from-left-2 duration-200">
-          <input
-            type="date"
-            className="bg-transparent text-xs font-medium focus:outline-none dark:text-slate-200"
-            value={formatDateInput(startDate)}
-            onChange={handleStartChange}
-            max={formatDateInput(new Date())}
-          />
-          <span className="text-slate-400">-</span>
-          <input
-            type="date"
-            className="bg-transparent text-xs font-medium focus:outline-none dark:text-slate-200"
-            value={formatDateInput(endDate)}
-            onChange={handleEndChange}
-            max={formatDateInput(new Date())}
-          />
-        </div>
-      )}
+      {/* Custom Inputs with Fixed Width Container */}
+      <AnimatePresence>
+        {preset === 'custom' && (
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 'auto', opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            className="overflow-hidden sm:border-l sm:border-border"
+          >
+            <div className="w-[260px] flex items-center gap-2 pl-3 pr-1">
+              <input
+                type="date"
+                // Using inline style for colorScheme ensures the browser renders the correct native icon color
+                style={{ colorScheme: theme }}
+                className={cn(
+                  'bg-transparent text-xs font-medium focus:outline-none cursor-pointer uppercase',
+                  'text-muted-foreground hover:text-foreground transition-colors',
+                  // Reset any previous filters
+                  '[&::-webkit-calendar-picker-indicator]:filter-none',
+                  // Ensure proper spacing and cursor
+                  '[&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:ml-1'
+                )}
+                value={formatDateInput(startDate)}
+                onChange={handleStartChange}
+                max={formatDateInput(new Date())}
+              />
+              <span className="text-muted-foreground/50 text-[10px] uppercase font-bold">
+                To
+              </span>
+              <input
+                type="date"
+                style={{ colorScheme: theme }}
+                className={cn(
+                  'bg-transparent text-xs font-medium focus:outline-none cursor-pointer uppercase',
+                  'text-muted-foreground hover:text-foreground transition-colors',
+                  '[&::-webkit-calendar-picker-indicator]:filter-none',
+                  '[&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:ml-1'
+                )}
+                value={formatDateInput(endDate)}
+                onChange={handleEndChange}
+                max={formatDateInput(new Date())}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -16,6 +16,7 @@ interface CampaignState {
   // Actions
   fetchCampaigns: (limit?: number, offset?: number) => Promise<void>;
   addCampaign: (name: string) => Promise<void>;
+  deleteCampaign: (id: string) => Promise<void>;
   setPage: (offset: number) => void;
 }
 
@@ -63,6 +64,16 @@ export const useCampaignStore = create<CampaignState>((set, get) => ({
       await get().fetchCampaigns(get().meta.limit, 0);
     } catch (error) {
       console.error('Failed to create campaign', error);
+      throw error;
+    }
+  },
+
+  deleteCampaign: async (id) => {
+    try {
+      await api.delete(`/campaigns/${id}`);
+      await get().fetchCampaigns();
+    } catch (error) {
+      console.error('Failed to delete campaign', error);
       throw error;
     }
   },

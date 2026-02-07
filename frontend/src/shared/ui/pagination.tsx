@@ -36,7 +36,6 @@ export const Pagination = ({
         pages.push(i);
       }
     } else {
-      // Always show first, last, current, and neighbors
       if (currentPage <= 3) {
         pages.push(1, 2, 3, 4, '...', totalPages);
       } else if (currentPage >= totalPages - 2) {
@@ -68,7 +67,7 @@ export const Pagination = ({
             key={`ellipsis-${idx}`}
             className="flex items-center justify-center w-9 h-9"
           >
-            <MoreHorizontal className="h-4 w-4 text-slate-400" />
+            <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
           </div>
         );
       }
@@ -85,7 +84,7 @@ export const Pagination = ({
             'w-9 h-9 transition-all',
             isActive
               ? 'pointer-events-none'
-              : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+              : 'hover:bg-accent hover:text-accent-foreground'
           )}
           onClick={() => handlePageChange(p)}
         >
@@ -119,7 +118,7 @@ export const Pagination = ({
         <ChevronRight className="h-4 w-4" />
       </Button>
 
-      <div className="ml-4 text-xs text-slate-500 hidden sm:block">
+      <div className="ml-4 text-xs text-muted-foreground hidden sm:block">
         Showing {offset + 1}-{Math.min(offset + limit, total)} of {total}
       </div>
     </div>

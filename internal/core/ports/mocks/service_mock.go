@@ -11,6 +11,7 @@ package mocks
 
 import (
 	context "context"
+	io "io"
 	reflect "reflect"
 
 	domain "github.com/shanth1/gotrace/internal/core/domain"
@@ -94,6 +95,22 @@ func NewMockAnalyticsService(ctrl *gomock.Controller) *MockAnalyticsService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAnalyticsService) EXPECT() *MockAnalyticsServiceMockRecorder {
 	return m.recorder
+}
+
+// ExportData mocks base method.
+func (m *MockAnalyticsService) ExportData(ctx context.Context, filter domain.AnalyticsFilter) (io.Reader, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExportData", ctx, filter)
+	ret0, _ := ret[0].(io.Reader)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// ExportData indicates an expected call of ExportData.
+func (mr *MockAnalyticsServiceMockRecorder) ExportData(ctx, filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExportData", reflect.TypeOf((*MockAnalyticsService)(nil).ExportData), ctx, filter)
 }
 
 // GetCategoryStats mocks base method.
@@ -416,6 +433,20 @@ func (mr *MockUserServiceMockRecorder) ChangePlan(ctx, userID, planID any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePlan", reflect.TypeOf((*MockUserService)(nil).ChangePlan), ctx, userID, planID)
 }
 
+// DeleteUser mocks base method.
+func (m *MockUserService) DeleteUser(ctx context.Context, userID domain.UserID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUser", ctx, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUser indicates an expected call of DeleteUser.
+func (mr *MockUserServiceMockRecorder) DeleteUser(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockUserService)(nil).DeleteUser), ctx, userID)
+}
+
 // GetAll mocks base method.
 func (m *MockUserService) GetAll(ctx context.Context, page, limit int) ([]*domain.User, int64, error) {
 	m.ctrl.T.Helper()
@@ -498,4 +529,42 @@ func (m *MockBillingService) GetAllPlans(ctx context.Context) ([]*domain.Plan, e
 func (mr *MockBillingServiceMockRecorder) GetAllPlans(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllPlans", reflect.TypeOf((*MockBillingService)(nil).GetAllPlans), ctx)
+}
+
+// MockFeedbackService is a mock of FeedbackService interface.
+type MockFeedbackService struct {
+	ctrl     *gomock.Controller
+	recorder *MockFeedbackServiceMockRecorder
+	isgomock struct{}
+}
+
+// MockFeedbackServiceMockRecorder is the mock recorder for MockFeedbackService.
+type MockFeedbackServiceMockRecorder struct {
+	mock *MockFeedbackService
+}
+
+// NewMockFeedbackService creates a new mock instance.
+func NewMockFeedbackService(ctrl *gomock.Controller) *MockFeedbackService {
+	mock := &MockFeedbackService{ctrl: ctrl}
+	mock.recorder = &MockFeedbackServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFeedbackService) EXPECT() *MockFeedbackServiceMockRecorder {
+	return m.recorder
+}
+
+// SendFeedback mocks base method.
+func (m *MockFeedbackService) SendFeedback(ctx context.Context, cmd domain.SendFeedbackCmd) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendFeedback", ctx, cmd)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendFeedback indicates an expected call of SendFeedback.
+func (mr *MockFeedbackServiceMockRecorder) SendFeedback(ctx, cmd any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendFeedback", reflect.TypeOf((*MockFeedbackService)(nil).SendFeedback), ctx, cmd)
 }
