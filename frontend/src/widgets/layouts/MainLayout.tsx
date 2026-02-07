@@ -247,7 +247,9 @@ export const MainLayout = () => {
         MOBILE FLOATING NAVBAR
         ========================================
       */}
-      <nav className="md:hidden fixed bottom-6 left-6 right-6 h-[72px] bg-card/90 backdrop-blur-2xl border border-border rounded-4xl shadow-xl z-50 flex items-center justify-between px-2">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 h-40 z-40 pointer-events-none backdrop-blur-md mask-[linear-gradient(to_top,black,transparent)]" />
+
+      <nav className="md:hidden fixed bottom-4 left-4 right-4 h-16 bg-card/80 backdrop-blur-2xl border border-border/50 rounded-full shadow-lg shadow-black/5 z-50 flex items-center justify-between px-1">
         {/* 1. PROFILE (First Item) */}
         <Link
           to="/profile"
@@ -256,16 +258,16 @@ export const MainLayout = () => {
           {isPathActive('/profile') && (
             <motion.div
               layoutId="mobile-nav-active"
-              className="absolute w-12 h-12 bg-primary rounded-full shadow-lg shadow-primary/30 -z-10"
+              className="absolute w-10 h-10 bg-primary rounded-full shadow-md shadow-primary/30 -z-10"
               transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             />
           )}
           <UserIcon
-            size={24}
+            size={20}
             className={cn(
               'transition-all duration-300',
               isPathActive('/profile')
-                ? 'text-primary-foreground scale-110'
+                ? 'text-primary-foreground'
                 : 'text-muted-foreground group-active:scale-90'
             )}
             strokeWidth={isPathActive('/profile') ? 2.5 : 2}
@@ -284,13 +286,13 @@ export const MainLayout = () => {
               {isActive && (
                 <motion.div
                   layoutId="mobile-nav-active"
-                  className="absolute w-12 h-12 bg-primary rounded-full shadow-lg shadow-primary/30 -z-10"
+                  className="absolute w-10 h-10 bg-primary rounded-full shadow-md shadow-primary/30 -z-10"
                   transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                 />
               )}
 
               <item.icon
-                size={24}
+                size={20}
                 className={cn(
                   'transition-all duration-300',
                   isActive
