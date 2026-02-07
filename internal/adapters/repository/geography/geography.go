@@ -40,8 +40,8 @@ func (g *GeoProvider) Lookup(_ context.Context, ipStr string) (*domain.GeoLocati
 
 	if ipStr == "127.0.0.1" || ipStr == "::1" {
 		return &domain.GeoLocation{
-			Country: "Local",
-			City:    "Host",
+			Country: "Loopback",
+			City:    "Localhost",
 		}, nil
 	}
 
@@ -54,6 +54,13 @@ func (g *GeoProvider) Lookup(_ context.Context, ipStr string) (*domain.GeoLocati
 		return nil, ops.Wrap(op, ops.KindInvalid, fmt.Errorf("parse ip: %q", ipStr))
 	}
 
+	if isPrivateIP(ip) {
+		return &domain.GeoLocation{
+			Country: "Private",
+			City:    "LAN",
+		}, nil
+	}
+
 	record, err := g.geoDB.City(ip)
 	if err != nil {
 		return nil, ops.Wrap(op, ops.KindInternal, fmt.Errorf("get geoip2 record with ip %q: %w", ip.String(), err))
@@ -62,8 +69,32 @@ func (g *GeoProvider) Lookup(_ context.Context, ipStr string) (*domain.GeoLocati
 	country := record.Country.IsoCode
 	city := record.City.Names["en"]
 
+	if country == "" {
+		country = "XX"
+	}
+	if city == "" && country != "XX" {
+		city = "Unknown"
+	}
+
 	return &domain.GeoLocation{
 		Country: country,
 		City:    city,
 	}, nil
+}
+
+func isPrivateIP(ip net.IP) bool {
+	if ip.IsLoopback() || ip.IsLinkLocalMulticast() || ip.IsLinkLocalUnicast() {
+		return true
+	}
+	if ip4 := ip.To4(); ip4 != nil {
+		switch {
+		case ip4[0] == 10:
+			return true
+		case ip4[0] == 172 && ip4[1] >= 16 && ip4[1] <= 31:
+			return true
+		case ip4[0] == 192 && ip4[1] == 168:
+			return true
+		}
+	}
+	return false
 }
