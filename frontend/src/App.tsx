@@ -16,7 +16,8 @@ import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { PricingPage } from '@/pages/pricing/PricingPage';
 import { useAuthStore } from '@/entities/session/store';
 import { Toaster } from '@/shared/ui/toaster';
-import { ExportPage } from './pages/export/ExportPage';
+import { ExportPage } from '@/pages/export/ExportPage';
+import { RegisterPage } from '@/pages/register/RegisterPage';
 
 const ProtectedRoute = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -45,6 +46,7 @@ export const App = () => {
       <Routes>
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
         </Route>
 
         <Route element={<ProtectedRoute />}>

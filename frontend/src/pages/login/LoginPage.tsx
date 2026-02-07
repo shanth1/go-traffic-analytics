@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/entities/session/store';
 import { Input } from '@/shared/ui/input';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { LayoutDashboardIcon } from 'lucide-react';
 import { APP_TITLE } from '@/shared/config';
-import { toast } from '@/entities/notification/store'; // New
+import { toast } from '@/entities/notification/store';
+import { useTranslation } from 'react-i18next';
 
 export const LoginPage = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,7 +22,7 @@ export const LoginPage = () => {
     setLoading(true);
     try {
       await login({ email, password });
-      toast.info('Welcome back!', 'You have successfully signed in.');
+      toast.info(t('auth.welcome_toast_title'), t('auth.welcome_toast_desc'));
       navigate('/');
     } catch (error) {
       console.error(error);
@@ -32,7 +34,6 @@ export const LoginPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/20 p-4">
       <div className="w-full max-w-md space-y-6">
-        {/* ... UI code remains exactly the same ... */}
         <div className="flex flex-col items-center gap-2 text-center">
           <div className="p-3 bg-primary/10 rounded-xl text-primary">
             <LayoutDashboardIcon size={32} />
@@ -45,21 +46,21 @@ export const LoginPage = () => {
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-xl font-bold text-center text-foreground">
-              Welcome back
+              {t('auth.title')}
             </CardTitle>
             <p className="text-sm text-muted-foreground text-center">
-              Enter your credentials to access your dashboard
+              {t('auth.subtitle')}
             </p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
-                  Email
+                  {t('auth.email_label')}
                 </label>
                 <Input
                   type="email"
-                  placeholder="admin@example.com"
+                  placeholder={t('auth.email_placeholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -67,7 +68,7 @@ export const LoginPage = () => {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
-                  Password
+                  {t('auth.password_label')}
                 </label>
                 <Input
                   type="password"
@@ -77,9 +78,21 @@ export const LoginPage = () => {
                 />
               </div>
               <Button className="w-full" type="submit" disabled={loading}>
-                {loading ? 'Signing in...' : 'Sign In'}
+                {loading ? t('auth.signing_in') : t('auth.sign_in_btn')}
               </Button>
             </form>
+
+            <div className="mt-6 text-center text-sm">
+              <span className="text-muted-foreground">
+                {t('auth.no_account')}{' '}
+              </span>
+              <Link
+                to="/register"
+                className="font-semibold text-primary hover:underline underline-offset-4 transition-colors"
+              >
+                {t('auth.sign_up')}
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -44,6 +44,13 @@ export const ru = {
       welcome_toast_desc: 'Вы успешно вошли в систему.',
       session_expired: 'Сессия истекла',
       session_expired_desc: 'Пожалуйста, войдите снова.',
+      no_account: 'Нет аккаунта?',
+      sign_up: 'Зарегистрироваться',
+      register_title: 'Запрос доступа',
+      register_subtitle:
+        'Регистрация доступна только по приглашениям. Свяжитесь с поддержкой для получения доступа.',
+      contact_support: 'Написать в Telegram',
+      back_to_login: 'Вернуться ко входу',
     },
     dashboard: {
       title: 'Обзор',

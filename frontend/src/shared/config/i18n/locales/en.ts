@@ -44,6 +44,13 @@ export const en = {
       welcome_toast_desc: 'You have successfully signed in.',
       session_expired: 'Session Expired',
       session_expired_desc: 'Please sign in again.',
+      no_account: "Don't have an account?",
+      sign_up: 'Sign up',
+      register_title: 'Request Access',
+      register_subtitle:
+        'Registration is currently invite-only. Contact support to get an account.',
+      contact_support: 'Contact Support via Telegram',
+      back_to_login: 'Back to Sign In',
     },
     dashboard: {
       title: 'Overview',
