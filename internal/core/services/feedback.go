@@ -1,45 +1,72 @@
 package services
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"time"
 
-	"github.com/shanth1/gotools/notify"
 	"github.com/shanth1/gotrace/internal/core/domain"
 )
 
 type FeedbackServiceImpl struct {
-	notifier    notify.Notifier
-	adminChatID string
+	notifyURL  string
+	notifyKey  string
+	httpClient *http.Client
 }
 
-func NewFeedbackService(notifier notify.Notifier, adminChatID string) *FeedbackServiceImpl {
+func NewFeedbackService(notifyURL, notifyKey string) *FeedbackServiceImpl {
 	return &FeedbackServiceImpl{
-		notifier:    notifier,
-		adminChatID: adminChatID,
+		notifyURL: notifyURL,
+		notifyKey: notifyKey,
+		httpClient: &http.Client{
+			Timeout: 5 * time.Second,
+		},
 	}
 }
 
+type notificationPayload struct {
+	Title   string `json:"title"`
+	Message string `json:"message"`
+}
+
 func (s *FeedbackServiceImpl) SendFeedback(ctx context.Context, cmd domain.SendFeedbackCmd) error {
-	text := fmt.Sprintf(
-		"📩 *New Feedback Request*\n\n"+
-			"*From:* %s\n"+
-			"*Email:* %s\n"+
-			"*User ID:* %s\n\n"+
-			"*Message:*\n%s",
+	msgText := fmt.Sprintf(
+		"From: %s\nEmail: %s\nUser ID: %s\n\nContent:\n%s",
 		cmd.Name,
 		cmd.Email,
 		cmd.UserID,
 		cmd.Message,
 	)
 
-	msg := notify.Message{
-		Subject: "New Feedback",
-		Text:    text,
+	payload := notificationPayload{
+		Title:   "New Feedback Request",
+		Message: msgText,
 	}
 
-	if err := s.notifier.Send(ctx, s.adminChatID, msg); err != nil {
-		return fmt.Errorf("failed to send feedback notification: %w", err)
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal feedback payload: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.notifyURL, bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("failed to create http request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Api-Key", s.notifyKey)
+
+	resp, err := s.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send feedback to bot service: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		return fmt.Errorf("bot service returned error: status %d", resp.StatusCode)
 	}
 
 	return nil

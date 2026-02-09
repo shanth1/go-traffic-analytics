@@ -8,7 +8,6 @@ import (
 
 	"github.com/shanth1/gotools/consts"
 	"github.com/shanth1/gotools/log"
-	"github.com/shanth1/gotools/notify"
 	cachememory "github.com/shanth1/gotrace/internal/adapters/cache/memory"
 	"github.com/shanth1/gotrace/internal/adapters/generator"
 	transport "github.com/shanth1/gotrace/internal/adapters/handler/http"
@@ -26,11 +25,6 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	geoProvider, err := geography.NewGeoProvider(cfg)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("new geo ip repo")
-	}
-
-	tgNotifier, err := notify.NewTelegramNotifier(cfg.Notifications.Telegram.Token)
-	if err != nil {
-		logger.Fatal().Err(err).Msg("new telegram notifier")
 	}
 
 	// Cache (In-Memory)
@@ -68,7 +62,7 @@ func Run(ctx, shutdownCtx context.Context, cfg *config.Config) {
 	redirectService := services.NewRedirectService(ctx, ingestor, linkRepo, geoProvider)
 	userService := services.NewUserService(userRepo, planRepo, campRepo, linkRepo, transactor, logger)
 	billingService := services.NewBillingService(planRepo)
-	feedbackSvc := services.NewFeedbackService(tgNotifier, cfg.Notifications.Telegram.AdminChatID)
+	feedbackSvc := services.NewFeedbackService(cfg.Notifications.APIURL, cfg.Notifications.APIKey)
 
 	httpHandler := transport.NewRouter(transport.Container{
 		Cfg:    cfg,

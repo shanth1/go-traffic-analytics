@@ -22,5 +22,5 @@ geo_ip:
   enabled: true
 
 notifications:
-  telegram:
-    enabled: true
+  api_url: http://localhost:8088/notify
+  api_key: secret_key

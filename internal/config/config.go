@@ -68,13 +68,8 @@ type bootstrapConfig struct {
 }
 
 type Notifications struct {
-	Telegram Telegram `mapstructure:"telegram" yaml:"telegram"`
-}
-
-type Telegram struct {
-	Enabled     bool   `mapstructure:"enabled" yaml:"enabled" env:"TELEGRAM_ENABLED" envDefault:"true"`
-	Token       string `env:"TELEGRAM_TOKEN" validate:"required_if=Enabled true"`
-	AdminChatID string `env:"TELEGRAM_ADMIN_CHAT_ID" validate:"required_if=Enabled true"`
+	APIURL string `mapstructure:"api_url" yaml:"api_url" env:"NOTIFICATIONS_API_URL" validate:"required"`
+	APIKey string `mapstructure:"api_key" yaml:"api_key" env:"NOTIFICATIONS_API_KEY" validate:"required"`
 }
 
 func Load() (*Config, error) {
