@@ -79,9 +79,12 @@ func NewRouter(
 	quotaMiddleware := httpMw.NewQuotaMiddleware(c.Repos.Link, c.Repos.User, c.Repos.Plan)
 	jwtAuthMiddleware := httpMw.JWTAuth(c.Cfg)
 	apiKeyAuthMiddleware := httpMw.APIKeyAuth(c.Cfg)
+	jwtAuthOptionalMiddleware := httpMw.JWTAuthOptional(c.Cfg)
 
 	// --- Public Routes ---
 	r.Get("/health", handlers.HealthCheck)
+
+	// TODO: added optional JWT authentication for ignore own usage in analytics
 	r.With(quotaMiddleware.CheckClickLimit).Get("/{slug}", redirectHandler.Redirect)
 	r.Group(func(sys chi.Router) {
 		if c.Cfg.Metrics.User != "" && c.Cfg.Metrics.Password != "" {
@@ -98,7 +101,7 @@ func NewRouter(
 
 	// --- API v1 Group ---
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Post("/feedback", feedbackHandlerV1.SendFeedback)
+		r.With(jwtAuthOptionalMiddleware).Post("/feedback", feedbackHandlerV1.SendFeedback)
 
 		// --- Auth Routes  ---
 		r.Route("/auth", func(r chi.Router) {
@@ -111,7 +114,7 @@ func NewRouter(
 
 		// --- Service Routes  ---
 		r.Route("/billing", func(r chi.Router) {
-			r.Get("/plans", billingHandlerV1.GetPlans)
+			r.With(jwtAuthOptionalMiddleware).Get("/plans", billingHandlerV1.GetPlans)
 
 			// TODO: currencies, payment systems, etc.
 		})

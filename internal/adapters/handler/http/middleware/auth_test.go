@@ -207,3 +207,126 @@ func TestBasicAuth(t *testing.T) {
 		}
 	})
 }
+
+func TestJWTAuthOptional(t *testing.T) {
+	cfg := &config.Config{
+		Auth: config.Auth{
+			JWTSecret: "secret",
+		},
+	}
+
+	mw := JWTAuthOptional(cfg)
+
+	t.Run("no auth header (anonymous)", func(t *testing.T) {
+		nextCalled := false
+		next := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+			nextCalled = true
+			// Проверяем, что в контексте НЕТ юзера
+			_, ok := r.Context().Value(domain.CtxKeyUser).(*domain.JwtCustomClaims)
+			if ok {
+				t.Error("expected NO user claims in context for anonymous request")
+			}
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		w := httptest.NewRecorder()
+
+		mw(next).ServeHTTP(w, req)
+
+		if !nextCalled {
+			t.Errorf("next handler should have been called")
+		}
+		if w.Code != http.StatusOK {
+			t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+		}
+	})
+
+	t.Run("valid token (authenticated)", func(t *testing.T) {
+		userID := domain.UserID("user-123")
+		claims := domain.JwtCustomClaims{
+			UserID: userID,
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+			},
+		}
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenStr, _ := token.SignedString([]byte(cfg.Auth.JWTSecret))
+
+		nextCalled := false
+		next := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+			nextCalled = true
+			extractedClaims, ok := r.Context().Value(domain.CtxKeyUser).(*domain.JwtCustomClaims)
+			if !ok {
+				t.Error("expected user claims in context")
+				return
+			}
+			if extractedClaims.UserID != userID {
+				t.Errorf("expected user ID %s, got %s", userID, extractedClaims.UserID)
+			}
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		req.Header.Set("Authorization", "Bearer "+tokenStr)
+		w := httptest.NewRecorder()
+
+		mw(next).ServeHTTP(w, req)
+
+		if !nextCalled {
+			t.Errorf("next handler should have been called")
+		}
+	})
+
+	t.Run("invalid token (fallback to anonymous)", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		req.Header.Set("Authorization", "Bearer invalid-garbage-token")
+		w := httptest.NewRecorder()
+
+		nextCalled := false
+		next := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+			nextCalled = true
+			// В контексте не должно быть юзера, так как токен битый
+			_, ok := r.Context().Value(domain.CtxKeyUser).(*domain.JwtCustomClaims)
+			if ok {
+				t.Error("expected NO user claims for invalid token")
+			}
+		})
+
+		mw(next).ServeHTTP(w, req)
+
+		if !nextCalled {
+			t.Errorf("next handler should have been called even with invalid token")
+		}
+		if w.Code != http.StatusOK {
+			t.Errorf("expected status %d (pass-through), got %d", http.StatusOK, w.Code)
+		}
+	})
+
+	t.Run("expired token (fallback to anonymous)", func(t *testing.T) {
+		claims := domain.JwtCustomClaims{
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(-time.Hour)), // Протух час назад
+			},
+		}
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenStr, _ := token.SignedString([]byte(cfg.Auth.JWTSecret))
+
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		req.Header.Set("Authorization", "Bearer "+tokenStr)
+		w := httptest.NewRecorder()
+
+		nextCalled := false
+		next := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+			nextCalled = true
+			_, ok := r.Context().Value(domain.CtxKeyUser).(*domain.JwtCustomClaims)
+			if ok {
+				t.Error("expected NO user claims for expired token")
+			}
+		})
+
+		mw(next).ServeHTTP(w, req)
+
+		if !nextCalled {
+			t.Errorf("next handler should have been called")
+		}
+	})
+}

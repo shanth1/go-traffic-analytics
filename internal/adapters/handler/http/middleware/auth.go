@@ -130,6 +130,41 @@ func BasicAuth(user, pass string) func(http.Handler) http.Handler {
 	}
 }
 
+func JWTAuthOptional(cfg *config.Config) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			authHeader := r.Header.Get("Authorization")
+
+			if authHeader == "" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+			claims := &domain.JwtCustomClaims{}
+
+			token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+				}
+				return []byte(cfg.Auth.JWTSecret), nil
+			})
+
+			if err != nil || !token.Valid {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), domain.CtxKeyUser, claims)
+
+			logger := log.FromContext(r.Context()).With(log.Str(logkeys.UserID, string(claims.UserID)))
+			ctx = log.NewContext(ctx, logger)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
 func basicAuthFailed(w http.ResponseWriter, r *http.Request) {
 	const op = "middleware.basicAuthFailed"
 
