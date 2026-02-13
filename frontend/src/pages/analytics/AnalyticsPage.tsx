@@ -64,7 +64,6 @@ export const AnalyticsPage = () => {
     nodes: [],
     links: [],
   });
-
   const [geoStats, setGeoStats] = useState<GeoStats>({
     countries: [],
     cities: [],
@@ -74,7 +73,6 @@ export const AnalyticsPage = () => {
   const [statsBrowser, setStatsBrowser] = useState<CategoryStat[]>([]);
   const [statsDevice, setStatsDevice] = useState<CategoryStat[]>([]);
 
-  // Transform Data
   const topCountries = useMemo<CategoryStat[]>(() => {
     return geoStats.countries
       .sort((a, b) => b.value - a.value)
@@ -103,7 +101,6 @@ export const AnalyticsPage = () => {
       .slice(0, 8);
   }, [flowData]);
 
-  // Load Meta
   useEffect(() => {
     if (!id) return;
     const loadMeta = async () => {
@@ -120,7 +117,6 @@ export const AnalyticsPage = () => {
     loadMeta();
   }, [id]);
 
-  // Load Analytics
   useEffect(() => {
     if (!id) return;
 
@@ -190,13 +186,12 @@ export const AnalyticsPage = () => {
   }, [id, startDate, endDate]);
 
   const topCountryName = topCountries[0]?.name || '-';
-  const topCityName = topCities[0]?.name || '-'; // NEW
+  const topCityName = topCities[0]?.name || '-';
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-      {/* --- 1. RICH HEADER --- */}
+      {/* HEADER */}
       <div className="flex flex-col gap-4 border-b border-border pb-6">
-        {/* Top Row: Back Button & Actions */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Button
             variant="ghost"
@@ -269,7 +264,6 @@ export const AnalyticsPage = () => {
           </div>
         </div>
 
-        {/* Title & Filters Row */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
           <div className="w-full xl:w-auto">
             {metaLoading ? (
@@ -322,7 +316,7 @@ export const AnalyticsPage = () => {
         </div>
       </div>
 
-      {/* --- 2. KPI (UPDATED) --- */}
+      {/* KPI ROW */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <KpiCard
           title={t('analytics.kpi.total_clicks')}
@@ -364,7 +358,7 @@ export const AnalyticsPage = () => {
         />
       </div>
 
-      {/* --- 3. VOLUME --- */}
+      {/* VOLUME */}
       <Card>
         <CardHeader>
           <CardTitle>{t('analytics.charts.traffic_dynamics')}</CardTitle>
@@ -380,14 +374,66 @@ export const AnalyticsPage = () => {
         </CardContent>
       </Card>
 
-      {/* --- 4. REFERRERS & GEO --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* GEO SECTION (Dashboard Style) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>{t('analytics.charts.global_reach')}</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[400px] w-full p-0 overflow-hidden">
+            {loading ? (
+              <div className="p-6 h-full">
+                <Skeleton className="w-full h-full" />
+              </div>
+            ) : geoStats.countries.length > 0 ? (
+              <GeoMap data={geoStats.countries} />
+            ) : (
+              <NoData />
+            )}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
+            <CardTitle>{t('dashboard.charts.top_countries')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="h-6 w-full" />
+                ))}
+              </div>
+            ) : (
+              <BarListChart data={topCountries} color="bg-primary" />
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('dashboard.charts.top_cities')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="h-6 w-full" />
+                ))}
+              </div>
+            ) : (
+              <BarListChart data={topCities} color="bg-chart-5" />
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* REFERRERS & TECH STACK (Grid row) */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Top Referrers - 1 Col */}
+        <Card className="lg:col-span-1">
+          <CardHeader>
             <CardTitle>{t('analytics.charts.top_referrers')}</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {t('analytics.charts.top_referrers_sub')}
-            </p>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -402,66 +448,30 @@ export const AnalyticsPage = () => {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>{t('analytics.charts.global_reach')}</CardTitle>
-          </CardHeader>
-          {/* Using grid to show Map and City list */}
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full min-h-[400px]">
-            <div className="md:col-span-2 h-[350px] md:h-full w-full overflow-hidden p-0">
-              {loading ? (
-                <Skeleton className="w-full h-full" />
-              ) : geoStats.countries.length > 0 ? (
-                <GeoMap data={geoStats.countries} />
-              ) : (
-                <NoData />
-              )}
-            </div>
-            <div className="border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-4">
-              <h4 className="font-semibold mb-3 text-sm">
-                {t('dashboard.charts.top_cities')}
-              </h4>
-              {loading ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-6 w-full" />
-                </div>
-              ) : (
-                <BarListChart
-                  data={topCities}
-                  color="bg-chart-4"
-                  className="max-h-[350px] overflow-y-auto pr-1"
-                />
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Tech Stack - 3 Cols */}
+        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatsCard
+            title={t('analytics.charts.device_type')}
+            data={statsDevice}
+            color="bg-chart-1"
+            loading={loading}
+          />
+          <StatsCard
+            title={t('analytics.charts.operating_system')}
+            data={statsOS}
+            color="bg-chart-2"
+            loading={loading}
+          />
+          <StatsCard
+            title={t('analytics.charts.browser')}
+            data={statsBrowser}
+            color="bg-chart-3"
+            loading={loading}
+          />
+        </div>
       </div>
 
-      {/* --- 5. TECH STACK --- */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatsCard
-          title={t('analytics.charts.device_type')}
-          data={statsDevice}
-          color="bg-chart-1"
-          loading={loading}
-        />
-        <StatsCard
-          title={t('analytics.charts.operating_system')}
-          data={statsOS}
-          color="bg-chart-2"
-          loading={loading}
-        />
-        <StatsCard
-          title={t('analytics.charts.browser')}
-          data={statsBrowser}
-          color="bg-chart-3"
-          loading={loading}
-        />
-      </div>
-
-      {/* --- 6. FLOW & QUALITY --- */}
+      {/* FLOW & QUALITY */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader>
@@ -497,7 +507,7 @@ export const AnalyticsPage = () => {
         </Card>
       </div>
 
-      {/* --- 7. HEATMAP --- */}
+      {/* HEATMAP */}
       <Card>
         <CardHeader>
           <CardTitle>{t('analytics.charts.engagement_heatmap')}</CardTitle>
@@ -513,7 +523,6 @@ export const AnalyticsPage = () => {
         </CardContent>
       </Card>
 
-      {/* QR Modal */}
       {linkMeta && (
         <QrCodeModal
           isOpen={isQrOpen}

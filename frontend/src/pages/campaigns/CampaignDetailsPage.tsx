@@ -1,3 +1,4 @@
+// FILE: frontend/src/pages/campaigns/CampaignDetailsPage.tsx
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -61,7 +62,6 @@ export const CampaignDetailsPage = () => {
 
   const { startDate, endDate } = useAnalyticsFilter();
 
-  // Split loading states
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
   const [metaLoading, setMetaLoading] = useState(true);
 
@@ -104,7 +104,6 @@ export const CampaignDetailsPage = () => {
 
   const topCityName = topCities[0]?.name || '-';
 
-  // 1. Fetch Campaign Meta separately (Fast)
   useEffect(() => {
     if (!id) return;
     const loadMeta = async () => {
@@ -124,7 +123,6 @@ export const CampaignDetailsPage = () => {
     loadMeta();
   }, [id]);
 
-  // 2. Fetch Analytics (Slower)
   useEffect(() => {
     if (!id) return;
     const loadAnalytics = async () => {
@@ -140,12 +138,12 @@ export const CampaignDetailsPage = () => {
           analyticsApi.getSummary(params),
           analyticsApi.getStream(undefined, params),
           analyticsApi.getHeatmap(undefined, params),
-          analyticsApi.getGeoStats(params), // UPDATED
+          analyticsApi.getGeoStats(params),
           analyticsApi.getStats('device', params),
         ]);
 
         setSummary(sum);
-        setGeoStats(geo); // UPDATED
+        setGeoStats(geo);
         setHeatmapData(heatmap);
         setStatsDevice(dev);
 
@@ -287,7 +285,6 @@ export const CampaignDetailsPage = () => {
           </div>
         </div>
 
-        {/* TABS */}
         <div className="flex gap-1 bg-muted p-1.5 rounded-xl w-fit border border-border">
           <button
             onClick={() => setActiveTab('overview')}
@@ -316,9 +313,9 @@ export const CampaignDetailsPage = () => {
         </div>
       </div>
 
-      {/* CONTENT: OVERVIEW TAB */}
       {activeTab === 'overview' && (
         <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
+          {/* KPI ROW */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <KpiCard
               title={t('campaigns.details.kpi.total_clicks')}
@@ -371,43 +368,64 @@ export const CampaignDetailsPage = () => {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
+          {/* GEO SECTION: DASHBOARD STYLE (3 Separate Cards) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+            {/* 1. MAP (Takes 2 cols) */}
+            <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle>{t('analytics.charts.global_reach')}</CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full min-h-[300px]">
-                <div className="md:col-span-2 h-[300px] w-full overflow-hidden p-0">
-                  {analyticsLoading ? (
-                    <div className="p-6 h-full">
-                      <Skeleton className="w-full h-full" />
-                    </div>
-                  ) : geoStats.countries.length > 0 ? (
-                    <GeoMap data={geoStats.countries} />
-                  ) : (
-                    <NoData />
-                  )}
-                </div>
-                <div className="border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-4">
-                  <h4 className="font-semibold mb-3 text-sm">
-                    {t('dashboard.charts.top_cities')}
-                  </h4>
-                  {analyticsLoading ? (
-                    <div className="space-y-3">
-                      <Skeleton className="h-6 w-full" />
-                      <Skeleton className="h-6 w-full" />
-                    </div>
-                  ) : (
-                    <BarListChart
-                      data={topCities}
-                      color="bg-chart-4"
-                      className="max-h-[300px] overflow-y-auto pr-1"
-                    />
-                  )}
-                </div>
+              <CardContent className="h-[400px] w-full p-0 overflow-hidden">
+                {analyticsLoading ? (
+                  <div className="p-6 h-full">
+                    <Skeleton className="w-full h-full" />
+                  </div>
+                ) : geoStats.countries.length > 0 ? (
+                  <GeoMap data={geoStats.countries} />
+                ) : (
+                  <NoData />
+                )}
               </CardContent>
             </Card>
 
+            {/* 2. TOP COUNTRIES */}
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('dashboard.charts.top_countries')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analyticsLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Skeleton key={i} className="h-6 w-full" />
+                    ))}
+                  </div>
+                ) : (
+                  <BarListChart data={topCountries} color="bg-primary" />
+                )}
+              </CardContent>
+            </Card>
+
+            {/* 3. TOP CITIES */}
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('dashboard.charts.top_cities')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analyticsLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Skeleton key={i} className="h-6 w-full" />
+                    ))}
+                  </div>
+                ) : (
+                  <BarListChart data={topCities} color="bg-chart-5" />
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle>
@@ -494,7 +512,6 @@ export const CampaignDetailsPage = () => {
   );
 };
 
-// --- Utils ---
 interface KpiCardProps {
   title: string;
   value: string | number;
