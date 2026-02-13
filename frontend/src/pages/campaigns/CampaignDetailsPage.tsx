@@ -9,15 +9,17 @@ import {
   GlobeIcon,
   SmartphoneIcon,
   LayersIcon,
+  MapPinIcon,
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Pagination } from '@/shared/ui/pagination';
-import { Skeleton } from '@/shared/ui/skeleton'; // New
+import { Skeleton } from '@/shared/ui/skeleton';
 import { StreamGraph } from '@/widgets/charts/StreamGraph';
 import { HeatmapChart } from '@/widgets/charts/HeatmapChart';
 import { GeoMap } from '@/widgets/charts/GeoMap';
+import { BarListChart } from '@/widgets/charts/BarListChart';
 import { DateRangePicker } from '@/features/analytics-filters/DateRangePicker';
 import { ConfirmationModal } from '@/shared/ui/confirmation-modal';
 import { LinkCard } from '@/entities/link/ui/LinkCard';
@@ -27,13 +29,14 @@ import { analyticsApi } from '@/entities/analytics/api';
 import { api } from '@/shared/api/base';
 import { toRFC3339 } from '@/shared/lib/date';
 import { cn } from '@/shared/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 import type {
   Campaign,
   Link,
   StreamChartData,
   HeatmapPoint,
-  GeoPoint,
+  GeoStats,
   AnalyticsSummary,
   CategoryStat,
   CampaignsListResponse,
@@ -45,6 +48,7 @@ import { useLinkStore } from '@/entities/link/model/store';
 import { toast } from '@/entities/notification/store';
 
 export const CampaignDetailsPage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -78,15 +82,27 @@ export const CampaignDetailsPage = () => {
   const [streamData, setStreamData] = useState<StreamChartData[]>([]);
   const [streamKeys, setStreamKeys] = useState<string[]>([]);
   const [heatmapData, setHeatmapData] = useState<HeatmapPoint[]>([]);
-  const [geoData, setGeoData] = useState<GeoPoint[]>([]);
+  const [geoStats, setGeoStats] = useState<GeoStats>({
+    countries: [],
+    cities: [],
+  });
   const [statsDevice, setStatsDevice] = useState<CategoryStat[]>([]);
 
   const topCountries = useMemo(() => {
-    return geoData
+    return geoStats.countries
       .sort((a, b) => b.value - a.value)
       .slice(0, 6)
-      .map((g) => ({ name: g.country, value: g.value, share: 0 }));
-  }, [geoData]);
+      .map((g) => ({ name: g.country, value: g.value }));
+  }, [geoStats.countries]);
+
+  const topCities = useMemo(() => {
+    return geoStats.cities
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 6)
+      .map((c) => ({ name: c.city, value: c.value }));
+  }, [geoStats.cities]);
+
+  const topCityName = topCities[0]?.name || '-';
 
   // 1. Fetch Campaign Meta separately (Fast)
   useEffect(() => {
@@ -94,7 +110,6 @@ export const CampaignDetailsPage = () => {
     const loadMeta = async () => {
       setMetaLoading(true);
       try {
-        // Optimization: In real app, stick to /campaigns/:id. Here we filter list.
         const { data } = await api.get<CampaignsListResponse>('/campaigns', {
           params: { limit: 100 },
         });
@@ -125,12 +140,12 @@ export const CampaignDetailsPage = () => {
           analyticsApi.getSummary(params),
           analyticsApi.getStream(undefined, params),
           analyticsApi.getHeatmap(undefined, params),
-          analyticsApi.getCountryStats(params),
+          analyticsApi.getGeoStats(params), // UPDATED
           analyticsApi.getStats('device', params),
         ]);
 
         setSummary(sum);
-        setGeoData(geo);
+        setGeoStats(geo); // UPDATED
         setHeatmapData(heatmap);
         setStatsDevice(dev);
 
@@ -227,7 +242,7 @@ export const CampaignDetailsPage = () => {
             className="gap-2 text-muted-foreground pl-0 hover:text-primary"
             onClick={() => navigate('/campaigns')}
           >
-            <ArrowLeft size={16} /> Back to Campaigns
+            <ArrowLeft size={16} /> {t('campaigns.details.back_to_list')}
           </Button>
         </div>
 
@@ -251,13 +266,16 @@ export const CampaignDetailsPage = () => {
 
                 <div className="flex items-center gap-4 mt-3 ml-1 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1.5">
-                    <CalendarIcon size={14} /> Created{' '}
+                    <CalendarIcon size={14} /> {t('common.created')}{' '}
                     {campaign
                       ? new Date(campaign.created_at).toLocaleDateString()
                       : '-'}
                   </span>
                   <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-secondary text-secondary-foreground font-medium">
-                    <LinkIcon size={12} /> {linksMeta.total} Links
+                    <LinkIcon size={12} />{' '}
+                    {t('campaigns.details.links_count', {
+                      count: linksMeta.total,
+                    })}
                   </span>
                 </div>
               </>
@@ -281,7 +299,7 @@ export const CampaignDetailsPage = () => {
             )}
           >
             <BarChart2Icon size={16} />
-            Analytics
+            {t('campaigns.details.tabs.analytics')}
           </button>
           <button
             onClick={() => setActiveTab('links')}
@@ -293,7 +311,7 @@ export const CampaignDetailsPage = () => {
             )}
           >
             <LinkIcon size={16} />
-            Links List
+            {t('campaigns.details.tabs.links_list')}
           </button>
         </div>
       </div>
@@ -301,29 +319,36 @@ export const CampaignDetailsPage = () => {
       {/* CONTENT: OVERVIEW TAB */}
       {activeTab === 'overview' && (
         <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <KpiCard
-              title="Total Clicks"
+              title={t('campaigns.details.kpi.total_clicks')}
               value={summary?.total_clicks || 0}
               icon={<MousePointerClick size={18} />}
               loading={analyticsLoading}
             />
             <KpiCard
-              title="Active Links"
+              title={t('campaigns.details.kpi.active_links')}
               value={linksMeta.total}
               icon={<LinkIcon size={18} />}
               isText
-              loading={metaLoading} // Link count comes from link fetch which is part of flow
+              loading={metaLoading}
             />
             <KpiCard
-              title="Top Country"
+              title={t('campaigns.details.kpi.top_country')}
               value={topCountries[0]?.name || '-'}
               icon={<GlobeIcon size={18} />}
               isText
               loading={analyticsLoading}
             />
             <KpiCard
-              title="Top Device"
+              title={t('dashboard.kpi.top_city')}
+              value={topCityName}
+              icon={<MapPinIcon size={18} />}
+              isText
+              loading={analyticsLoading}
+            />
+            <KpiCard
+              title={t('campaigns.details.kpi.top_device')}
               value={statsDevice[0]?.name || '-'}
               icon={<SmartphoneIcon size={18} />}
               isText
@@ -349,24 +374,45 @@ export const CampaignDetailsPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Global Reach</CardTitle>
+                <CardTitle>{t('analytics.charts.global_reach')}</CardTitle>
               </CardHeader>
-              <CardContent className="h-[300px] w-full overflow-hidden p-0">
-                {analyticsLoading ? (
-                  <div className="p-6 h-full">
-                    <Skeleton className="w-full h-full" />
-                  </div>
-                ) : geoData.length > 0 ? (
-                  <GeoMap data={geoData} />
-                ) : (
-                  <NoData />
-                )}
+              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full min-h-[300px]">
+                <div className="md:col-span-2 h-[300px] w-full overflow-hidden p-0">
+                  {analyticsLoading ? (
+                    <div className="p-6 h-full">
+                      <Skeleton className="w-full h-full" />
+                    </div>
+                  ) : geoStats.countries.length > 0 ? (
+                    <GeoMap data={geoStats.countries} />
+                  ) : (
+                    <NoData />
+                  )}
+                </div>
+                <div className="border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-4">
+                  <h4 className="font-semibold mb-3 text-sm">
+                    {t('dashboard.charts.top_cities')}
+                  </h4>
+                  {analyticsLoading ? (
+                    <div className="space-y-3">
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                    </div>
+                  ) : (
+                    <BarListChart
+                      data={topCities}
+                      color="bg-chart-4"
+                      className="max-h-[300px] overflow-y-auto pr-1"
+                    />
+                  )}
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Activity Heatmap</CardTitle>
+                <CardTitle>
+                  {t('analytics.charts.engagement_heatmap')}
+                </CardTitle>
               </CardHeader>
               <CardContent className="h-[300px]">
                 {analyticsLoading ? (
@@ -382,14 +428,15 @@ export const CampaignDetailsPage = () => {
         </div>
       )}
 
-      {/* CONTENT: LINKS TAB */}
       {activeTab === 'links' && (
         <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-300">
           <div className="flex justify-between items-center bg-card p-4 rounded-xl border border-border">
             <div>
-              <h3 className="text-lg font-bold">Manage Links</h3>
+              <h3 className="text-lg font-bold">
+                {t('campaigns.details.manage_links_title')}
+              </h3>
               <p className="text-sm text-muted-foreground">
-                Create, edit or delete links in this campaign.
+                {t('campaigns.details.manage_links_desc')}
               </p>
             </div>
             <CreateLinkFeature
@@ -410,7 +457,7 @@ export const CampaignDetailsPage = () => {
           ) : links.length === 0 ? (
             <div className="text-center py-20 bg-muted/20 rounded-xl border border-dashed border-border">
               <p className="text-muted-foreground mb-4">
-                No links in this campaign yet.
+                {t('campaigns.details.empty_links')}
               </p>
             </div>
           ) : (

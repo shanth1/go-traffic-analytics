@@ -9,11 +9,12 @@ import {
   LayersIcon,
   CopyIcon,
   QrCodeIcon,
+  MapPinIcon,
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
-import { Skeleton } from '@/shared/ui/skeleton'; // New
+import { Skeleton } from '@/shared/ui/skeleton';
 import { StreamGraph } from '@/widgets/charts/StreamGraph';
 import { HeatmapChart } from '@/widgets/charts/HeatmapChart';
 import { QualityRadar } from '@/widgets/charts/QualityRadar';
@@ -29,6 +30,7 @@ import { linkApi } from '@/entities/link/api';
 import { toRFC3339 } from '@/shared/lib/date';
 import { cn } from '@/shared/lib/utils';
 import { getShortLink } from '@/shared/config';
+import { useTranslation } from 'react-i18next';
 
 import type {
   StreamChartData,
@@ -36,13 +38,14 @@ import type {
   TrafficQuality,
   SankeyData,
   CategoryStat,
-  GeoPoint,
+  GeoStats,
   AnalyticsSummary,
   Link,
 } from '@/shared/api/types';
 import { toast } from '@/entities/notification/store';
 
 export const AnalyticsPage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { startDate, endDate } = useAnalyticsFilter();
@@ -61,18 +64,30 @@ export const AnalyticsPage = () => {
     nodes: [],
     links: [],
   });
-  const [geoData, setGeoData] = useState<GeoPoint[]>([]);
+
+  const [geoStats, setGeoStats] = useState<GeoStats>({
+    countries: [],
+    cities: [],
+  });
 
   const [statsOS, setStatsOS] = useState<CategoryStat[]>([]);
   const [statsBrowser, setStatsBrowser] = useState<CategoryStat[]>([]);
   const [statsDevice, setStatsDevice] = useState<CategoryStat[]>([]);
 
+  // Transform Data
   const topCountries = useMemo<CategoryStat[]>(() => {
-    return geoData
+    return geoStats.countries
       .sort((a, b) => b.value - a.value)
       .slice(0, 8)
-      .map((g) => ({ name: g.country, value: g.value, share: 0 }));
-  }, [geoData]);
+      .map((g) => ({ name: g.country, value: g.value }));
+  }, [geoStats.countries]);
+
+  const topCities = useMemo<CategoryStat[]>(() => {
+    return geoStats.cities
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8)
+      .map((c) => ({ name: c.city, value: c.value }));
+  }, [geoStats.cities]);
 
   const topReferrers = useMemo<CategoryStat[]>(() => {
     if (!flowData.nodes.length) return [];
@@ -82,13 +97,13 @@ export const AnalyticsPage = () => {
         const val = flowData.links
           .filter((l) => l.source === n.id)
           .reduce((acc, curr) => acc + curr.value, 0);
-        return { name: n.id, value: val || 0, share: 0 };
+        return { name: n.id, value: val || 0 };
       })
       .sort((a, b) => b.value - a.value)
       .slice(0, 8);
   }, [flowData]);
 
-  // Load Meta separately to show header fast
+  // Load Meta
   useEffect(() => {
     if (!id) return;
     const loadMeta = async () => {
@@ -105,7 +120,7 @@ export const AnalyticsPage = () => {
     loadMeta();
   }, [id]);
 
-  // Load Heavy Analytics
+  // Load Analytics
   useEffect(() => {
     if (!id) return;
 
@@ -125,7 +140,7 @@ export const AnalyticsPage = () => {
             analyticsApi.getHeatmap(id, params),
             analyticsApi.getQuality(id, params),
             analyticsApi.getFlow(id, params),
-            analyticsApi.getCountryStats(params),
+            analyticsApi.getGeoStats(params),
             analyticsApi.getStats('os', params),
             analyticsApi.getStats('browser', params),
             analyticsApi.getStats('device', params),
@@ -160,7 +175,7 @@ export const AnalyticsPage = () => {
         setHeatmapData(heatmap);
         setQualityData(quality);
         setFlowData(flow);
-        setGeoData(geo);
+        setGeoStats(geo);
         setStatsOS(os);
         setStatsBrowser(browser);
         setStatsDevice(device);
@@ -175,6 +190,7 @@ export const AnalyticsPage = () => {
   }, [id, startDate, endDate]);
 
   const topCountryName = topCountries[0]?.name || '-';
+  const topCityName = topCities[0]?.name || '-'; // NEW
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
@@ -188,7 +204,7 @@ export const AnalyticsPage = () => {
             className="gap-2 text-muted-foreground pl-0 hover:text-primary shrink-0"
             onClick={() => navigate('/links')}
           >
-            <ArrowLeft size={16} /> Back to Links
+            <ArrowLeft size={16} /> {t('analytics.back_to_links')}
           </Button>
 
           <div className="flex items-center gap-2 ml-auto">
@@ -205,7 +221,9 @@ export const AnalyticsPage = () => {
                     title="Show QR Code"
                   >
                     <QrCodeIcon size={16} />
-                    <span className="hidden sm:inline">QR Code</span>
+                    <span className="hidden sm:inline">
+                      {t('analytics.qr_code')}
+                    </span>
                   </Button>
 
                   <Button
@@ -217,14 +235,16 @@ export const AnalyticsPage = () => {
                         getShortLink(linkMeta.slug)
                       );
                       toast.info(
-                        'Copied to clipboard',
+                        t('common.copied'),
                         getShortLink(linkMeta.slug)
                       );
                     }}
                     title="Copy Link"
                   >
                     <CopyIcon size={16} />
-                    <span className="hidden sm:inline">Copy</span>
+                    <span className="hidden sm:inline">
+                      {t('analytics.copy')}
+                    </span>
                   </Button>
 
                   <Button
@@ -239,7 +259,9 @@ export const AnalyticsPage = () => {
                     title="View Campaign"
                   >
                     <LayersIcon size={16} />
-                    <span className="hidden sm:inline">Campaign</span>
+                    <span className="hidden sm:inline">
+                      {t('analytics.view_campaign')}
+                    </span>
                   </Button>
                 </>
               )
@@ -270,7 +292,9 @@ export const AnalyticsPage = () => {
                           : 'bg-destructive/10 text-destructive'
                       )}
                     >
-                      {linkMeta.is_active ? 'Active' : 'Inactive'}
+                      {linkMeta.is_active
+                        ? t('analytics.active')
+                        : t('analytics.inactive')}
                     </span>
                   )}
                 </div>
@@ -298,30 +322,37 @@ export const AnalyticsPage = () => {
         </div>
       </div>
 
-      {/* --- 2. KPI --- */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* --- 2. KPI (UPDATED) --- */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <KpiCard
-          title="Total Clicks"
+          title={t('analytics.kpi.total_clicks')}
           value={summary?.total_clicks || 0}
           icon={<MousePointerClick size={18} />}
           loading={loading}
         />
         <KpiCard
-          title="Top Country"
+          title={t('analytics.kpi.top_country')}
           value={topCountryName}
           icon={<GlobeIcon size={18} />}
           isText
           loading={loading}
         />
         <KpiCard
-          title="Top OS"
+          title={t('dashboard.kpi.top_city')}
+          value={topCityName}
+          icon={<MapPinIcon size={18} />}
+          isText
+          loading={loading}
+        />
+        <KpiCard
+          title={t('analytics.kpi.top_os')}
           value={statsOS[0]?.name || '-'}
           icon={<MonitorIcon size={18} />}
           isText
           loading={loading}
         />
         <KpiCard
-          title="Top Source"
+          title={t('analytics.kpi.top_source')}
           value={(() => {
             const v = topReferrers[0]?.name || 'Direct';
             const idx = v.indexOf(':');
@@ -336,7 +367,7 @@ export const AnalyticsPage = () => {
       {/* --- 3. VOLUME --- */}
       <Card>
         <CardHeader>
-          <CardTitle>Traffic Dynamics</CardTitle>
+          <CardTitle>{t('analytics.charts.traffic_dynamics')}</CardTitle>
         </CardHeader>
         <CardContent className="h-[400px]">
           {loading ? (
@@ -353,9 +384,9 @@ export const AnalyticsPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Top Referrers</CardTitle>
+            <CardTitle>{t('analytics.charts.top_referrers')}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Where traffic comes from
+              {t('analytics.charts.top_referrers_sub')}
             </p>
           </CardHeader>
           <CardContent>
@@ -373,18 +404,37 @@ export const AnalyticsPage = () => {
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Global Reach</CardTitle>
+            <CardTitle>{t('analytics.charts.global_reach')}</CardTitle>
           </CardHeader>
-          <CardContent className="h-[400px] w-full overflow-hidden p-0">
-            {loading ? (
-              <div className="p-6 h-full">
+          {/* Using grid to show Map and City list */}
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full min-h-[400px]">
+            <div className="md:col-span-2 h-[350px] md:h-full w-full overflow-hidden p-0">
+              {loading ? (
                 <Skeleton className="w-full h-full" />
-              </div>
-            ) : geoData.length > 0 ? (
-              <GeoMap data={geoData} />
-            ) : (
-              <NoData />
-            )}
+              ) : geoStats.countries.length > 0 ? (
+                <GeoMap data={geoStats.countries} />
+              ) : (
+                <NoData />
+              )}
+            </div>
+            <div className="border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-4">
+              <h4 className="font-semibold mb-3 text-sm">
+                {t('dashboard.charts.top_cities')}
+              </h4>
+              {loading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-full" />
+                </div>
+              ) : (
+                <BarListChart
+                  data={topCities}
+                  color="bg-chart-4"
+                  className="max-h-[350px] overflow-y-auto pr-1"
+                />
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -392,19 +442,19 @@ export const AnalyticsPage = () => {
       {/* --- 5. TECH STACK --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatsCard
-          title="Device Type"
+          title={t('analytics.charts.device_type')}
           data={statsDevice}
           color="bg-chart-1"
           loading={loading}
         />
         <StatsCard
-          title="Operating System"
+          title={t('analytics.charts.operating_system')}
           data={statsOS}
           color="bg-chart-2"
           loading={loading}
         />
         <StatsCard
-          title="Browser"
+          title={t('analytics.charts.browser')}
           data={statsBrowser}
           color="bg-chart-3"
           loading={loading}
@@ -415,9 +465,9 @@ export const AnalyticsPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Traffic Flow</CardTitle>
+            <CardTitle>{t('analytics.charts.traffic_flow')}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Referer → Device → Country
+              {t('analytics.charts.traffic_flow_sub')}
             </p>
           </CardHeader>
           <CardContent className="h-[350px]">
@@ -433,7 +483,7 @@ export const AnalyticsPage = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Quality Score</CardTitle>
+            <CardTitle>{t('analytics.charts.quality_score')}</CardTitle>
           </CardHeader>
           <CardContent className="h-[350px]">
             {loading ? (
@@ -450,7 +500,7 @@ export const AnalyticsPage = () => {
       {/* --- 7. HEATMAP --- */}
       <Card>
         <CardHeader>
-          <CardTitle>Engagement Heatmap</CardTitle>
+          <CardTitle>{t('analytics.charts.engagement_heatmap')}</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px]">
           {loading ? (

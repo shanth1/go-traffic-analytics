@@ -7,6 +7,7 @@ import {
   SmartphoneIcon,
   GlobeIcon,
   ServerIcon,
+  MapPinIcon,
 } from 'lucide-react';
 
 import {
@@ -16,7 +17,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/shared/ui/card';
-import { Skeleton } from '@/shared/ui/skeleton'; // New import
+import { Skeleton } from '@/shared/ui/skeleton';
 import { StreamGraph } from '@/widgets/charts/StreamGraph';
 import { HeatmapChart } from '@/widgets/charts/HeatmapChart';
 import { QualityRadar } from '@/widgets/charts/QualityRadar';
@@ -30,11 +31,12 @@ import { useAnalyticsFilter } from '@/entities/analytics/model/filters';
 import { analyticsApi } from '@/entities/analytics/api';
 import { toRFC3339 } from '@/shared/lib/date';
 import { cn } from '@/shared/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 import type {
   HierarchyNode,
   AnalyticsSummary,
-  GeoPoint,
+  GeoStats,
   StreamChartData,
   HeatmapPoint,
   TrafficQuality,
@@ -42,6 +44,7 @@ import type {
 } from '@/shared/api/types';
 
 export const DashboardPage = () => {
+  const { t } = useTranslation();
   const { startDate, endDate } = useAnalyticsFilter();
   const [loading, setLoading] = useState(true);
 
@@ -51,7 +54,12 @@ export const DashboardPage = () => {
 
   const [streamData, setStreamData] = useState<StreamChartData[]>([]);
   const [streamKeys, setStreamKeys] = useState<string[]>([]);
-  const [geoData, setGeoData] = useState<GeoPoint[]>([]);
+
+  const [geoStats, setGeoStats] = useState<GeoStats>({
+    countries: [],
+    cities: [],
+  });
+
   const [heatmapData, setHeatmapData] = useState<HeatmapPoint[]>([]);
   const [qualityData, setQualityData] = useState<TrafficQuality | null>(null);
 
@@ -66,12 +74,23 @@ export const DashboardPage = () => {
     return map;
   }, [statsDevice]);
 
+  // Transform CountryStat -> CategoryStat for charts
   const topCountries = useMemo(() => {
-    return geoData
+    return geoStats.countries
       .sort((a, b) => b.value - a.value)
       .slice(0, 6)
-      .map((g) => ({ name: g.country, value: g.value, share: 0 }));
-  }, [geoData]);
+      .map((g) => ({ name: g.country, value: g.value }));
+  }, [geoStats.countries]);
+
+  // NEW: Transform CityStat -> CategoryStat for charts
+  const topCities = useMemo(() => {
+    return geoStats.cities
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 6)
+      .map((c) => ({ name: c.city, value: c.value }));
+  }, [geoStats.cities]);
+
+  const topCityName = topCities[0]?.name || '-';
 
   const inventoryStats = useMemo(() => {
     let campaigns = 0;
@@ -103,7 +122,7 @@ export const DashboardPage = () => {
               ...params,
               group_by: 'device',
             }),
-            analyticsApi.getCountryStats(params),
+            analyticsApi.getGeoStats(params), // UPDATED
             analyticsApi.getHeatmap(undefined, params),
             analyticsApi.getQuality(undefined, params),
             analyticsApi.getStats('device', params),
@@ -139,7 +158,7 @@ export const DashboardPage = () => {
             .sort((a, b) => a.time.getTime() - b.time.getTime())
         );
 
-        setGeoData(geo);
+        setGeoStats(geo);
         setHeatmapData(heatmap);
         setQualityData(quality);
         setStatsDevice(dev);
@@ -161,44 +180,53 @@ export const DashboardPage = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-border pb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Overview
+            {t('dashboard.title')}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Global metrics across all campaigns and links.
+            {t('dashboard.subtitle')}
           </p>
         </div>
         <DateRangePicker />
       </div>
 
-      {/* --- 1. KPI ROW --- */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* --- 1. KPI ROW (UPDATED with City) --- */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <KpiCard
-          title="Total Clicks"
+          title={t('dashboard.kpi.total_clicks')}
           value={summary?.total_clicks || 0}
           icon={<MousePointerClick className="text-primary" />}
-          trend="Volumetric"
+          trend={t('dashboard.kpi.volumetric')}
           loading={loading}
         />
         <KpiCard
-          title="Human Traffic"
+          title={t('dashboard.kpi.human_traffic')}
           value={`${qualityData?.human_score || 0}%`}
           icon={<ShieldCheckIcon className="text-chart-2" />}
-          trend="Quality Score"
+          trend={t('dashboard.kpi.quality_score')}
+          isText
+          loading={loading}
+        />
+        {/* NEW KPI: TOP CITY */}
+        <KpiCard
+          title={t('dashboard.kpi.top_city')}
+          value={topCityName}
+          icon={<MapPinIcon className="text-chart-5" />}
+          trend="Geo"
           isText
           loading={loading}
         />
         <KpiCard
-          title="Active Campaigns"
+          title={t('dashboard.kpi.active_campaigns')}
           value={inventoryStats.campaigns}
           icon={<LayersIcon className="text-chart-3" />}
-          trend="Inventory"
+          trend={t('dashboard.kpi.inventory')}
           loading={loading}
         />
         <KpiCard
-          title="Active Links"
+          title={t('dashboard.kpi.active_links')}
           value={inventoryStats.links}
           icon={<ActivityIcon className="text-chart-4" />}
-          trend="Inventory"
+          trend={t('dashboard.kpi.inventory')}
           loading={loading}
         />
       </div>
@@ -206,9 +234,9 @@ export const DashboardPage = () => {
       {/* --- 2. MAIN TREND --- */}
       <Card className="overflow-hidden">
         <CardHeader>
-          <CardTitle>Traffic Trends</CardTitle>
+          <CardTitle>{t('dashboard.charts.traffic_trends')}</CardTitle>
           <CardDescription>
-            Click volume distribution by device type over time
+            {t('dashboard.charts.traffic_trends_desc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="h-[350px]">
@@ -224,8 +252,10 @@ export const DashboardPage = () => {
 
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Account Hierarchy</CardTitle>
-          <CardDescription>Campaigns & Links</CardDescription>
+          <CardTitle>{t('dashboard.charts.hierarchy')}</CardTitle>
+          <CardDescription>
+            {t('dashboard.charts.hierarchy_desc')}
+          </CardDescription>
         </CardHeader>
         <CardContent className="h-[300px]">
           {loading ? (
@@ -238,28 +268,31 @@ export const DashboardPage = () => {
         </CardContent>
       </Card>
 
-      {/* --- 3. GEOGRAPHY --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* --- 3. GEOGRAPHY (UPDATED) --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Global Heatmap</CardTitle>
-            <CardDescription>Traffic intensity by region</CardDescription>
+            <CardTitle>{t('dashboard.charts.global_heatmap')}</CardTitle>
+            <CardDescription>
+              {t('dashboard.charts.global_heatmap_desc')}
+            </CardDescription>
           </CardHeader>
           <CardContent className="h-[400px] w-full p-0 overflow-hidden">
             {loading ? (
               <div className="p-6 h-full">
                 <Skeleton className="w-full h-full rounded-none" />
               </div>
-            ) : geoData.length > 0 ? (
-              <GeoMap data={geoData} />
+            ) : geoStats.countries.length > 0 ? (
+              <GeoMap data={geoStats.countries} />
             ) : (
               <NoData />
             )}
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader>
-            <CardTitle>Top Countries</CardTitle>
+            <CardTitle>{t('dashboard.charts.top_countries')}</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -273,6 +306,23 @@ export const DashboardPage = () => {
             )}
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('dashboard.charts.top_cities')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="h-6 w-full" />
+                ))}
+              </div>
+            ) : (
+              <BarListChart data={topCities} color="bg-chart-5" />
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* --- 4. TECHNOLOGY STACK --- */}
@@ -281,7 +331,7 @@ export const DashboardPage = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <SmartphoneIcon size={18} className="text-muted-foreground" />{' '}
-              Device Share
+              {t('dashboard.charts.device_share')}
             </CardTitle>
           </CardHeader>
           <CardContent className="h-[250px] flex items-center justify-center">
@@ -299,7 +349,7 @@ export const DashboardPage = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ServerIcon size={18} className="text-muted-foreground" />{' '}
-              Operating Systems
+              {t('dashboard.charts.os')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -318,7 +368,8 @@ export const DashboardPage = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <GlobeIcon size={18} className="text-muted-foreground" /> Browsers
+              <GlobeIcon size={18} className="text-muted-foreground" />{' '}
+              {t('dashboard.charts.browsers')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -339,8 +390,10 @@ export const DashboardPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Peak Hours (UTC)</CardTitle>
-            <CardDescription>Engagement heatmap</CardDescription>
+            <CardTitle>{t('dashboard.charts.peak_hours')}</CardTitle>
+            <CardDescription>
+              {t('dashboard.charts.peak_hours_desc')}
+            </CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
             {loading ? (
@@ -355,8 +408,10 @@ export const DashboardPage = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Traffic Quality Radar</CardTitle>
-            <CardDescription>Bot vs Human Analysis</CardDescription>
+            <CardTitle>{t('dashboard.charts.quality_radar')}</CardTitle>
+            <CardDescription>
+              {t('dashboard.charts.quality_radar_desc')}
+            </CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
             {loading ? (
@@ -410,8 +465,9 @@ const KpiCard = ({
           <h3
             className={cn(
               'font-bold text-foreground',
-              isText ? 'text-xl' : 'text-3xl'
+              isText ? 'text-xl truncate' : 'text-3xl'
             )}
+            title={typeof value === 'string' ? value : undefined}
           >
             {typeof value === 'number'
               ? new Intl.NumberFormat('en-US', { notation: 'compact' }).format(

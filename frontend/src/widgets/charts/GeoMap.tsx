@@ -6,7 +6,7 @@ import { withParentSize } from '@visx/responsive';
 import type { Feature, Geometry } from 'geojson';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
-import type { GeoPoint } from '@/shared/api/types';
+import type { CountryStat } from '@/shared/api/types';
 import { THEME_COLORS } from '@/shared/config/theme';
 
 countries.registerLocale(enLocale);
@@ -14,7 +14,7 @@ countries.registerLocale(enLocale);
 interface GeoMapProps {
   parentWidth?: number;
   parentHeight?: number;
-  data: GeoPoint[];
+  data: CountryStat[];
 }
 
 interface TopologyData {
@@ -55,12 +55,11 @@ const GeoMapBase = ({
     return map;
   }, [data]);
 
-  // FIX: Используем scaleLinear для прозрачности, чтобы не хардкодить цвета
   const opacityScale = useMemo(() => {
     const maxVal = data.length > 0 ? Math.max(...data.map((d) => d.value)) : 1;
     return scaleLinear<number>({
       domain: [0, maxVal],
-      range: [0.2, 1], // Страны с данными будут иметь opacity от 0.2 до 1
+      range: [0.2, 1],
       clamp: true,
     });
   }, [data]);

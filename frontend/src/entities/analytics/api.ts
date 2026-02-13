@@ -24,7 +24,7 @@ export const analyticsApi = {
     return data.data;
   },
 
-  getCountryStats: async (params?: AnalyticsParams) => {
+  getGeoStats: async (params?: AnalyticsParams) => {
     const { data } = await api.get<GeoResponse>('/analytics/geo', { params });
     return data.data;
   },

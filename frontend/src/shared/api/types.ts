@@ -36,6 +36,7 @@ export interface Plan {
 }
 
 // --- Analytics Models ---
+
 export interface StackedPoint {
   time: string;
   values: Record<string, number>;
@@ -57,11 +58,13 @@ export interface SankeyNode {
   id: string;
   layer: number;
 }
+
 export interface SankeyLink {
   source: string;
   target: string;
   value: number;
 }
+
 export interface SankeyData {
   nodes: SankeyNode[];
   links: SankeyLink[];
@@ -70,7 +73,7 @@ export interface SankeyData {
 export interface CategoryStat {
   name: string;
   value: number;
-  share: number;
+  share?: number;
 }
 
 export interface AnalyticsSummary {
@@ -93,9 +96,19 @@ export interface HeatmapPoint {
   count: number;
 }
 
-export interface GeoPoint {
+export interface CountryStat {
   country: string;
   value: number;
+}
+
+export interface CityStat {
+  city: string;
+  value: number;
+}
+
+export interface GeoStats {
+  countries: CountryStat[];
+  cities: CityStat[];
 }
 
 // --- Requests ---
@@ -146,7 +159,7 @@ export type LinksListResponse = PaginatedResponse<Link>;
 
 // Analytics Responses
 export type AnalyticsSummaryResponse = ResponseWrapper<AnalyticsSummary>;
-export type GeoResponse = ResponseWrapper<GeoPoint[]>;
+export type GeoResponse = ResponseWrapper<GeoStats>;
 export type TreeResponse = ResponseWrapper<HierarchyNode>;
 export type StreamGraphResponse = ResponseWrapper<StackedPoint[]>;
 export type SankeyResponse = ResponseWrapper<SankeyData>;
