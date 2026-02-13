@@ -103,7 +103,7 @@ export const DashboardPage = () => {
               ...params,
               group_by: 'device',
             }),
-            analyticsApi.getGeoStats(params),
+            analyticsApi.getCountryStats(params),
             analyticsApi.getHeatmap(undefined, params),
             analyticsApi.getQuality(undefined, params),
             analyticsApi.getStats('device', params),

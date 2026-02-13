@@ -125,7 +125,7 @@ export const AnalyticsPage = () => {
             analyticsApi.getHeatmap(id, params),
             analyticsApi.getQuality(id, params),
             analyticsApi.getFlow(id, params),
-            analyticsApi.getGeoStats(params),
+            analyticsApi.getCountryStats(params),
             analyticsApi.getStats('os', params),
             analyticsApi.getStats('browser', params),
             analyticsApi.getStats('device', params),

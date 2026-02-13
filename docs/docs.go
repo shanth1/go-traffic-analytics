@@ -1450,7 +1450,18 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.GeoStat": {
+        "domain.CityStat": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.CountryStat": {
             "type": "object",
             "properties": {
                 "country": {
@@ -1458,6 +1469,23 @@ const docTemplate = `{
                 },
                 "value": {
                     "type": "integer"
+                }
+            }
+        },
+        "domain.GeoStats": {
+            "type": "object",
+            "properties": {
+                "cities": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CityStat"
+                    }
+                },
+                "countries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CountryStat"
+                    }
                 }
             }
         },
@@ -1762,10 +1790,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.GeoStat"
-                    }
+                    "$ref": "#/definitions/domain.GeoStats"
                 }
             }
         },

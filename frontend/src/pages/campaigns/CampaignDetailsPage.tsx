@@ -125,7 +125,7 @@ export const CampaignDetailsPage = () => {
           analyticsApi.getSummary(params),
           analyticsApi.getStream(undefined, params),
           analyticsApi.getHeatmap(undefined, params),
-          analyticsApi.getGeoStats(params),
+          analyticsApi.getCountryStats(params),
           analyticsApi.getStats('device', params),
         ]);
 

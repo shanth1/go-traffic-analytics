@@ -164,17 +164,16 @@ func (h *AnalyticsHandler) GetSankeyFlow(w http.ResponseWriter, r *http.Request)
 func (h *AnalyticsHandler) GetGeoMap(w http.ResponseWriter, r *http.Request) {
 	filter := h.parseFilter(r)
 
-	data, err := h.service.GetGeoDistribution(r.Context(), filter)
+	data, err := h.service.GetGeoStats(r.Context(), filter)
 	if err != nil {
 		response.Error(w, r, err)
 		return
 	}
 
-	if data == nil {
-		data = []domain.GeoStat{}
-	}
-
-	log.FromContext(r.Context()).Info().Str("campaign_id", filter.CampaignID).Str("link_id", string(filter.LinkID)).Msg("analytics_geo_map_retrieved")
+	log.FromContext(r.Context()).Info().
+		Str("campaign_id", filter.CampaignID).
+		Str("link_id", string(filter.LinkID)).
+		Msg("analytics_geo_map_retrieved")
 
 	response.OK(w, r, data)
 }

@@ -242,6 +242,11 @@ func (r *AnalyticRepo) GetTopStats(_ context.Context, filter domain.AnalyticsFil
 			if key == "" {
 				key = ValueUnknown
 			}
+		case consts.City:
+			key = c.City
+			if key == "" {
+				key = ValueUnknown
+			}
 		case consts.Referer:
 			key = c.Referer
 			if key == "" {

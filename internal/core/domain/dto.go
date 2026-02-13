@@ -1,6 +1,8 @@
 package domain
 
-import "time"
+import (
+	"time"
+)
 
 // --- Common ---
 
@@ -87,7 +89,17 @@ type Summary struct {
 	TopOS       []CategoryStat `json:"top_os"`
 }
 
-type GeoStat struct {
+type GeoStats struct {
+	Countries []CountryStat `json:"countries"`
+	Cities    []CityStat    `json:"cities"`
+}
+
+type CountryStat struct {
 	Country string `json:"country"`
 	Value   int    `json:"value"`
+}
+
+type CityStat struct {
+	City  string `json:"city"`
+	Value int    `json:"value"`
 }

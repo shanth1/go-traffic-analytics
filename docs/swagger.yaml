@@ -21,12 +21,30 @@ definitions:
       value:
         type: integer
     type: object
-  domain.GeoStat:
+  domain.CityStat:
+    properties:
+      city:
+        type: string
+      value:
+        type: integer
+    type: object
+  domain.CountryStat:
     properties:
       country:
         type: string
       value:
         type: integer
+    type: object
+  domain.GeoStats:
+    properties:
+      cities:
+        items:
+          $ref: '#/definitions/domain.CityStat'
+        type: array
+      countries:
+        items:
+          $ref: '#/definitions/domain.CountryStat'
+        type: array
     type: object
   domain.HeatmapPoint:
     properties:
@@ -227,9 +245,7 @@ definitions:
   v1.GeoResponse:
     properties:
       data:
-        items:
-          $ref: '#/definitions/domain.GeoStat'
-        type: array
+        $ref: '#/definitions/domain.GeoStats'
     type: object
   v1.HeatmapResponse:
     properties:

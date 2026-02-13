@@ -12,6 +12,7 @@ import (
 	"github.com/shanth1/gotrace/internal/core/ports"
 	"github.com/shanth1/gotrace/internal/pkg/consts"
 	"github.com/xuri/excelize/v2"
+	"golang.org/x/sync/errgroup"
 )
 
 type AnalyticsService struct {
@@ -73,18 +74,52 @@ func (s *AnalyticsService) GetSankeyData(ctx context.Context, filter domain.Anal
 	return s.repo.GetFlowData(ctx, filter, stages)
 }
 
-func (s *AnalyticsService) GetGeoDistribution(ctx context.Context, filter domain.AnalyticsFilter) ([]domain.GeoStat, error) {
-	stats, err := s.repo.GetTopStats(ctx, filter, consts.Country, 200)
-	if err != nil {
-		return nil, err
-	}
+func (s *AnalyticsService) GetGeoStats(ctx context.Context, filter domain.AnalyticsFilter) (domain.GeoStats, error) {
+	g, gCtx := errgroup.WithContext(ctx)
 
-	result := make([]domain.GeoStat, 0, len(stats))
-	for _, stat := range stats {
-		result = append(result, domain.GeoStat{
-			Country: stat.Name,
-			Value:   stat.Value,
-		})
+	var result domain.GeoStats
+
+	result.Countries = make([]domain.CountryStat, 0)
+	result.Cities = make([]domain.CityStat, 0)
+
+	g.Go(func() error {
+		stats, err := s.repo.GetTopStats(gCtx, filter, consts.Country, 200)
+		if err != nil {
+			return err
+		}
+
+		countries := make([]domain.CountryStat, 0, len(stats))
+		for _, stat := range stats {
+			countries = append(countries, domain.CountryStat{
+				Country: stat.Name,
+				Value:   stat.Value,
+			})
+		}
+
+		result.Countries = countries
+		return nil
+	})
+
+	g.Go(func() error {
+		stats, err := s.repo.GetTopStats(gCtx, filter, consts.City, 200)
+		if err != nil {
+			return err
+		}
+
+		cities := make([]domain.CityStat, 0, len(stats))
+		for _, stat := range stats {
+			cities = append(cities, domain.CityStat{
+				City:  stat.Name,
+				Value: stat.Value,
+			})
+		}
+
+		result.Cities = cities
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return domain.GeoStats{}, err
 	}
 
 	return result, nil

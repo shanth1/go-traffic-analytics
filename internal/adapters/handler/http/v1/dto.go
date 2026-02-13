@@ -155,7 +155,7 @@ type SankeyResponse struct {
 }
 
 type GeoResponse struct {
-	Data []domain.GeoStat `json:"data"`
+	Data domain.GeoStats `json:"data"`
 }
 
 type QualityResponse struct {

@@ -128,19 +128,19 @@ func (mr *MockAnalyticsServiceMockRecorder) GetCategoryStats(ctx, filter, dimens
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoryStats", reflect.TypeOf((*MockAnalyticsService)(nil).GetCategoryStats), ctx, filter, dimension)
 }
 
-// GetGeoDistribution mocks base method.
-func (m *MockAnalyticsService) GetGeoDistribution(ctx context.Context, filter domain.AnalyticsFilter) ([]domain.GeoStat, error) {
+// GetGeoStats mocks base method.
+func (m *MockAnalyticsService) GetGeoStats(ctx context.Context, filter domain.AnalyticsFilter) (domain.GeoStats, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGeoDistribution", ctx, filter)
-	ret0, _ := ret[0].([]domain.GeoStat)
+	ret := m.ctrl.Call(m, "GetGeoStats", ctx, filter)
+	ret0, _ := ret[0].(domain.GeoStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetGeoDistribution indicates an expected call of GetGeoDistribution.
-func (mr *MockAnalyticsServiceMockRecorder) GetGeoDistribution(ctx, filter any) *gomock.Call {
+// GetGeoStats indicates an expected call of GetGeoStats.
+func (mr *MockAnalyticsServiceMockRecorder) GetGeoStats(ctx, filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGeoDistribution", reflect.TypeOf((*MockAnalyticsService)(nil).GetGeoDistribution), ctx, filter)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGeoStats", reflect.TypeOf((*MockAnalyticsService)(nil).GetGeoStats), ctx, filter)
 }
 
 // GetHeatmapData mocks base method.
