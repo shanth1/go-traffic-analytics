@@ -9,6 +9,7 @@ import {
   CreditCardIcon,
   FileDownIcon,
   SparklesIcon,
+  BrainCircuitIcon,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { useAuthStore } from '@/entities/session/store';
@@ -23,6 +24,7 @@ const MAIN_NAV = [
 
 const SECONDARY_NAV = [
   { label: 'Export Data', path: '/export', icon: FileDownIcon },
+  { label: 'ML Analytics', path: '/ml', icon: BrainCircuitIcon }, // NEW
   { label: 'Plans & Billing', path: '/pricing', icon: CreditCardIcon },
 ];
 
@@ -48,7 +50,6 @@ export const MainLayout = () => {
         ========================================
       */}
       <aside className="hidden md:flex flex-col w-[260px] h-[calc(100vh-24px)] m-3 mr-0 bg-card/80 backdrop-blur-xl border border-border shadow-2xl shadow-primary/5 rounded-4xl overflow-hidden z-50 relative">
-        {/* 1. PROFILE BUTTON (Interactive) */}
         <div className="p-3">
           <Link to="/profile">
             <button className="cursor-pointer flex items-center gap-3 w-full p-2 rounded-2xl hover:bg-secondary/80 transition-colors border border-transparent hover:border-border group text-left">
@@ -60,10 +61,8 @@ export const MainLayout = () => {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                {/* Online/Active Dot */}
                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-card rounded-full" />
               </div>
-
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-sm truncate text-foreground group-hover:text-primary transition-colors">
                   {user.email.split('@')[0]}
@@ -78,9 +77,7 @@ export const MainLayout = () => {
 
         <div className="h-px bg-border mx-4 opacity-50" />
 
-        {/* 2. MAIN NAVIGATION */}
         <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6 scrollbar-none">
-          {/* Section: Main */}
           <div className="space-y-1">
             <div className="px-3 text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-2 opacity-70">
               {t('common.overview')}
@@ -93,7 +90,6 @@ export const MainLayout = () => {
                   to={item.path}
                   className="relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 group"
                 >
-                  {/* Liquid Active Background */}
                   {isActive && (
                     <motion.div
                       layoutId="desktop-nav-active"
@@ -106,12 +102,9 @@ export const MainLayout = () => {
                       }}
                     />
                   )}
-
-                  {/* Hover Background */}
                   {!isActive && (
                     <div className="absolute inset-0 bg-secondary/50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                   )}
-
                   <item.icon
                     size={20}
                     className={cn(
@@ -136,10 +129,9 @@ export const MainLayout = () => {
             })}
           </div>
 
-          {/* Section: Auxiliary */}
           <div className="space-y-1">
             <div className="px-3 text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-2 opacity-70">
-              Other
+              {t('common.other')}
             </div>
             {SECONDARY_NAV.map((item) => {
               const isActive = isPathActive(item.path);
@@ -161,11 +153,9 @@ export const MainLayout = () => {
                       }}
                     />
                   )}
-
                   {!isActive && (
                     <div className="absolute inset-0 bg-secondary/50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                   )}
-
                   <item.icon
                     size={20}
                     className={cn(
@@ -191,7 +181,6 @@ export const MainLayout = () => {
           </div>
         </div>
 
-        {/* 3. BOTTOM ACTIONS */}
         <div className="p-3 border-t border-border mt-auto">
           <button
             onClick={logout}
@@ -201,7 +190,7 @@ export const MainLayout = () => {
               size={20}
               className="opacity-70 group-hover:opacity-100"
             />
-            <span>Log Out</span>
+            <span>{t('common.logout')}</span>
           </button>
         </div>
       </aside>
@@ -212,7 +201,6 @@ export const MainLayout = () => {
         ========================================
       */}
       <main className="flex-1 relative h-full overflow-hidden">
-        {/* Decorative Background Blobs (Using Semantic Colors) */}
         <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-chart-4/5 rounded-full blur-[120px] pointer-events-none" />
 
@@ -235,7 +223,6 @@ export const MainLayout = () => {
               </div>
             </Link>
           </div>
-
           <div className="max-w-6xl mx-auto">
             <Outlet />
           </div>

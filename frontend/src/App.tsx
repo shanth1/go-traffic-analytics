@@ -18,6 +18,7 @@ import { useAuthStore } from '@/entities/session/store';
 import { Toaster } from '@/shared/ui/toaster';
 import { ExportPage } from '@/pages/export/ExportPage';
 import { RegisterPage } from '@/pages/register/RegisterPage';
+import { MlAnalyticsPage } from '@/pages/ml/MlAnalyticsPage';
 
 const ProtectedRoute = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -58,6 +59,7 @@ export const App = () => {
           <Route path="/links" element={<LinksPage />} />
           <Route path="/links/:id" element={<AnalyticsPage />} />
           <Route path="/export" element={<ExportPage />} />
+          <Route path="/ml" element={<MlAnalyticsPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
