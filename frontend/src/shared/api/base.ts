@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { useAuthStore } from '@/entities/session/store';
-import { toast } from '@/entities/notification/store'; // New Import
+import { toast } from '@/entities/notification/store';
 import { API_URL } from '@/shared/config';
 
 export const api = axios.create({
@@ -20,8 +20,10 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<{ error?: string; message?: string }>) => {
-    // 1. Handle Auth Errors (Silent logout, maybe a small warning)
+  (
+    error: AxiosError<{ error?: string; message?: string; detail?: string }>
+  ) => {
+    // 1. Handle Auth Errors (401)
     if (error.response?.status === 401) {
       useAuthStore.getState().logout();
       toast.warn('Session Expired', 'Please sign in again.');
@@ -33,16 +35,18 @@ api.interceptors.response.use(
         'Something went wrong on our end. Please try again later.'
       );
     }
-    // 3. Handle Client Errors (4xx) - Validation, etc.
+    // 3. Handle Client Errors (4xx) - Validation, Business Logic
     else if (error.response && error.response.status >= 400) {
       const msg =
         error.response.data?.error ||
         error.response.data?.message ||
+        error.response.data?.detail ||
         'Action failed';
+
       toast.error('Error', msg);
     }
-    // 4. Network Errors
-    else if (error.code === 'ERR_NETWORK') {
+    // 4. Network Errors (No response received)
+    else if (error.code === 'ERR_NETWORK' || !error.response) {
       toast.error('Network Error', 'Please check your internet connection.');
     }
 

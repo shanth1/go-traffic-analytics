@@ -1,3 +1,4 @@
+// FILE: frontend/src/pages/ml/MlAnalyticsPage.tsx
 import { useState } from 'react';
 import {
   BrainCircuitIcon,
@@ -22,7 +23,6 @@ export const MlAnalyticsPage = () => {
   const handleNotify = async () => {
     setLoading(true);
     try {
-      // Отправляем реальный запрос на бэкенд
       await feedbackApi.send({
         name: user?.email ? user.email.split('@')[0] : 'Guest',
         email: user?.email || 'unknown@user.com',
@@ -33,8 +33,6 @@ export const MlAnalyticsPage = () => {
       toast.info(t('ml.notify_success'), t('ml.notify_success_desc'));
     } catch (error) {
       console.error('Failed to subscribe to ML waitlist', error);
-      // Ошибки уже обрабатываются глобальным интерцептором, но на всякий случай:
-      toast.error('Error', 'Failed to join waitlist. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -99,7 +97,7 @@ export const MlAnalyticsPage = () => {
             </CardContent>
           </Card>
 
-          {/* Feature 3: Smart Optimization (Investor Friendly) */}
+          {/* Feature 3: Smart Optimization */}
           <Card className="bg-card/40 backdrop-blur-md border-primary/10 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
             <CardContent className="p-8 space-y-5">
               <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl w-fit">
