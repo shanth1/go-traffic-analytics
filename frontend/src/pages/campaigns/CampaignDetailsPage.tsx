@@ -1,4 +1,3 @@
-// FILE: frontend/src/pages/campaigns/CampaignDetailsPage.tsx
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -285,6 +284,7 @@ export const CampaignDetailsPage = () => {
           </div>
         </div>
 
+        {/* TABS */}
         <div className="flex gap-1 bg-muted p-1.5 rounded-xl w-fit border border-border">
           <button
             onClick={() => setActiveTab('overview')}
@@ -425,24 +425,20 @@ export const CampaignDetailsPage = () => {
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {t('analytics.charts.engagement_heatmap')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="h-[300px]">
-                {analyticsLoading ? (
-                  <Skeleton className="w-full h-full" />
-                ) : heatmapData.length > 0 ? (
-                  <HeatmapChart data={heatmapData} />
-                ) : (
-                  <NoData />
-                )}
-              </CardContent>
-            </Card>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('analytics.charts.engagement_heatmap')}</CardTitle>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              {analyticsLoading ? (
+                <Skeleton className="w-full h-full" />
+              ) : heatmapData.length > 0 ? (
+                <HeatmapChart data={heatmapData} />
+              ) : (
+                <NoData />
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
 
