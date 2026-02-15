@@ -1,3 +1,4 @@
+// FILE: frontend/src/shared/config/i18n/locales/en.ts
 export const en = {
   translation: {
     common: {
@@ -63,7 +64,7 @@ export const en = {
       form_sending: 'Sending...',
       success_title: 'Request Sent!',
       success_desc:
-        'We have received your details. Support will contact you at your email address shortly.',
+        'We have received your details. Support will contact you shortly.',
     },
     dashboard: {
       title: 'Overview',
@@ -219,7 +220,7 @@ export const en = {
       subtitle: 'Generate and download reports based on your filters.',
       locked_title: 'Feature Locked',
       locked_desc:
-        'Raw data export to Excel is available only for <strong>Professional</strong> plans. Upgrade to access deep analytics and reporting.',
+        'Raw data export to Excel is available only for <strong>Pro</strong> plans. Upgrade to access deep analytics and reporting.',
       upgrade_btn: 'Upgrade Plan',
       card_title: 'Excel Spreadsheet',
       card_desc: 'Exporting data for the period:',
@@ -228,38 +229,6 @@ export const en = {
       raw_data: 'Raw Data',
       success_title: 'Success',
       success_desc: 'Your data export is ready.',
-    },
-    pricing: {
-      title: 'Simple, transparent pricing',
-      subtitle:
-        "Choose the plan that's right for you. All plans include our core link shortening features.",
-      most_popular: 'MOST POPULAR',
-      current_plan: 'Current Plan',
-      contact_sales: 'Contact Sales',
-      plans: {
-        free: {
-          name: 'Starter',
-          desc: 'Perfect for side projects and hobbies.',
-          btn: 'Current Plan',
-        },
-        pro: {
-          name: 'Pro',
-          desc: 'For creators and growing businesses.',
-          btn: 'Upgrade to Pro',
-        },
-        enterprise: {
-          name: 'Enterprise',
-          desc: 'For large scale organizations.',
-          btn: 'Contact Sales',
-        },
-      },
-      upgrade_modal: {
-        title: 'Upgrade to {{plan}}',
-        integration_title: 'Payment Gateway Integration',
-        integration_desc:
-          'We are currently integrating Stripe. To upgrade your plan immediately, please contact our support team, and we will handle it manually within 1 hour.',
-        contact_btn: 'Contact Support to Upgrade',
-      },
     },
     ml: {
       title: 'ML Analytics',
@@ -275,6 +244,59 @@ export const en = {
       notify_btn: 'Notify when ready',
       notify_success: 'Subscribed!',
       notify_success_desc: 'We will notify you when ML features go live.',
+    },
+    pricing: {
+      title: 'Simple, transparent pricing',
+      subtitle: 'Choose the plan that fits your needs. No hidden fees.',
+      most_popular: 'MOST POPULAR',
+      best_value: 'LIFETIME CLICKS',
+      current_plan: 'Current Plan',
+      contact_sales: 'Contact Sales',
+      per_month: '/ mo',
+      per_click: '/ click',
+      min_deposit: 'Pack from {{amount}} ₽',
+      features: {
+        views_estimate: '≈ {{count}} ad views (3% CTR)',
+        views_unlimited: 'Unlimited views. Auto-scaling capabilities.',
+        clicks_limit: '{{count}} clicks / mo',
+        clicks_unlimited: 'Pay only for traffic volume',
+        links_limit: 'Up to {{count}} links & campaigns',
+        links_unlimited: 'Unlimited campaigns & links',
+        retention: '{{days}}-day Data Retention',
+        retention_lifetime: 'Lifetime Data Retention',
+        export: 'Excel Data Export',
+        ml: 'ML Analytics & Protection',
+        support: 'Priority Support',
+        sla: 'Dedicated Manager',
+        no_export: 'No Data Export',
+        no_ml: 'Basic Analytics (No ML)',
+        clicks_burn: 'Unused clicks expire monthly',
+        clicks_no_burn: 'Purchased clicks never expire',
+      },
+      plans: {
+        starter: {
+          name: 'Lite',
+          desc: 'For small projects and hypothesis testing.',
+          btn: 'Choose Lite',
+        },
+        pro: {
+          name: 'Pro',
+          desc: 'Best value for active businesses and marketers.',
+          btn: 'Upgrade to Pro',
+        },
+        enterprise: {
+          name: 'Scale',
+          desc: 'Flexible solution. Buy a package once, use it forever.',
+          btn: 'Buy Package',
+        },
+      },
+      upgrade_modal: {
+        title: 'Upgrade to {{plan}}',
+        integration_title: 'Payment',
+        integration_desc:
+          'To upgrade your plan or buy a click package, please contact support. We will provide an invoice or a convenient payment link.',
+        contact_btn: 'Contact Support',
+      },
     },
     profile: {
       title: 'Profile',
@@ -317,40 +339,9 @@ export const en = {
         theme_desc: 'Switched to {{mode}} mode',
         signed_out: 'Signed Out',
         signed_out_desc: 'See you next time!',
-        localization_soon: 'Coming Soon',
-        localization_desc: 'Localization is currently in development.',
+        lang_changed: 'Language Changed',
+        lang_changed_desc: 'Interface is now in Russian.',
       },
-    },
-    components: {
-      qr: {
-        title: 'QR Code',
-        download: 'Download PNG',
-        styles: {
-          classic: 'Classic Black',
-          dark: 'Dark Mode',
-          brand: 'Brand Primary',
-          emerald: 'Eco Green',
-          rose: 'Passion Rose',
-          ocean: 'Ocean Blue',
-          amber: 'Warm Amber',
-        },
-      },
-      charts: {
-        human: 'Human',
-        bot: 'Bot Rep.',
-        geo: 'Geo',
-        mobile: 'Mobile',
-        safety: 'Safety',
-      },
-    },
-    errors: {
-      server_error: 'Server Error',
-      server_error_desc:
-        'Something went wrong on our end. Please try again later.',
-      network_error: 'Network Error',
-      network_error_desc: 'Please check your internet connection.',
-      default: 'Error',
-      action_failed: 'Action failed',
     },
   },
 };
