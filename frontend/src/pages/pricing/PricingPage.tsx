@@ -6,7 +6,6 @@ import {
   ShieldCheckIcon,
   WalletIcon,
   EyeIcon,
-  ClockIcon,
   InfinityIcon,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
@@ -25,7 +24,7 @@ import { TG_SUPPORT_URL } from '@/shared/config';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/utils';
 
-// --- STRICT TYPING FOR TRANSLATIONS ---
+// --- STRICT TYPES ---
 type TranslationParams = Record<string, string | number>;
 
 interface FeatureDef {
@@ -34,7 +33,8 @@ interface FeatureDef {
   params?: TranslationParams;
   icon?: React.ElementType;
   highlight?: boolean;
-  isNegative?: boolean; // Used to sort them to the bottom
+  isNegative?: boolean;
+  badge?: string;
 }
 
 interface PlanConfig {
@@ -82,6 +82,7 @@ export const PricingPage = () => {
           params: { days: '90' },
           included: true,
         },
+
         {
           key: 'pricing.features.no_export',
           included: false,
@@ -91,7 +92,6 @@ export const PricingPage = () => {
         {
           key: 'pricing.features.clicks_burn',
           included: false,
-          icon: ClockIcon,
           isNegative: true,
         },
       ],
@@ -117,12 +117,32 @@ export const PricingPage = () => {
           included: true,
         },
         { key: 'pricing.features.export', included: true },
-        { key: 'pricing.features.ml', included: true },
-        { key: 'pricing.features.support', included: true },
+
+        // SOON FEATURES (PRO)
+        {
+          key: 'pricing.features.ml',
+          included: true,
+          badge: 'pricing.badges.soon',
+        },
+        {
+          key: 'pricing.features.utm',
+          included: true,
+          badge: 'pricing.badges.soon',
+        },
+        // {
+        //   key: 'pricing.features.custom_slug',
+        //   included: true,
+        //   badge: 'pricing.badges.soon',
+        // },
+        {
+          key: 'pricing.features.geo',
+          included: true,
+          badge: 'pricing.badges.soon',
+        },
+        // { key: 'pricing.features.support', included: true },
         {
           key: 'pricing.features.clicks_burn',
           included: false,
-          icon: ClockIcon,
           isNegative: true,
         },
       ],
@@ -143,12 +163,28 @@ export const PricingPage = () => {
           icon: InfinityIcon,
           highlight: true,
         },
+        {
+          key: 'pricing.features.all_pro_features',
+          included: true,
+          icon: CheckIcon,
+        }, // Includes Pro
+
         { key: 'pricing.features.clicks_unlimited', included: true },
-        { key: 'pricing.features.links_unlimited', included: true },
         { key: 'pricing.features.retention_lifetime', included: true },
-        { key: 'pricing.features.export', included: true },
-        { key: 'pricing.features.ml', included: true },
+
+        // ENTERPRISE EXCLUSIVES
+        {
+          key: 'pricing.features.custom_domain',
+          included: true,
+        }, // Manual setup - Ready
         { key: 'pricing.features.sla', included: true },
+
+        // ENTERPRISE SOON
+        {
+          key: 'pricing.features.custom_error',
+          included: true,
+          badge: 'pricing.badges.soon',
+        },
       ],
     },
   ];
@@ -160,7 +196,6 @@ export const PricingPage = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-10 animate-in fade-in duration-500 py-10 px-4">
-      {/* Header */}
       <div className="text-center space-y-4 max-w-2xl mx-auto">
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
           {t('pricing.title')}
@@ -168,13 +203,11 @@ export const PricingPage = () => {
         <p className="text-lg text-muted-foreground">{t('pricing.subtitle')}</p>
       </div>
 
-      {/* Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-6 items-start">
         {plansConfig.map((plan) => {
           const isCurrent = user?.plan_id === plan.id;
           const isEnterprise = plan.id === 'enterprise';
 
-          // Sort features so negatives (crosses/burns) are at the bottom
           const sortedFeatures = [...plan.features].sort((a, b) => {
             if (a.isNegative === b.isNegative) return 0;
             return a.isNegative ? 1 : -1;
@@ -191,7 +224,6 @@ export const PricingPage = () => {
                 isEnterprise && 'bg-linear-to-b from-card to-secondary/30'
               )}
             >
-              {/* Badge */}
               {plan.badge && (
                 <div className="absolute -top-3.5 left-0 right-0 flex justify-center z-20">
                   <span
@@ -227,7 +259,6 @@ export const PricingPage = () => {
               </CardHeader>
 
               <CardContent className="flex-1 space-y-6">
-                {/* Price Block */}
                 <div>
                   <div className="flex items-baseline gap-1">
                     <span className="text-5xl font-extrabold text-foreground tracking-tight">
@@ -237,16 +268,17 @@ export const PricingPage = () => {
                       {t(plan.period)}
                     </span>
                   </div>
-                  {/* Sub-price / Deposit info */}
                   {plan.subPrice && (
                     <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold border border-emerald-500/20">
                       <WalletIcon size={12} />
-                      {t(plan.subPrice, plan.subPriceParams)}
+                      {t(plan.subPrice, { ...plan.subPriceParams } as Record<
+                        string,
+                        string | number
+                      >)}
                     </div>
                   )}
                 </div>
 
-                {/* Reach Indicator */}
                 <div className="p-3 bg-secondary/50 rounded-lg border border-border/50 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1.5">
                     <EyeIcon
@@ -256,17 +288,21 @@ export const PricingPage = () => {
                       }
                     />
                     <span className="font-medium text-foreground">
-                      {t(plan.viewsEstimateKey, plan.viewsEstimateParams)}
+                      {t(
+                        plan.viewsEstimateKey,
+                        plan.viewsEstimateParams as Record<
+                          string,
+                          string | number
+                        >
+                      )}
                     </span>
                   </div>
                 </div>
 
                 <div className="h-px bg-border/50 w-full" />
 
-                {/* Features List */}
-                <ul className="space-y-4">
+                <ul className="space-y-3">
                   {sortedFeatures.map((feature, idx) => {
-                    // Type safely assign the icon
                     const IconComponent = feature.icon
                       ? feature.icon
                       : feature.included
@@ -277,7 +313,7 @@ export const PricingPage = () => {
                       <li
                         key={idx}
                         className={cn(
-                          'flex items-start gap-3 text-sm',
+                          'flex items-start gap-3 text-sm min-h-6',
                           feature.highlight &&
                             'font-semibold text-emerald-600 dark:text-emerald-400',
                           feature.isNegative
@@ -295,7 +331,20 @@ export const PricingPage = () => {
                                 : 'text-muted-foreground'
                           )}
                         />
-                        <span>{t(feature.key, feature.params)}</span>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="leading-tight">
+                            {t(feature.key, { ...feature.params } as Record<
+                              string,
+                              string | number
+                            >)}
+                          </span>
+
+                          {feature.badge && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                              {t(feature.badge)}
+                            </span>
+                          )}
+                        </div>
                       </li>
                     );
                   })}
@@ -327,7 +376,6 @@ export const PricingPage = () => {
         })}
       </div>
 
-      {/* Upgrade Modal */}
       <ResponsiveSheet
         isOpen={!!selectedPlan}
         onClose={() => setSelectedPlan(null)}

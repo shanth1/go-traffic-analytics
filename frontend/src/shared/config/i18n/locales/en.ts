@@ -272,6 +272,12 @@ export const en = {
         no_ml: 'Basic Analytics (No ML)',
         clicks_burn: 'Unused clicks expire monthly',
         clicks_no_burn: 'Purchased clicks never expire',
+        utm: 'UTM Labels',
+        custom_slug: 'Custom Link Slugs',
+        geo: 'Geo-Blocking',
+        custom_domain: 'Custom Domain',
+        custom_error: 'Branded Error Page',
+        all_pro_features: 'All Pro features included',
       },
       plans: {
         starter: {

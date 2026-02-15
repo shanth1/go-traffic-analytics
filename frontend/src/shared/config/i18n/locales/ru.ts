@@ -262,6 +262,11 @@ export const ru = {
       per_month: '/ мес',
       per_click: '/ клик',
       min_deposit: 'Пакет от {{amount}} ₽',
+      badges: {
+        soon: 'Soon',
+        beta: 'Beta',
+        new: 'New',
+      },
       features: {
         views_estimate: '≈ {{count}} рекламных показов (CTR 3%)',
         views_unlimited: 'Неограниченные показы. Авто-масштабирование.',
@@ -279,6 +284,12 @@ export const ru = {
         no_ml: 'Без доступа к ML Аналитике',
         clicks_burn: 'Неиспользованные клики сгорают',
         clicks_no_burn: 'Купленные клики не сгорают никогда',
+        utm: 'UTM метки',
+        custom_slug: 'Персональные ссылки',
+        geo: 'Гео-блокировка',
+        custom_domain: 'Свой домен',
+        custom_error: 'Своя страница ошибки',
+        all_pro_features: 'Все возможности тарифа Pro',
       },
       plans: {
         starter: {
